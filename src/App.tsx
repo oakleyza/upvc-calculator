@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import type { ChangeEvent } from 'react';
 import { 
   Calculator, 
   Check, 
@@ -13,12 +14,57 @@ import {
   Upload,
   Download,
   X,
-  Save,
   AlertCircle
 } from 'lucide-react';
 
+// --- Types & Interfaces ---
+interface PriceCategory {
+  [key: string]: number;
+}
+
+interface PricingStructure {
+  structure: PriceCategory;
+  size: PriceCategory;
+  surface: PriceCategory;
+  grooving: PriceCategory;
+  molding: PriceCategory;
+  glass: PriceCategory;
+  louver: PriceCategory;
+  reinforce: PriceCategory;
+  drilling: PriceCategory;
+  options: PriceCategory;
+}
+
+interface DoorOptions {
+  [key: string]: boolean;
+}
+
+interface DoorFormData {
+  type: string;
+  structure: string;
+  sizeType: string;
+  customWidth: string;
+  customHeight: string;
+  surfaceType: string;
+  toaCode: string;
+  svlCode: string;
+  grooving: string;
+  molding: string;
+  glass: string;
+  louver: string;
+  reinforce: string;
+  drilling: string;
+  options: DoorOptions;
+}
+
+interface TabInfo {
+  id: string;
+  label: string;
+  icon: React.ElementType;
+}
+
 // --- Default Prices (ราคาเริ่มต้น) ---
-const DEFAULT_PRICES = {
+const DEFAULT_PRICES: PricingStructure = {
   structure: {
     'uPVC': 2500,
     'WPC RIGID': 3500,
@@ -30,15 +76,14 @@ const DEFAULT_PRICES = {
     '90x200cm': 400,
     'custom': 1000, // ค่าดำเนินการพื้นฐาน (Base Fee)
     
-    // --- New Range Logic Keys (Updated) ---
     // Width Ranges (Max 95)
-    'custom_w_81_89': 300,     // กว้าง 81-89
-    'custom_w_91_95': 500,     // กว้าง 91-95
+    'custom_w_81_89': 300,
+    'custom_w_91_95': 500,
     
     // Height Ranges (Max 240)
-    'custom_h_201_210': 400,   // สูง 201-210
-    'custom_h_211_220': 600,   // สูง 211-220
-    'custom_h_221_240': 1000,  // สูง 221-240
+    'custom_h_201_210': 400,
+    'custom_h_211_220': 600,
+    'custom_h_221_240': 1000,
   },
   surface: {
     'TOA': 500,
@@ -85,7 +130,7 @@ const DEFAULT_PRICES = {
   }
 };
 
-const TABS = [
+const TABS: TabInfo[] = [
   { id: 'exclusive', label: 'ประตู Exclusive', icon: DoorOpen },
   { id: 'standard', label: 'ประตู Standard', icon: Layers },
   { id: 'frame', label: 'วงกบ (Frame)', icon: Maximize },
@@ -93,15 +138,15 @@ const TABS = [
 ];
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('exclusive');
-  const [showAdminPanel, setShowAdminPanel] = useState(false);
-  const fileInputRef = useRef(null);
+  const [activeTab, setActiveTab] = useState<string>('exclusive');
+  const [showAdminPanel, setShowAdminPanel] = useState<boolean>(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Dynamic Prices State
-  const [prices, setPrices] = useState(DEFAULT_PRICES);
+  const [prices, setPrices] = useState<PricingStructure>(DEFAULT_PRICES);
   
   // State for Exclusive Door
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<DoorFormData>({
     type: 'ภายนอก',
     structure: 'uPVC',
     sizeType: '70x200cm',
@@ -128,11 +173,11 @@ export default function App() {
     }
   });
 
-  const [totalPrice, setTotalPrice] = useState(0);
-  const [activeSurcharges, setActiveSurcharges] = useState([]); // Store reasons for extra charges
+  const [totalPrice, setTotalPrice] = useState<number>(0);
+  const [activeSurcharges, setActiveSurcharges] = useState<string[]>([]);
 
   // --- Handlers ---
-  const handleInputChange = (field, value) => {
+  const handleInputChange = (field: keyof DoorFormData, value: any) => {
     // Input Limitation Logic
     if (field === 'customWidth') {
        const num = Number(value);
@@ -146,14 +191,14 @@ export default function App() {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleOptionToggle = (optionKey) => {
+  const handleOptionToggle = (optionKey: string) => {
     setFormData(prev => ({
       ...prev,
       options: { ...prev.options, [optionKey]: !prev.options[optionKey] }
     }));
   };
 
-  const handleIntegerInput = (e) => {
+  const handleIntegerInput = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === '.' || e.key === ',' || e.key === '-') e.preventDefault();
   };
 
@@ -214,16 +259,16 @@ option,wood_top_bottom,เสริมโครงไม้ บน/ล่าง,
     document.body.removeChild(link);
   };
 
-  const handleFileUpload = (event) => {
-    const file = event.target.files[0];
+  const handleFileUpload = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
     if (!file) return;
 
     const reader = new FileReader();
     reader.onload = (e) => {
-      const text = e.target.result;
+      const text = e.target?.result as string;
       const lines = text.split('\n');
       
-      const newPrices = JSON.parse(JSON.stringify(DEFAULT_PRICES));
+      const newPrices: PricingStructure = JSON.parse(JSON.stringify(DEFAULT_PRICES));
       
       let updatedCount = 0;
       for (let i = 1; i < lines.length; i++) {
@@ -238,13 +283,15 @@ option,wood_top_bottom,เสริมโครงไม้ บน/ล่าง,
           const price = parseFloat(priceRaw);
 
           if (!isNaN(price)) {
-            if (newPrices[category]) {
-                if (newPrices[category].hasOwnProperty(key)) {
-                    newPrices[category][key] = price;
-                    updatedCount++;
-                }
-            } else if (category === 'option') {
-                if (newPrices.options && newPrices.options.hasOwnProperty(key)) {
+            // Type safe check
+            if (category in newPrices && category !== 'options') {
+               const cat = category as keyof Omit<PricingStructure, 'options'>;
+               if (newPrices[cat][key] !== undefined) {
+                   newPrices[cat][key] = price;
+                   updatedCount++;
+               }
+            } else if (category === 'option') { // CSV uses 'option' (singular), state uses 'options' (plural)
+                if (newPrices.options && newPrices.options[key] !== undefined) {
                     newPrices.options[key] = price;
                     updatedCount++;
                 }
@@ -262,20 +309,19 @@ option,wood_top_bottom,เสริมโครงไม้ บน/ล่าง,
   };
 
   const triggerFileUpload = () => {
-    fileInputRef.current.click();
+    fileInputRef.current?.click();
   };
 
-  // --- Pricing Logic (UPDATED with Specific Ranges & Limits) ---
+  // --- Pricing Logic ---
   useEffect(() => {
     let price = 0;
-    let surcharges = [];
+    let surcharges: string[] = [];
 
     // 1. Structure Base Price
     price += prices.structure[formData.structure] || 0;
 
-    // 2. Size Price (Complex Logic)
+    // 2. Size Price
     if (formData.sizeType === 'custom') {
-      // Base custom fee
       price += prices.size['custom'];
       
       const width = parseInt(formData.customWidth) || 0;
@@ -289,7 +335,6 @@ option,wood_top_bottom,เสริมโครงไม้ บน/ล่าง,
         price += prices.size['custom_w_91_95'];
         surcharges.push(`กว้าง 91-95cm (ชาร์จเพิ่ม)`);
       } 
-      // Removed > 95 case as input is limited
 
       // --- Height Logic ---
       if (height >= 201 && height <= 210) {
@@ -302,7 +347,6 @@ option,wood_top_bottom,เสริมโครงไม้ บน/ล่าง,
         price += prices.size['custom_h_221_240'];
         surcharges.push(`สูง 221-240cm (ชาร์จเพิ่ม)`);
       }
-      // Removed > 240 case as input is limited
 
     } else {
       price += prices.size[formData.sizeType] || 0;
@@ -315,7 +359,7 @@ option,wood_top_bottom,เสริมโครงไม้ บน/ล่าง,
       price += prices.surface['SVL'] || 0;
     }
 
-    // 4. Add-ons
+    // 4. Add-ons (Type assertion for dynamic access)
     price += prices.grooving[formData.grooving] || 0;
     price += prices.molding[formData.molding] || 0;
     price += prices.glass[formData.glass] || 0;
@@ -409,8 +453,8 @@ option,wood_top_bottom,เสริมโครงไม้ บน/ล่าง,
                     <input 
                       type="number" 
                       step="1"
-                      min="1"
-                      max="95"
+                      min={1}
+                      max={95}
                       placeholder="เช่น 95"
                       value={formData.customWidth}
                       onKeyDown={handleIntegerInput}
@@ -423,8 +467,8 @@ option,wood_top_bottom,เสริมโครงไม้ บน/ล่าง,
                     <input 
                       type="number" 
                       step="1"
-                      min="1"
-                      max="240"
+                      min={1}
+                      max={240}
                       placeholder="เช่น 210"
                       value={formData.customHeight}
                       onKeyDown={handleIntegerInput}
@@ -645,7 +689,7 @@ option,wood_top_bottom,เสริมโครงไม้ บน/ล่าง,
     </div>
   );
 
-  const renderPlaceholder = (title) => (
+  const renderPlaceholder = (title: string) => (
     <div className="flex flex-col items-center justify-center h-64 bg-slate-50 rounded-xl border-2 border-dashed border-slate-300 text-slate-400">
       <Settings className="w-12 h-12 mb-3 opacity-20" />
       <p className="text-lg font-medium">ส่วนของ {title}</p>
@@ -691,6 +735,8 @@ option,wood_top_bottom,เสริมโครงไม้ บน/ล่าง,
 
     return items;
   };
+
+  const currentTab = TABS.find(t => t.id === activeTab);
 
   return (
     <div className="min-h-screen bg-slate-100 p-4 md:p-8 font-sans">
@@ -812,7 +858,7 @@ option,wood_top_bottom,เสริมโครงไม้ บน/ล่าง,
             </div>
 
             {/* Content Render */}
-            {activeTab === 'exclusive' ? renderExclusiveForm() : renderPlaceholder(TABS.find(t => t.id === activeTab).label)}
+            {activeTab === 'exclusive' ? renderExclusiveForm() : renderPlaceholder(currentTab?.label || 'Unknown')}
 
           </div>
 
@@ -855,7 +901,7 @@ option,wood_top_bottom,เสริมโครงไม้ บน/ล่าง,
                           {Object.entries(formData.options)
                             .filter(([_, isActive]) => isActive)
                             .map(([key, _]) => {
-                              const label = {
+                              const labels: {[key:string]: string} = {
                                 'shock_up': 'Shock UP',
                                 'handle': 'โครงด้ามจับ',
                                 'sliding': 'โครงบานเลื่อน',
@@ -864,8 +910,8 @@ option,wood_top_bottom,เสริมโครงไม้ บน/ล่าง,
                                 'rabbet': 'ทำบังใบ',
                                 'knob_plate_40': 'แป้นรอง 40cm',
                                 'wood_top_bottom': 'โครงไม้ บน/ล่าง',
-                              }[key];
-                              return <li key={key}>{label}</li>;
+                              };
+                              return <li key={key}>{labels[key] || key}</li>;
                             })
                           }
                         </ul>
