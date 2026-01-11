@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import type { ChangeEvent } from 'react';
 import { 
   Calculator, Check, DoorOpen, Layers, Maximize, Palette, Settings, 
-  ShoppingCart, Grid, FileText, Upload, Download, X, AlertCircle, LogOut, User,
+  Grid, FileText, Upload, Download, X, AlertCircle, LogOut, User, // ลบ ShoppingCart ออกแล้ว
   FileSpreadsheet, Users, Edit, Save, Trash2
 } from 'lucide-react';
 
@@ -98,7 +98,6 @@ const DEFAULT_PRICES: PricingStructure = {
 
 const TABS: TabInfo[] = [
   { id: 'exclusive', label: 'ประตู Exclusive', icon: DoorOpen },
-  // คืนค่า Tab ทั้งหมด แต่จะไปใส่ disabled ใน logic การ render แทน
   { id: 'standard', label: 'ประตู Standard', icon: Layers },
   { id: 'frame', label: 'วงกบ (Frame)', icon: Maximize },
   { id: 'architrave', label: 'บังราง (Architrave)', icon: Grid },
@@ -876,6 +875,7 @@ option,wood_top_bottom,เสริมโครงไม้ บน/ล่าง,
                                   <input 
                                     type="checkbox" 
                                     checked={formData.options[opt.key]} 
+                                    onChange={() => handleOptionToggle(opt.key)} // Add this back
                                     disabled
                                     className="w-5 h-5 text-slate-400 rounded border-gray-300 bg-slate-200"
                                   />
