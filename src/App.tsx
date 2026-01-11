@@ -63,7 +63,7 @@ interface UserAccount {
 }
 
 // ------------------------------------------------------------------
-// 👥 ตั้งค่า User เริ่มต้นตรงนี้ (เพิ่ม/ลด ได้ตามใจชอบ)
+// 👥 ตั้งค่า User เริ่มต้นตรงนี้
 // ------------------------------------------------------------------
 const DEFAULT_USERS: UserAccount[] = [
   { 
@@ -98,6 +98,7 @@ const DEFAULT_PRICES: PricingStructure = {
 
 const TABS: TabInfo[] = [
   { id: 'exclusive', label: 'ประตู Exclusive', icon: DoorOpen },
+  // คืนค่า Tab ทั้งหมด แต่จะไปใส่ disabled ใน logic การ render แทน
   { id: 'standard', label: 'ประตู Standard', icon: Layers },
   { id: 'frame', label: 'วงกบ (Frame)', icon: Maximize },
   { id: 'architrave', label: 'บังราง (Architrave)', icon: Grid },
@@ -130,13 +131,13 @@ const LoginScreen = ({
     }
     
     try {
-      // Query Firestore for matching username & password
       const usersRef = collection(db, "users");
       const q = query(usersRef, where("username", "==", username), where("password", "==", password));
       const querySnapshot = await getDocs(q);
 
       if (!querySnapshot.empty) {
         const userData = querySnapshot.docs[0].data() as UserAccount;
+        localStorage.setItem('upvc_user', JSON.stringify(userData));
         onLogin(userData);
       } else {
         setError("Username หรือ Password ไม่ถูกต้อง");
@@ -157,12 +158,21 @@ const LoginScreen = ({
     <div className="min-h-screen bg-slate-200 flex items-center justify-center p-4">
       <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border-t-4 border-blue-600">
         <div className="flex justify-center mb-6">
-          <div className="bg-blue-100 p-4 rounded-full">
-            <DoorOpen className="w-10 h-10 text-blue-600" />
+          <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-slate-100 shadow-md bg-white flex items-center justify-center">
+            {/* โลโก้ร้าน */}
+            <img 
+              src="https://i.ibb.co/r2cZ0GYB/image.png" 
+              alt="Logo กลางซอยค้าไม้" 
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = "https://placehold.co/100x100?text=Logo";
+              }}
+            />
           </div>
         </div>
-        <h2 className="text-2xl font-bold text-center text-slate-800 mb-1">เข้าสู่ระบบ</h2>
-        <p className="text-center text-slate-500 mb-6 text-sm">uPVC Calculator System</p>
+        <h2 className="text-2xl font-bold text-center text-slate-800 mb-1">ระบบคำนวนราคาประตู</h2>
+        <h3 className="text-lg font-medium text-center text-blue-600 mb-6">-กลางซอยค้าไม้-</h3>
         
         {!isFirebaseReady && (
            <div className="bg-yellow-50 text-yellow-800 p-3 rounded-lg text-xs mb-4 border border-yellow-200 text-center">
@@ -170,7 +180,6 @@ const LoginScreen = ({
            </div>
         )}
 
-        {/* แจ้งเตือนกรณีติด Permission */}
         {permissionError && (
           <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 mb-4 text-xs rounded shadow-sm">
             <p className="font-bold text-sm mb-1">🚨 ตรวจพบปัญหา: Permission Denied</p>
@@ -228,7 +237,6 @@ const UserManagementPanel = ({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<UserAccount | null>(null);
 
-  // Load Users from Firestore
   useEffect(() => {
     if (!db) return;
     const unsub = onSnapshot(collection(db, "users"), (snapshot) => {
@@ -368,11 +376,12 @@ export default function App() {
   // Data State
   const [prices, setPrices] = useState<PricingStructure>(DEFAULT_PRICES);
   const [isFirebaseReady, setIsFirebaseReady] = useState(false);
-  const [permissionError, setPermissionError] = useState(false); // Track permission error
+  const [permissionError, setPermissionError] = useState(false);
 
   // Form State
   const [formData, setFormData] = useState<DoorFormData>({
-    type: 'ภายนอก', structure: 'uPVC', sizeType: '70x200cm', customWidth: '', customHeight: '',
+    type: 'ภายใน', 
+    structure: 'uPVC', sizeType: '70x200cm', customWidth: '', customHeight: '',
     surfaceType: 'TOA', toaCode: '', svlCode: 'SVL F-102', grooving: 'none', molding: 'none',
     glass: 'none', louver: 'none', reinforce: 'none', drilling: 'none',
     options: { shock_up: false, handle: false, sliding: false, stopper: false, peephole: false, rabbet: false, knob_plate_40: false, wood_top_bottom: false }
@@ -380,35 +389,44 @@ export default function App() {
   const [totalPrice, setTotalPrice] = useState<number>(0);
   const [activeSurcharges, setActiveSurcharges] = useState<string[]>([]);
 
-  // 1. Initial Setup (Auto-create Users & Prices with FORCE CHECK)
+  // 0. Change Browser Title
   useEffect(() => {
+    document.title = "ระบบคำนวณราคา - กลางซอยค้าไม้";
+  }, []);
+
+  // 1. Initial Setup
+  useEffect(() => {
+    const savedUser = localStorage.getItem('upvc_user');
+    if (savedUser) {
+        try {
+            setCurrentUser(JSON.parse(savedUser));
+        } catch (e) {
+            console.error("Error parsing saved user", e);
+            localStorage.removeItem('upvc_user');
+        }
+    }
+
     if (!db) return;
     setIsFirebaseReady(true);
 
     const initSystem = async () => {
       try {
-        // 1. Check/Create Users (ปรับปรุงใหม่: เช็คทีละคนเลย ไม่ต้องรอให้ Database โล่ง)
         for (const u of DEFAULT_USERS) {
-          // เช็คก่อนว่ามี user นี้ใน DB หรือยัง
           const userRef = doc(db, "users", u.id);
           const userSnap = await getDoc(userRef);
           
           if (!userSnap.exists()) {
-            console.log(`Auto-creating missing user: ${u.username}`);
             await setDoc(userRef, u);
           }
         }
 
-        // 2. Check/Create Prices (เหมือนเดิม)
         const priceDocRef = doc(db, "config", "prices");
         const priceDoc = await getDoc(priceDocRef);
         if (!priceDoc.exists()) {
-          console.log("First run: Creating default prices...");
           await setDoc(priceDocRef, DEFAULT_PRICES);
         }
       } catch (err: any) {
         console.error("Initialization Error:", err);
-        // ถ้า error code คือ permission-denied ให้แจ้งเตือน
         if (err.code === 'permission-denied') {
           setPermissionError(true);
         }
@@ -436,7 +454,6 @@ export default function App() {
   useEffect(() => {
     let price = 0;
     let surcharges: string[] = [];
-    // (Calculation Logic - same as before)
     price += prices.structure[formData.structure] || 0;
     if (formData.sizeType === 'custom') {
       price += prices.size['custom'];
@@ -477,6 +494,7 @@ export default function App() {
   };
 
   const handleLogout = () => {
+    localStorage.removeItem('upvc_user');
     setCurrentUser(null);
     setShowAdminPanel(false);
     setShowUserPanel(false);
@@ -565,7 +583,6 @@ option,wood_top_bottom,เสริมโครงไม้ บน/ล่าง,
         }
       }
 
-      // Save to Firebase
       if (db) {
         try {
           await setDoc(doc(db, "config", "prices"), newPrices);
@@ -600,7 +617,13 @@ option,wood_top_bottom,เสริมโครงไม้ บน/ล่าง,
         <header className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h1 className="text-3xl font-bold text-slate-800 flex items-center gap-3">
-              <div className="bg-blue-600 p-2 rounded-lg"><DoorOpen className="w-8 h-8 text-white" /></div>
+              <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-slate-200">
+                <img 
+                  src="https://i.ibb.co/r2cZ0GYB/image.png" 
+                  alt="Logo" 
+                  className="w-full h-full object-cover"
+                />
+              </div>
               ระบบคำนวณราคาประตู uPVC
             </h1>
             <div className="flex items-center gap-3 mt-2 ml-14">
@@ -635,12 +658,12 @@ option,wood_top_bottom,เสริมโครงไม้ บน/ล่าง,
           )}
         </header>
 
-        {/* User Management Panel (Cloud) */}
+        {/* User Management Panel */}
         {showUserPanel && isAdminUser && (
           <UserManagementPanel onClose={() => setShowUserPanel(false)} />
         )}
 
-        {/* Admin CSV Panel (Cloud) */}
+        {/* Admin CSV Panel */}
         {showAdminPanel && isAdminUser && (
            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
              <div className="bg-white w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
@@ -690,11 +713,19 @@ option,wood_top_bottom,เสริมโครงไม้ บน/ล่าง,
             <div className="bg-white rounded-xl shadow-sm p-2 mb-6 flex overflow-x-auto gap-2 no-scrollbar">
               {TABS.map((tab) => {
                 const Icon = tab.icon;
+                const isDisabled = tab.id !== 'exclusive'; // ✅ Disable other tabs
                 return (
                   <button
                     key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center gap-2 px-4 py-3 rounded-lg whitespace-nowrap transition-all ${activeTab === tab.id ? 'bg-blue-600 text-white shadow-md' : 'text-slate-600 hover:bg-slate-50'}`}
+                    onClick={() => !isDisabled && setActiveTab(tab.id)}
+                    disabled={isDisabled}
+                    className={`flex items-center gap-2 px-4 py-3 rounded-lg whitespace-nowrap transition-all ${
+                      activeTab === tab.id 
+                        ? 'bg-blue-600 text-white shadow-md' 
+                        : isDisabled 
+                          ? 'text-slate-300 bg-slate-50 cursor-not-allowed' // Style for disabled tabs
+                          : 'text-slate-600 hover:bg-slate-50'
+                    }`}
                   >
                     <Icon className="w-4 h-4" /> {tab.label}
                   </button>
@@ -708,12 +739,30 @@ option,wood_top_bottom,เสริมโครงไม้ บน/ล่าง,
                     <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2"><Settings className="w-5 h-5 text-blue-600"/> ข้อมูลโครงสร้างและขนาด</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
+                            {/* Type (ภายนอก/ภายใน) - ภายนอก Disabled */}
                             <label className="block text-sm font-medium text-slate-600 mb-1">ประเภทการใช้งาน</label>
                             <div className="flex bg-slate-100 p-1 rounded-lg mb-4">
-                                {['ภายนอก', 'ภายใน'].map(t => (
-                                    <button key={t} onClick={() => handleInputChange('type', t)} className={`flex-1 py-2 text-sm rounded-md transition-all ${formData.type === t ? 'bg-white shadow text-blue-600 font-bold' : 'text-slate-500'}`}>{t}</button>
-                                ))}
+                                {['ภายนอก', 'ภายใน'].map(t => {
+                                  const isTypeDisabled = t === 'ภายนอก';
+                                  return (
+                                    <button 
+                                      key={t} 
+                                      onClick={() => !isTypeDisabled && handleInputChange('type', t)} 
+                                      disabled={isTypeDisabled}
+                                      className={`flex-1 py-2 text-sm rounded-md transition-all ${
+                                        formData.type === t 
+                                          ? 'bg-white shadow text-blue-600 font-bold' 
+                                          : isTypeDisabled
+                                            ? 'text-slate-300 cursor-not-allowed' // Disabled style
+                                            : 'text-slate-500'
+                                      }`}
+                                    >
+                                      {t}
+                                    </button>
+                                  );
+                                })}
                             </div>
+
                             <label className="block text-sm font-medium text-slate-600 mb-1">โครงสร้างวัสดุ</label>
                             <select value={formData.structure} onChange={(e) => handleInputChange('structure', e.target.value)} className="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
                                 <option value="uPVC">ประตู uPVC</option>
@@ -758,16 +807,40 @@ option,wood_top_bottom,เสริมโครงไม้ บน/ล่าง,
                                 </div>
                             </div>
                         </div>
-                         <div>
-                            <label className="block text-sm font-medium text-slate-600 mb-1">การเซาะร่อง</label>
-                            <select value={formData.grooving} onChange={(e) => handleInputChange('grooving', e.target.value)} className="w-full p-2.5 border rounded-lg"><option value="none">ไม่เซาะร่อง</option><option value="standard">เซาะร่องปกติ</option><option value="black_line">เซาะร่องแปะเส้นดำ</option><option value="painted">เซาะร่องทำสี</option></select>
+                        
+                        {/* คืนค่าและ Disable: การเซาะร่อง */}
+                        <div className="opacity-50 pointer-events-none">
+                            <label className="block text-sm font-medium text-slate-600 mb-1">การเซาะร่อง (ปิดปรับปรุง)</label>
+                            <select value={formData.grooving} disabled className="w-full p-2.5 border rounded-lg bg-slate-100 text-slate-400">
+                              <option value="none">ไม่เซาะร่อง</option>
+                              <option value="standard">เซาะร่องปกติ</option>
+                              <option value="black_line">เซาะร่องแปะเส้นดำ</option>
+                              <option value="painted">เซาะร่องทำสี</option>
+                            </select>
                         </div>
+
                         <div>
                             <label className="block text-sm font-medium text-slate-600 mb-1">ติดคิ้วพ่นสี</label>
                             <select value={formData.molding} onChange={(e) => handleInputChange('molding', e.target.value)} className="w-full p-2.5 border rounded-lg"><option value="none">ไม่ติดคิ้ว</option><option value="first_1">First Class 1 ช่อง</option><option value="first_2">First Class 2 ช่อง</option><option value="roma_1">ROMA 1 ช่อง</option><option value="roma_2">ROMA 2 ช่อง</option></select>
                         </div>
-                         <div><label className="block text-sm font-medium text-slate-600 mb-1">กระจก</label><select value={formData.glass} onChange={(e) => handleInputChange('glass', e.target.value)} className="w-full p-2.5 border rounded-lg"><option value="none">ไม่ติดกระจก</option><option value="frosted">กระจกฝ้าเต็มบาน</option></select></div>
-                         <div><label className="block text-sm font-medium text-slate-600 mb-1">เกล็ดระบายอากาศ</label><select value={formData.louver} onChange={(e) => handleInputChange('louver', e.target.value)} className="w-full p-2.5 border rounded-lg"><option value="none">ไม่ใส่เกล็ด</option><option value="full">เกล็ดเต็มบาน</option></select></div>
+                        
+                        {/* คืนค่าและ Disable: กระจก */}
+                        <div className="opacity-50 pointer-events-none">
+                           <label className="block text-sm font-medium text-slate-600 mb-1">กระจก (ปิดปรับปรุง)</label>
+                           <select value={formData.glass} disabled className="w-full p-2.5 border rounded-lg bg-slate-100 text-slate-400">
+                             <option value="none">ไม่ติดกระจก</option>
+                             <option value="frosted">กระจกฝ้าเต็มบาน</option>
+                           </select>
+                        </div>
+                        
+                        {/* คืนค่าและ Disable: เกล็ดระบายอากาศ */}
+                        <div className="opacity-50 pointer-events-none">
+                           <label className="block text-sm font-medium text-slate-600 mb-1">เกล็ดระบายอากาศ (ปิดปรับปรุง)</label>
+                           <select value={formData.louver} disabled className="w-full p-2.5 border rounded-lg bg-slate-100 text-slate-400">
+                             <option value="none">ไม่ใส่เกล็ด</option>
+                             <option value="full">เกล็ดเต็มบาน</option>
+                           </select>
+                        </div>
                     </div>
                 </div>
 
@@ -775,14 +848,22 @@ option,wood_top_bottom,เสริมโครงไม้ บน/ล่าง,
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
                     <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2"><Calculator className="w-5 h-5 text-orange-600"/> การเจาะและเสริมโครง</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div><label className="block text-sm font-medium text-slate-600 mb-1">เสริมโครง</label><select value={formData.reinforce} onChange={(e) => handleInputChange('reinforce', e.target.value)} className="w-full p-2.5 border rounded-lg"><option value="none">ไม่เสริมโครง</option><option value="lever">เสริมโครงก้านโยก</option></select></div>
+                        {/* คืนค่าและ Disable: เสริมโครง */}
+                        <div className="opacity-50 pointer-events-none">
+                          <label className="block text-sm font-medium text-slate-600 mb-1">เสริมโครง (ปิดปรับปรุง)</label>
+                          <select value={formData.reinforce} disabled className="w-full p-2.5 border rounded-lg bg-slate-100 text-slate-400">
+                            <option value="none">ไม่เสริมโครง</option>
+                            <option value="lever">เสริมโครงก้านโยก</option>
+                          </select>
+                        </div>
+                        
                         <div><label className="block text-sm font-medium text-slate-600 mb-1">การเจาะลูกบิด</label><select value={formData.drilling} onChange={(e) => handleInputChange('drilling', e.target.value)} className="w-full p-2.5 border rounded-lg"><option value="none">ไม่เจาะลูกบิด</option><option value="knob">เจาะลูกบิด</option></select></div>
                     </div>
                 </div>
 
-                {/* 4. Options */}
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-                    <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2"><Check className="w-5 h-5 text-green-600"/> Option เสริม</h3>
+                {/* 4. Options (คืนค่าและ Disable ทั้งหมด) */}
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 opacity-50 pointer-events-none grayscale">
+                    <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2"><Check className="w-5 h-5 text-green-600"/> Option เสริม (ปิดปรับปรุง)</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {[
                             { key: 'shock_up', label: 'เสริมโครงติด SHOCK UP' }, { key: 'handle', label: 'เสริมโครงด้ามจับ' },
@@ -790,8 +871,16 @@ option,wood_top_bottom,เสริมโครงไม้ บน/ล่าง,
                             { key: 'peephole', label: 'เจาะตาแมว' }, { key: 'rabbet', label: 'ทำบังใบ' },
                             { key: 'knob_plate_40', label: 'เสริมโครงแป้นรองลูกบิด 40cm' }, { key: 'wood_top_bottom', label: 'เสริมโครงไม้สังเคราะห์ บน หรือ ล่าง' },
                         ].map(opt => (
-                            <label key={opt.key} className="flex items-center justify-between p-3 border rounded-lg hover:bg-slate-50 cursor-pointer transition-colors">
-                                <div className="flex items-center space-x-3"><input type="checkbox" checked={formData.options[opt.key]} onChange={() => handleOptionToggle(opt.key)} className="w-5 h-5 text-green-600 rounded focus:ring-green-500 border-gray-300"/><span className="text-slate-700 text-sm">{opt.label}</span></div>
+                            <label key={opt.key} className="flex items-center justify-between p-3 border rounded-lg bg-slate-50 cursor-not-allowed">
+                                <div className="flex items-center space-x-3">
+                                  <input 
+                                    type="checkbox" 
+                                    checked={formData.options[opt.key]} 
+                                    disabled
+                                    className="w-5 h-5 text-slate-400 rounded border-gray-300 bg-slate-200"
+                                  />
+                                  <span className="text-slate-400 text-sm">{opt.label}</span>
+                                </div>
                             </label>
                         ))}
                     </div>
@@ -817,10 +906,6 @@ option,wood_top_bottom,เสริมโครงไม้ บน/ล่าง,
                     <div className="flex justify-between text-sm"><span className="text-slate-500">ขนาด</span><span className="text-slate-800 font-medium">{formData.sizeType === 'custom' ? `${formData.customWidth}x${formData.customHeight}cm` : formData.sizeType}</span></div>
                     {(formData.grooving !== 'none' || formData.molding !== 'none' || formData.glass !== 'none' || formData.reinforce !== 'none') && <div className="text-xs text-slate-400 mt-2">มีงานเพิ่มเติม (เซาะร่อง/คิ้ว/กระจก/โครง)</div>}
                     {Object.values(formData.options).some(Boolean) && <div className="text-xs text-slate-400">มี Option เสริม</div>}
-                  </div>
-                  <div className="grid grid-cols-2 gap-3 pt-2">
-                     <button className="flex items-center justify-center gap-2 py-2.5 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-50 text-sm font-medium"><Check className="w-4 h-4" /> บันทึก</button>
-                     <button className="flex items-center justify-center gap-2 py-2.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm font-medium shadow-sm"><ShoppingCart className="w-4 h-4" /> สั่งซื้อ</button>
                   </div>
                 </div>
              </div>
