@@ -62,7 +62,27 @@ interface UserAccount {
   role: 'admin' | 'staff';
 }
 
-// --- Default Data (ใช้สำหรับสร้างครั้งแรก) ---
+// ------------------------------------------------------------------
+// 👥 ตั้งค่า User เริ่มต้นตรงนี้ (เพิ่ม/ลด ได้ตามใจชอบ)
+// ------------------------------------------------------------------
+const DEFAULT_USERS: UserAccount[] = [
+  { 
+    id: 'admin_01', 
+    username: 'admin', 
+    password: '1234', 
+    name: 'Administrator', 
+    role: 'admin' 
+  },
+  { 
+    id: 'staff_01', 
+    username: 'staff01', 
+    password: '1234', 
+    name: 'General Staff', 
+    role: 'staff' 
+  }
+];
+
+// --- Default Data (ราคาเริ่มต้น) ---
 const DEFAULT_PRICES: PricingStructure = {
   structure: { 'uPVC': 2500, 'WPC RIGID': 3500, 'WPC MAX': 4500 },
   size: { '70x200cm': 0, '80x200cm': 200, '90x200cm': 400, 'custom': 1000, 'custom_w_81_89': 300, 'custom_w_91_95': 500, 'custom_h_201_210': 400, 'custom_h_211_220': 600, 'custom_h_221_240': 1000 },
@@ -76,11 +96,6 @@ const DEFAULT_PRICES: PricingStructure = {
   options: { 'shock_up': 200, 'handle': 150, 'sliding': 400, 'stopper': 100, 'peephole': 150, 'rabbet': 250, 'knob_plate_40': 100, 'wood_top_bottom': 300 }
 };
 
-const DEFAULT_USERS: UserAccount[] = [
-  { id: 'admin_01', username: 'admin', password: '1234', name: 'Administrator', role: 'admin' },
-  { id: 'staff_01', username: 'staff01', password: '1234', name: 'General Staff', role: 'staff' }
-];
-
 const TABS: TabInfo[] = [
   { id: 'exclusive', label: 'ประตู Exclusive', icon: DoorOpen },
   { id: 'standard', label: 'ประตู Standard', icon: Layers },
@@ -91,10 +106,12 @@ const TABS: TabInfo[] = [
 // --- Login Component ---
 const LoginScreen = ({ 
   onLogin,
-  isFirebaseReady
+  isFirebaseReady,
+  permissionError
 }: { 
   onLogin: (user: UserAccount) => void,
-  isFirebaseReady: boolean
+  isFirebaseReady: boolean,
+  permissionError: boolean
 }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -124,9 +141,13 @@ const LoginScreen = ({
       } else {
         setError("Username หรือ Password ไม่ถูกต้อง");
       }
-    } catch (err) {
-      setError("เกิดข้อผิดพลาดในการตรวจสอบข้อมูล (กรุณาเช็ค Firestore Rules)");
+    } catch (err: any) {
       console.error(err);
+      if (err.code === 'permission-denied') {
+        setError("สิทธิ์การเข้าถึงถูกปฏิเสธ (Permission Denied) - กรุณาแก้ Rules ใน Console");
+      } else {
+        setError("เกิดข้อผิดพลาดในการตรวจสอบข้อมูล: " + err.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -147,6 +168,19 @@ const LoginScreen = ({
            <div className="bg-yellow-50 text-yellow-800 p-3 rounded-lg text-xs mb-4 border border-yellow-200 text-center">
              ⚠️ ยังไม่ได้ใส่ Firebase Config (แก้ไขไฟล์เพื่อเริ่มใช้งาน)
            </div>
+        )}
+
+        {/* แจ้งเตือนกรณีติด Permission */}
+        {permissionError && (
+          <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 mb-4 text-xs rounded shadow-sm">
+            <p className="font-bold text-sm mb-1">🚨 ตรวจพบปัญหา: Permission Denied</p>
+            <p className="mb-2">ฐานข้อมูลถูกล็อกอยู่ ทำให้ระบบอ่าน/เขียนข้อมูลไม่ได้</p>
+            <div className="bg-white p-2 rounded border border-red-200 font-mono text-slate-600">
+               1. ไปที่ Firebase Console {'>'} Firestore Database {'>'} Rules<br/>
+               2. เปลี่ยนโค้ดเป็น: <span className="text-blue-600 font-bold">allow read, write: if true;</span><br/>
+               3. กด Publish
+            </div>
+          </div>
         )}
 
         {error && <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm mb-4 flex items-center gap-2"><AlertCircle className="w-4 h-4"/>{error}</div>}
@@ -201,6 +235,9 @@ const UserManagementPanel = ({
       const loadedUsers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as UserAccount));
       setUsers(loadedUsers);
       setLoading(false);
+    }, (error) => {
+      console.error("Error fetching users:", error);
+      setLoading(false);
     });
     return () => unsub();
   }, []);
@@ -208,7 +245,6 @@ const UserManagementPanel = ({
   const handleSave = async () => {
     if (editForm && db) {
       try {
-        // ใช้ setDoc แทน updateDoc เพื่อบันทึกทับข้อมูลเดิม (ง่ายกว่าสำหรับฟอร์มที่มีข้อมูลครบ)
         await setDoc(doc(db, "users", editForm.id), editForm);
         setEditingId(null);
         setEditForm(null);
@@ -230,7 +266,6 @@ const UserManagementPanel = ({
     };
     try {
       await setDoc(doc(db, "users", newId), newUser);
-      // Auto enter edit mode
       setEditingId(newId);
       setEditForm(newUser);
     } catch (error) {
@@ -293,7 +328,6 @@ const UserManagementPanel = ({
                       </div>
                       <div className="text-sm text-slate-500 flex gap-4">
                         <span>User: <strong className="text-slate-700">{u.username}</strong></span>
-                        {/* ซ่อน Password ใน View Mode */}
                         <span>Pass: <strong className="text-slate-700">••••</strong></span>
                       </div>
                     </div>
@@ -334,6 +368,7 @@ export default function App() {
   // Data State
   const [prices, setPrices] = useState<PricingStructure>(DEFAULT_PRICES);
   const [isFirebaseReady, setIsFirebaseReady] = useState(false);
+  const [permissionError, setPermissionError] = useState(false); // Track permission error
 
   // Form State
   const [formData, setFormData] = useState<DoorFormData>({
@@ -345,28 +380,38 @@ export default function App() {
   const [totalPrice, setTotalPrice] = useState<number>(0);
   const [activeSurcharges, setActiveSurcharges] = useState<string[]>([]);
 
-  // 1. Initial Setup (Auto-create Users & Prices if empty)
+  // 1. Initial Setup (Auto-create Users & Prices with FORCE CHECK)
   useEffect(() => {
     if (!db) return;
     setIsFirebaseReady(true);
 
     const initSystem = async () => {
-      // Check/Create Users
-      const usersRef = collection(db, "users");
-      const userSnapshot = await getDocs(usersRef);
-      if (userSnapshot.empty) {
-        console.log("First run: Creating default users...");
+      try {
+        // 1. Check/Create Users (ปรับปรุงใหม่: เช็คทีละคนเลย ไม่ต้องรอให้ Database โล่ง)
         for (const u of DEFAULT_USERS) {
-          await setDoc(doc(db, "users", u.id), u);
+          // เช็คก่อนว่ามี user นี้ใน DB หรือยัง
+          const userRef = doc(db, "users", u.id);
+          const userSnap = await getDoc(userRef);
+          
+          if (!userSnap.exists()) {
+            console.log(`Auto-creating missing user: ${u.username}`);
+            await setDoc(userRef, u);
+          }
         }
-      }
 
-      // Check/Create Prices
-      const priceDocRef = doc(db, "config", "prices");
-      const priceDoc = await getDoc(priceDocRef);
-      if (!priceDoc.exists()) {
-        console.log("First run: Creating default prices...");
-        await setDoc(priceDocRef, DEFAULT_PRICES);
+        // 2. Check/Create Prices (เหมือนเดิม)
+        const priceDocRef = doc(db, "config", "prices");
+        const priceDoc = await getDoc(priceDocRef);
+        if (!priceDoc.exists()) {
+          console.log("First run: Creating default prices...");
+          await setDoc(priceDocRef, DEFAULT_PRICES);
+        }
+      } catch (err: any) {
+        console.error("Initialization Error:", err);
+        // ถ้า error code คือ permission-denied ให้แจ้งเตือน
+        if (err.code === 'permission-denied') {
+          setPermissionError(true);
+        }
       }
     };
     initSystem();
@@ -378,6 +423,10 @@ export default function App() {
     const unsub = onSnapshot(doc(db, "config", "prices"), (doc) => {
       if (doc.exists()) {
         setPrices(doc.data() as PricingStructure);
+      }
+    }, (error) => {
+      if (error.code === 'permission-denied') {
+        setPermissionError(true);
       }
     });
     return () => unsub();
@@ -435,7 +484,6 @@ export default function App() {
 
   // --- CSV Logic ---
   const handleDownloadTemplate = () => {
-    // (Template code remains the same)
     const csvContent = `Category,Key,Description,Price
 structure,uPVC,ราคาตั้งต้น ประตู uPVC,2500
 structure,WPC RIGID,ราคาตั้งต้น ประตู WPC RIGID,3500
@@ -534,7 +582,13 @@ option,wood_top_bottom,เสริมโครงไม้ บน/ล่าง,
 
   // --- Render ---
 
-  if (!currentUser) return <LoginScreen onLogin={setCurrentUser} isFirebaseReady={isFirebaseReady} />;
+  if (!currentUser) return (
+    <LoginScreen 
+      onLogin={setCurrentUser} 
+      isFirebaseReady={isFirebaseReady} 
+      permissionError={permissionError} 
+    />
+  );
 
   const isAdminUser = currentUser.role === 'admin';
 
