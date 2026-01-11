@@ -3,18 +3,18 @@ import type { ChangeEvent } from 'react';
 import { 
   Calculator, Check, DoorOpen, Layers, Maximize, Palette, Settings, 
   ShoppingCart, Grid, FileText, Upload, Download, X, AlertCircle, LogOut, User,
-  FileSpreadsheet, Users, Edit, Save, Trash2, Database
+  FileSpreadsheet, Users, Edit, Save, Trash2
 } from 'lucide-react';
 
 // --- FIREBASE IMPORTS ---
 import { initializeApp } from "firebase/app";
 import { 
   getFirestore, doc, setDoc, getDoc, collection, 
-  onSnapshot, query, where, getDocs, updateDoc, deleteDoc 
+  onSnapshot, query, where, getDocs, deleteDoc 
 } from "firebase/firestore";
 
 // ------------------------------------------------------------------
-// 🔴 CONFIG FIREBASE (ใส่ค่าให้เรียบร้อยแล้ว) 🔴
+// 🔴 CONFIG FIREBASE 🔴
 // ------------------------------------------------------------------
 const firebaseConfig = {
   apiKey: "AIzaSyArPJYIIChxZiZXRAIS_MTLlAKoVxr2qEc",
@@ -208,6 +208,7 @@ const UserManagementPanel = ({
   const handleSave = async () => {
     if (editForm && db) {
       try {
+        // ใช้ setDoc แทน updateDoc เพื่อบันทึกทับข้อมูลเดิม (ง่ายกว่าสำหรับฟอร์มที่มีข้อมูลครบ)
         await setDoc(doc(db, "users", editForm.id), editForm);
         setEditingId(null);
         setEditForm(null);
