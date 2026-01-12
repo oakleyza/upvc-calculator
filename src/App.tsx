@@ -434,7 +434,7 @@ export default function App() {
       }
       else if (height >= 201 && height <= 210) { 
         price += prices.size['custom_h_201_210']; 
-        // surcharges.push(`สูง 201-210cm`); // ลบออกตามคำสั่ง
+        // ลบข้อความแสดงผล
       }
       else if (height >= 211 && height <= 220) { 
         price += prices.size['custom_h_211_220']; 
@@ -442,7 +442,7 @@ export default function App() {
       }
       else if (height >= 221 && height <= 240) { 
         price += prices.size['custom_h_221_240']; 
-        // surcharges.push(`สูง 221-240cm`); // ลบออกตามคำสั่ง
+        // ลบข้อความแสดงผล
       }
     } else { price += prices.size[formData.sizeType] || 0; }
     
