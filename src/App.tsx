@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import type { ChangeEvent } from 'react';
 import { 
   Calculator, Check, DoorOpen, Layers, Maximize, Palette, Settings, 
-  Grid, FileText, Upload, Download, X, AlertCircle, LogOut, User, // ลบ ShoppingCart ออกแล้ว
+  Grid, FileText, Upload, Download, X, AlertCircle, LogOut, User,
   FileSpreadsheet, Users, Edit, Save, Trash2
 } from 'lucide-react';
 
@@ -63,7 +63,7 @@ interface UserAccount {
 }
 
 // ------------------------------------------------------------------
-// 👥 ตั้งค่า User เริ่มต้นตรงนี้
+// 👥 Default Users
 // ------------------------------------------------------------------
 const DEFAULT_USERS: UserAccount[] = [
   { 
@@ -82,17 +82,37 @@ const DEFAULT_USERS: UserAccount[] = [
   }
 ];
 
-// --- Default Data (ราคาเริ่มต้น) ---
+// --- Default Prices ---
 const DEFAULT_PRICES: PricingStructure = {
   structure: { 'uPVC': 2500, 'WPC RIGID': 3500, 'WPC MAX': 4500 },
-  size: { '70x200cm': 0, '80x200cm': 200, '90x200cm': 400, 'custom': 1000, 'custom_w_81_89': 300, 'custom_w_91_95': 500, 'custom_h_201_210': 400, 'custom_h_211_220': 600, 'custom_h_221_240': 1000 },
+  size: { 
+    '70x200cm': 0, '80x200cm': 200, '90x200cm': 400, 
+    'custom': 1000, 
+    'custom_w_81_89': 300, 'custom_w_91_95': 500, 
+    'custom_h_under_200': 100,
+    'custom_h_201_210': 400, 'custom_h_211_220': 600, 'custom_h_221_240': 1000 
+  },
   surface: { 'TOA': 500, 'SVL': 800 },
   grooving: { 'none': 0, 'standard': 300, 'black_line': 400, 'painted': 500 },
   molding: { 'none': 0, 'first_1': 800, 'first_2': 1000, 'roma_1': 900, 'roma_2': 1100 },
-  glass: { 'none': 0, 'frosted': 1500 },
-  louver: { 'none': 0, 'full': 1200 },
-  reinforce: { 'none': 0, 'lever': 300 },
-  drilling: { 'none': 0, 'knob': 100 },
+  glass: { 
+    'none': 0, 
+    'frosted': 1500, 'frosted_half': 1000, 'frosted_side': 800,
+    'green_full': 1800, 'green_half': 1200, 'green_side': 1000 
+  },
+  louver: { 
+    'none': 0, 
+    'full': 1200, 'half': 800, 'side': 600, 'bottom': 600,
+    'full_painted': 1500, 'half_painted': 1000, 'side_painted': 800, 'bottom_painted': 800 
+  },
+  reinforce: { 
+    'none': 0, 
+    'lever': 300, 'digital': 400, 'recessed': 400 
+  },
+  drilling: { 
+    'none': 0, 
+    'knob': 100, 'lever': 150, 'digital': 200, 'recessed': 200 
+  },
   options: { 'shock_up': 200, 'handle': 150, 'sliding': 400, 'stopper': 100, 'peephole': 150, 'rabbet': 250, 'knob_plate_40': 100, 'wood_top_bottom': 300 }
 };
 
@@ -144,7 +164,7 @@ const LoginScreen = ({
     } catch (err: any) {
       console.error(err);
       if (err.code === 'permission-denied') {
-        setError("สิทธิ์การเข้าถึงถูกปฏิเสธ (Permission Denied) - กรุณาแก้ Rules ใน Console");
+        setError("สิทธิ์การเข้าถึงถูกปฏิเสธ (Permission Denied)");
       } else {
         setError("เกิดข้อผิดพลาดในการตรวจสอบข้อมูล: " + err.message);
       }
@@ -158,36 +178,20 @@ const LoginScreen = ({
       <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border-t-4 border-blue-600">
         <div className="flex justify-center mb-6">
           <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-slate-100 shadow-md bg-white flex items-center justify-center">
-            {/* โลโก้ร้าน */}
             <img 
               src="https://i.ibb.co/r2cZ0GYB/image.png" 
               alt="Logo กลางซอยค้าไม้" 
               className="w-full h-full object-cover"
-              onError={(e) => {
-                e.currentTarget.onerror = null;
-                e.currentTarget.src = "https://placehold.co/100x100?text=Logo";
-              }}
             />
           </div>
         </div>
         <h2 className="text-2xl font-bold text-center text-slate-800 mb-1">ระบบคำนวนราคาประตู</h2>
         <h3 className="text-lg font-medium text-center text-blue-600 mb-6">-กลางซอยค้าไม้-</h3>
         
-        {!isFirebaseReady && (
-           <div className="bg-yellow-50 text-yellow-800 p-3 rounded-lg text-xs mb-4 border border-yellow-200 text-center">
-             ⚠️ ยังไม่ได้ใส่ Firebase Config (แก้ไขไฟล์เพื่อเริ่มใช้งาน)
-           </div>
-        )}
-
         {permissionError && (
           <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 mb-4 text-xs rounded shadow-sm">
             <p className="font-bold text-sm mb-1">🚨 ตรวจพบปัญหา: Permission Denied</p>
-            <p className="mb-2">ฐานข้อมูลถูกล็อกอยู่ ทำให้ระบบอ่าน/เขียนข้อมูลไม่ได้</p>
-            <div className="bg-white p-2 rounded border border-red-200 font-mono text-slate-600">
-               1. ไปที่ Firebase Console {'>'} Firestore Database {'>'} Rules<br/>
-               2. เปลี่ยนโค้ดเป็น: <span className="text-blue-600 font-bold">allow read, write: if true;</span><br/>
-               3. กด Publish
-            </div>
+            <p className="mb-2">ฐานข้อมูลถูกล็อกอยู่ กรุณาแก้ Rules ใน Firebase Console</p>
           </div>
         )}
 
@@ -226,11 +230,7 @@ const LoginScreen = ({
 };
 
 // --- User Management Panel ---
-const UserManagementPanel = ({ 
-  onClose 
-}: { 
-  onClose: () => void 
-}) => {
+const UserManagementPanel = ({ onClose }: { onClose: () => void }) => {
   const [users, setUsers] = useState<UserAccount[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -241,9 +241,6 @@ const UserManagementPanel = ({
     const unsub = onSnapshot(collection(db, "users"), (snapshot) => {
       const loadedUsers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as UserAccount));
       setUsers(loadedUsers);
-      setLoading(false);
-    }, (error) => {
-      console.error("Error fetching users:", error);
       setLoading(false);
     });
     return () => unsub();
@@ -264,13 +261,7 @@ const UserManagementPanel = ({
   const handleCreateNew = async () => {
     if (!db) return;
     const newId = 'user_' + Date.now();
-    const newUser: UserAccount = {
-      id: newId,
-      username: 'new_user',
-      password: 'password',
-      name: 'New Staff',
-      role: 'staff'
-    };
+    const newUser: UserAccount = { id: newId, username: 'new_user', password: 'password', name: 'New Staff', role: 'staff' };
     try {
       await setDoc(doc(db, "users", newId), newUser);
       setEditingId(newId);
@@ -287,29 +278,25 @@ const UserManagementPanel = ({
   };
 
   const handleChange = (field: keyof UserAccount, value: string) => {
-    if (editForm) {
-      setEditForm({ ...editForm, [field]: value });
-    }
+    if (editForm) setEditForm({ ...editForm, [field]: value });
   };
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+      <div className="bg-white w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         <div className="bg-slate-800 text-white p-4 flex justify-between items-center shrink-0">
           <h3 className="text-lg font-semibold flex items-center gap-2 text-yellow-400">
-            <Users className="w-5 h-5" /> จัดการข้อมูลผู้ใช้งาน (Cloud DB)
+            <Users className="w-5 h-5" /> จัดการข้อมูลผู้ใช้งาน
           </h3>
           <button onClick={onClose}><X className="w-5 h-5 hover:text-red-400" /></button>
         </div>
-        
         <div className="p-6 bg-slate-50 overflow-y-auto grow">
           <div className="flex justify-between items-center mb-4">
             <h4 className="font-bold text-slate-700">รายชื่อผู้ใช้ทั้งหมด</h4>
-            <button onClick={handleCreateNew} className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded hover:bg-blue-700 transition-colors">
+            <button onClick={handleCreateNew} className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded hover:bg-blue-700">
               + เพิ่มผู้ใช้ใหม่
             </button>
           </div>
-          
           {loading ? <div className="text-center py-8">Loading...</div> : (
             <div className="space-y-4">
               {users.map(u => (
@@ -333,24 +320,15 @@ const UserManagementPanel = ({
                         <span className={`px-2 py-0.5 rounded text-xs font-bold uppercase ${u.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>{u.role}</span>
                         <span className="font-bold text-slate-800">{u.name}</span>
                       </div>
-                      <div className="text-sm text-slate-500 flex gap-4">
-                        <span>User: <strong className="text-slate-700">{u.username}</strong></span>
-                        <span>Pass: <strong className="text-slate-700">••••</strong></span>
-                      </div>
+                      <div className="text-sm text-slate-500">User: {u.username}</div>
                     </div>
                   )}
                   <div className="shrink-0 flex gap-2">
                     {editingId === u.id ? (
-                      <>
-                        <button onClick={handleSave} className="p-2 bg-green-100 text-green-700 rounded hover:bg-green-200"><Save className="w-4 h-4" /></button>
-                        <button onClick={() => setEditingId(null)} className="p-2 bg-slate-100 text-slate-600 rounded hover:bg-slate-200"><X className="w-4 h-4" /></button>
-                      </>
+                      <><button onClick={handleSave} className="p-2 bg-green-100 text-green-700 rounded"><Save className="w-4 h-4" /></button><button onClick={() => setEditingId(null)} className="p-2 bg-slate-100 text-slate-600 rounded"><X className="w-4 h-4" /></button></>
                     ) : (
-                      <>
-                        <button onClick={() => { setEditingId(u.id); setEditForm({...u}); }} className="p-2 bg-slate-100 text-slate-600 rounded hover:bg-blue-50 hover:text-blue-600"><Edit className="w-4 h-4" /></button>
-                        {u.username !== 'admin' && (
-                          <button onClick={() => handleDelete(u.id)} className="p-2 bg-slate-100 text-slate-600 rounded hover:bg-red-50 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
-                        )}
+                      <><button onClick={() => { setEditingId(u.id); setEditForm({...u}); }} className="p-2 bg-slate-100 text-slate-600 rounded hover:bg-blue-50 hover:text-blue-600"><Edit className="w-4 h-4" /></button>
+                        {u.username !== 'admin' && <button onClick={() => handleDelete(u.id)} className="p-2 bg-slate-100 text-slate-600 rounded hover:bg-red-50 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>}
                       </>
                     )}
                   </div>
@@ -364,7 +342,7 @@ const UserManagementPanel = ({
   );
 };
 
-// --- Main App Component ---
+// --- Main App ---
 export default function App() {
   const [currentUser, setCurrentUser] = useState<UserAccount | null>(null);
   const [activeTab, setActiveTab] = useState<string>('exclusive');
@@ -372,12 +350,10 @@ export default function App() {
   const [showUserPanel, setShowUserPanel] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  // Data State
   const [prices, setPrices] = useState<PricingStructure>(DEFAULT_PRICES);
   const [isFirebaseReady, setIsFirebaseReady] = useState(false);
   const [permissionError, setPermissionError] = useState(false);
 
-  // Form State
   const [formData, setFormData] = useState<DoorFormData>({
     type: 'ภายใน', 
     structure: 'uPVC', sizeType: '70x200cm', customWidth: '', customHeight: '',
@@ -388,7 +364,7 @@ export default function App() {
   const [totalPrice, setTotalPrice] = useState<number>(0);
   const [activeSurcharges, setActiveSurcharges] = useState<string[]>([]);
 
-  // 0. Change Browser Title
+  // 0. Set Browser Title
   useEffect(() => {
     document.title = "ระบบคำนวณราคา - กลางซอยค้าไม้";
   }, []);
@@ -397,12 +373,7 @@ export default function App() {
   useEffect(() => {
     const savedUser = localStorage.getItem('upvc_user');
     if (savedUser) {
-        try {
-            setCurrentUser(JSON.parse(savedUser));
-        } catch (e) {
-            console.error("Error parsing saved user", e);
-            localStorage.removeItem('upvc_user');
-        }
+        try { setCurrentUser(JSON.parse(savedUser)); } catch (e) { localStorage.removeItem('upvc_user'); }
     }
 
     if (!db) return;
@@ -413,43 +384,30 @@ export default function App() {
         for (const u of DEFAULT_USERS) {
           const userRef = doc(db, "users", u.id);
           const userSnap = await getDoc(userRef);
-          
-          if (!userSnap.exists()) {
-            await setDoc(userRef, u);
-          }
+          if (!userSnap.exists()) await setDoc(userRef, u);
         }
-
         const priceDocRef = doc(db, "config", "prices");
         const priceDoc = await getDoc(priceDocRef);
-        if (!priceDoc.exists()) {
-          await setDoc(priceDocRef, DEFAULT_PRICES);
-        }
+        if (!priceDoc.exists()) await setDoc(priceDocRef, DEFAULT_PRICES);
       } catch (err: any) {
-        console.error("Initialization Error:", err);
-        if (err.code === 'permission-denied') {
-          setPermissionError(true);
-        }
+        if (err.code === 'permission-denied') setPermissionError(true);
       }
     };
     initSystem();
   }, []);
 
-  // 2. Real-time Price Listener
+  // 2. Listen for Prices
   useEffect(() => {
     if (!db) return;
     const unsub = onSnapshot(doc(db, "config", "prices"), (doc) => {
-      if (doc.exists()) {
-        setPrices(doc.data() as PricingStructure);
-      }
+      if (doc.exists()) setPrices(doc.data() as PricingStructure);
     }, (error) => {
-      if (error.code === 'permission-denied') {
-        setPermissionError(true);
-      }
+      if (error.code === 'permission-denied') setPermissionError(true);
     });
     return () => unsub();
   }, []);
 
-  // 3. Pricing Logic
+  // 3. Logic
   useEffect(() => {
     let price = 0;
     let surcharges: string[] = [];
@@ -458,48 +416,61 @@ export default function App() {
       price += prices.size['custom'];
       const width = parseInt(formData.customWidth) || 0;
       const height = parseInt(formData.customHeight) || 0;
-      if (width >= 81 && width <= 89) { price += prices.size['custom_w_81_89']; surcharges.push(`กว้าง 81-89cm (+${prices.size['custom_w_81_89']})`); }
-      else if (width >= 91 && width <= 95) { price += prices.size['custom_w_91_95']; surcharges.push(`กว้าง 91-95cm (+${prices.size['custom_w_91_95']})`); }
-      if (height >= 201 && height <= 210) { price += prices.size['custom_h_201_210']; surcharges.push(`สูง 201-210cm (+${prices.size['custom_h_201_210']})`); }
-      else if (height >= 211 && height <= 220) { price += prices.size['custom_h_211_220']; surcharges.push(`สูง 211-220cm (+${prices.size['custom_h_211_220']})`); }
-      else if (height >= 221 && height <= 240) { price += prices.size['custom_h_221_240']; surcharges.push(`สูง 221-240cm (+${prices.size['custom_h_221_240']})`); }
-    } else {
-      price += prices.size[formData.sizeType] || 0;
-    }
+      
+      // ✅ Logic ใหม่: ซ่อนราคาบวกเพิ่มในการแสดงผล (เอา +${price} ออก)
+      if (width >= 81 && width <= 89) { 
+        price += prices.size['custom_w_81_89']; 
+        surcharges.push(`กว้าง 81-89cm`); 
+      }
+      else if (width >= 91 && width <= 95) { 
+        price += prices.size['custom_w_91_95']; 
+        surcharges.push(`กว้าง 91-95cm`); 
+      }
+
+      // ✅ Logic ใหม่: สูงน้อยกว่า 200cm
+      if (height < 200) {
+        price += prices.size['custom_h_under_200'] || 0;
+        // ลบข้อความแสดงผล แต่ราคายังบวกตามปกติ
+      }
+      else if (height >= 201 && height <= 210) { 
+        price += prices.size['custom_h_201_210']; 
+        // surcharges.push(`สูง 201-210cm`); // ลบออกตามคำสั่ง
+      }
+      else if (height >= 211 && height <= 220) { 
+        price += prices.size['custom_h_211_220']; 
+        // ลบข้อความแสดงผล
+      }
+      else if (height >= 221 && height <= 240) { 
+        price += prices.size['custom_h_221_240']; 
+        // surcharges.push(`สูง 221-240cm`); // ลบออกตามคำสั่ง
+      }
+    } else { price += prices.size[formData.sizeType] || 0; }
+    
     if (formData.surfaceType === 'TOA') price += prices.surface['TOA'] || 0;
     else if (formData.surfaceType === 'SVL') price += prices.surface['SVL'] || 0;
+    
     price += prices.grooving[formData.grooving] || 0;
     price += prices.molding[formData.molding] || 0;
     price += prices.glass[formData.glass] || 0;
     price += prices.louver[formData.louver] || 0;
     price += prices.reinforce[formData.reinforce] || 0;
     price += prices.drilling[formData.drilling] || 0;
-    Object.keys(formData.options).forEach(key => {
-      if (formData.options[key]) price += prices.options[key] || 0;
-    });
+    Object.keys(formData.options).forEach(key => { if (formData.options[key]) price += prices.options[key] || 0; });
+    
     setTotalPrice(price);
     setActiveSurcharges(surcharges);
   }, [formData, prices]);
 
-  // Handlers
+  // ✅ เปลี่ยน Max Width เป็น 110cm
   const handleInputChange = (field: keyof DoorFormData, value: any) => {
-    if (field === 'customWidth' && Number(value) > 95) return;
+    if (field === 'customWidth' && Number(value) > 110) return;
     if (field === 'customHeight' && Number(value) > 240) return;
     setFormData(prev => ({ ...prev, [field]: value }));
   };
+  
+  const handleOptionToggle = (optionKey: string) => setFormData(prev => ({ ...prev, options: { ...prev.options, [optionKey]: !prev.options[optionKey] } }));
+  const handleLogout = () => { localStorage.removeItem('upvc_user'); setCurrentUser(null); };
 
-  const handleOptionToggle = (optionKey: string) => {
-    setFormData(prev => ({ ...prev, options: { ...prev.options, [optionKey]: !prev.options[optionKey] } }));
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('upvc_user');
-    setCurrentUser(null);
-    setShowAdminPanel(false);
-    setShowUserPanel(false);
-  };
-
-  // --- CSV Logic ---
   const handleDownloadTemplate = () => {
     const csvContent = `Category,Key,Description,Price
 structure,uPVC,ราคาตั้งต้น ประตู uPVC,2500
@@ -511,6 +482,7 @@ size,90x200cm,ขนาด 90x200cm (ราคาบวกเพิ่ม),400
 size,custom,ขนาดสั่งทำพิเศษ (ค่าดำเนินการพื้นฐาน),1000
 size,custom_w_81_89,Surcharge กว้าง 81-89cm,300
 size,custom_w_91_95,Surcharge กว้าง 91-95cm,500
+size,custom_h_under_200,Surcharge สูงน้อยกว่า 200cm,100
 size,custom_h_201_210,Surcharge สูง 201-210cm,400
 size,custom_h_211_220,Surcharge สูง 211-220cm,600
 size,custom_h_221_240,Surcharge สูง 221-240cm,1000
@@ -527,360 +499,253 @@ molding,roma_1,คิ้ว ROMA 1 ช่อง,900
 molding,roma_2,คิ้ว ROMA 2 ช่อง,1100
 glass,none,ไม่ติดกระจก,0
 glass,frosted,กระจกฝ้าเต็มบาน,1500
+glass,frosted_half,กระจกฝ้าครึ่งบาน,1000
+glass,frosted_side,กระจกฝ้าข้าง,800
+glass,green_full,กระจกเขียวตัดแสงเต็มบาน,1800
+glass,green_half,กระจกเขียวตัดแสงครึ่งบาน,1200
+glass,green_side,กระจกเขียวตัดแสงข้าง,1000
 louver,none,ไม่ติดเกล็ด,0
 louver,full,เกล็ดเต็มบาน,1200
+louver,half,เกล็ดครึ่งบาน,800
+louver,side,เกล็ดข้าง,600
+louver,bottom,เกล็ดล่าง,600
+louver,full_painted,เกล็ดเต็มบาน พ่นสี,1500
+louver,half_painted,เกล็ดครึ่งบาน พ่นสี,1000
+louver,side_painted,เกล็ดข้าง พ่นสี,800
+louver,bottom_painted,เกล็ดล่าง พ่นสี,800
 reinforce,none,ไม่เสริมโครง,0
 reinforce,lever,เสริมโครงก้านโยก,300
+reinforce,digital,เสริมโครงดิจิตอลล็อก,400
+reinforce,recessed,เสริมโครงมือจับฝัง,400
 drilling,none,ไม่เจาะลูกบิด,0
 drilling,knob,เจาะลูกบิด,100
-option,shock_up,เสริมโครง SHOCK UP,200
-option,handle,เสริมโครงด้ามจับ,150
-option,sliding,เสริมโครงบานเลื่อน,400
-option,stopper,เสริมโครง Stopper,100
-option,peephole,เจาะตาแมว,150
-option,rabbet,ทำบังใบ,250
-option,knob_plate_40,เสริมโครงแป้นรอง 40cm,100
-option,wood_top_bottom,เสริมโครงไม้ บน/ล่าง,300`;
+drilling,lever,เจาะก้านโยก,150
+drilling,digital,เจาะดิจิตอลล็อค,200
+drilling,recessed,เจาะมือจับฝัง,200
+options,shock_up,เสริมโครง SHOCK UP,200
+options,handle,เสริมโครงด้ามจับ,150
+options,sliding,เสริมโครงบานเลื่อน,400
+options,stopper,เสริมโครง Stopper,100
+options,peephole,เจาะตาแมว,150
+options,rabbet,ทำบังใบ,250
+options,knob_plate_40,เสริมโครงแป้นรอง 40cm,100
+options,wood_top_bottom,เสริมโครงไม้ บน/ล่าง,300`;
     const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.href = url;
+    link.href = URL.createObjectURL(blob);
     link.setAttribute("download", "price_template.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    document.body.appendChild(link); link.click(); document.body.removeChild(link);
   };
 
   const handleFileUpload = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
+    const file = event.target.files?.[0]; if (!file) return;
     const reader = new FileReader();
     reader.onload = async (e) => {
-      const text = e.target?.result as string;
-      const lines = text.split('\n');
+      const text = e.target?.result as string; const lines = text.split('\n');
       const newPrices: PricingStructure = JSON.parse(JSON.stringify(DEFAULT_PRICES));
-      
-      let updatedCount = 0;
       for (let i = 1; i < lines.length; i++) {
-        const line = lines[i].trim();
-        if (!line) continue;
-        const parts = line.split(',');
-        if (parts.length >= 4) {
-          const category = parts[0].trim();
-          const key = parts[1].trim();
-          const priceRaw = parts[3].trim();
-          const price = parseFloat(priceRaw);
-          if (!isNaN(price)) {
-            if (category in newPrices && category !== 'options') {
-               const cat = category as keyof Omit<PricingStructure, 'options'>;
-               if (newPrices[cat][key] !== undefined) { newPrices[cat][key] = price; updatedCount++; }
-            } else if (category === 'option' && newPrices.options[key] !== undefined) {
-               newPrices.options[key] = price; updatedCount++;
-            }
-          }
+        const parts = lines[i].split(','); if (parts.length < 4) continue;
+        const [cat, key, , prc] = parts.map(s => s.trim());
+        const price = parseFloat(prc);
+        if (!isNaN(price) && cat in newPrices) {
+            if (cat === 'options') newPrices.options[key] = price;
+            else (newPrices as any)[cat][key] = price;
         }
       }
-
-      if (db) {
-        try {
-          await setDoc(doc(db, "config", "prices"), newPrices);
-          alert(`✅ บันทึกราคาลง Cloud เรียบร้อย (${updatedCount} รายการ) \nทุกคนจะเห็นราคานี้ทันที`);
-          setShowAdminPanel(false);
-        } catch (error) {
-          alert("บันทึกไม่สำเร็จ เช็คการเชื่อมต่อเน็ต");
-        }
-      }
+      if (db) await setDoc(doc(db, "config", "prices"), newPrices);
+      alert("✅ อัปเดตราคากลางเรียบร้อย"); setShowAdminPanel(false);
     };
-    reader.readAsText(file);
-    event.target.value = '';
+    reader.readAsText(file); event.target.value = '';
   };
 
-  // --- Render ---
-
-  if (!currentUser) return (
-    <LoginScreen 
-      onLogin={setCurrentUser} 
-      isFirebaseReady={isFirebaseReady} 
-      permissionError={permissionError} 
-    />
-  );
-
-  const isAdminUser = currentUser.role === 'admin';
+  if (!currentUser) return <LoginScreen onLogin={setCurrentUser} isFirebaseReady={isFirebaseReady} permissionError={permissionError} />;
 
   return (
     <div className="min-h-screen bg-slate-100 p-4 md:p-8 font-sans">
       <div className="max-w-7xl mx-auto">
-        
-        {/* Header */}
         <header className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-slate-800 flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-slate-200">
-                <img 
-                  src="https://i.ibb.co/r2cZ0GYB/image.png" 
-                  alt="Logo" 
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              ระบบคำนวณราคาประตู uPVC
-            </h1>
-            <div className="flex items-center gap-3 mt-2 ml-14">
-               <span className={`text-sm px-3 py-1 rounded-full flex items-center gap-1.5 font-medium ${isAdminUser ? 'bg-purple-100 text-purple-700' : 'bg-slate-200 text-slate-600'}`}>
-                  <User className="w-3 h-3"/> {currentUser.name}
-                  <span className="text-xs opacity-75">({currentUser.role === 'admin' ? 'Admin' : 'Staff'})</span>
-               </span>
-               <button onClick={handleLogout} className="text-xs text-red-500 hover:text-red-700 flex items-center gap-1 px-2 py-1 rounded hover:bg-red-50 transition-colors">
-                  <LogOut className="w-3 h-3"/> ออกจากระบบ
-               </button>
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-slate-200">
+              <img src="https://i.ibb.co/r2cZ0GYB/image.png" alt="Logo" className="w-full h-full object-cover"/>
             </div>
+            <h1 className="text-3xl font-bold text-slate-800">ระบบคำนวณราคาประตู uPVC</h1>
           </div>
-          
-          {/* Admin Buttons */}
-          {isAdminUser && (
-            <div className="flex gap-2">
-              <button 
-                onClick={() => setShowUserPanel(true)}
-                className="flex items-center gap-2 px-4 py-2.5 bg-white text-slate-700 border border-slate-300 rounded-lg hover:bg-slate-50 text-sm font-bold transition-all shadow-sm"
-              >
-                <Users className="w-4 h-4 text-blue-600" />
-                จัดการผู้ใช้งาน
-              </button>
-              <button 
-                onClick={() => setShowAdminPanel(true)}
-                className="flex items-center gap-2 px-4 py-2.5 bg-slate-800 text-white rounded-lg hover:bg-slate-700 text-sm font-bold transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-              >
-                <Settings className="w-4 h-4 text-yellow-400" />
-                จัดการราคา (CSV)
-              </button>
+          <div className="flex gap-2">
+            <div className="flex flex-col items-end mr-2">
+              <span className="text-sm font-medium text-slate-700 flex items-center gap-1.5"><User className="w-3 h-3"/> {currentUser.name} ({currentUser.role})</span>
+              <button onClick={handleLogout} className="text-xs text-red-500 hover:text-red-700">ออกจากระบบ</button>
             </div>
-          )}
+            {currentUser.role === 'admin' && (
+              <><button onClick={() => setShowUserPanel(true)} className="p-2.5 bg-white border rounded-lg shadow-sm"><Users className="w-4 h-4 text-blue-600"/></button>
+                <button onClick={() => setShowAdminPanel(true)} className="p-2.5 bg-slate-800 text-white rounded-lg"><Settings className="w-4 h-4 text-yellow-400"/></button></>
+            )}
+          </div>
         </header>
 
-        {/* User Management Panel */}
-        {showUserPanel && isAdminUser && (
-          <UserManagementPanel onClose={() => setShowUserPanel(false)} />
-        )}
-
-        {/* Admin CSV Panel */}
-        {showAdminPanel && isAdminUser && (
+        {showUserPanel && <UserManagementPanel onClose={() => setShowUserPanel(false)} />}
+        {showAdminPanel && (
            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
              <div className="bg-white w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-               <div className="bg-slate-800 text-white p-4 flex justify-between items-center">
-                 <h3 className="text-lg font-semibold flex items-center gap-2 text-yellow-400">
-                   <FileSpreadsheet className="w-5 h-5" /> อัปเดตราคากลางด้วย CSV (Cloud)
-                 </h3>
-                 <button onClick={() => setShowAdminPanel(false)}><X className="w-5 h-5 hover:text-red-400" /></button>
-               </div>
-               
-               <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-8 bg-slate-50">
+               <div className="bg-slate-800 text-white p-4 flex justify-between items-center"><h3 className="text-lg font-semibold flex items-center gap-2"><FileSpreadsheet className="w-5 h-5" /> จัดการราคากลาง (CSV)</h3><button onClick={() => setShowAdminPanel(false)}><X className="w-5 h-5"/></button></div>
+               <div className="p-8 grid grid-cols-2 gap-8 bg-slate-50">
                   <div className="space-y-4">
-                     <div className="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center mb-2">
-                        <Download className="w-6 h-6 text-green-600" />
-                     </div>
-                     <h4 className="font-bold text-slate-800">1. ดาวน์โหลด Template</h4>
-                     <p className="text-sm text-slate-500">ดาวน์โหลดไฟล์ตารางราคาล่าสุดออกมาแก้ไข</p>
-                     <button onClick={handleDownloadTemplate} className="w-full py-2.5 border-2 border-green-600 text-green-700 hover:bg-green-50 rounded-lg font-bold transition-colors text-sm">
-                      ดาวน์โหลด (.csv)
-                    </button>
+                    <h4 className="font-bold">1. ดาวน์โหลด Template</h4>
+                    <button onClick={handleDownloadTemplate} className="w-full py-2.5 border-2 border-green-600 text-green-700 hover:bg-green-50 rounded-lg font-bold">ดาวน์โหลด (.csv)</button>
                   </div>
-
-                  <div className="space-y-4 border-l border-slate-200 pl-8 relative">
-                     <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-slate-200 rounded-full flex items-center justify-center text-slate-500 text-xs">Step</div>
-                     <div className="h-12 w-12 bg-blue-100 rounded-lg flex items-center justify-center mb-2">
-                        <Upload className="w-6 h-6 text-blue-600" />
-                     </div>
-                     <h4 className="font-bold text-slate-800">2. อัปโหลดไฟล์ใหม่</h4>
-                     <p className="text-sm text-slate-500">นำไฟล์ที่แก้ไขแล้วมาอัปโหลดเพื่อใช้คำนวณ</p>
-                     <input type="file" accept=".csv" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
-                    <button onClick={() => fileInputRef.current?.click()} className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold transition-colors text-sm shadow-md">
-                      เลือกไฟล์ & อัปเดต
-                    </button>
+                  <div className="space-y-4 border-l pl-8">
+                    <h4 className="font-bold">2. อัปโหลดไฟล์ใหม่</h4>
+                    <input type="file" accept=".csv" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
+                    <button onClick={() => fileInputRef.current?.click()} className="w-full py-2.5 bg-blue-600 text-white rounded-lg font-bold">เลือกไฟล์ & อัปเดต</button>
                   </div>
-               </div>
-               <div className="p-4 bg-yellow-50 text-xs text-yellow-800 border-t border-yellow-100 text-center">
-                  ✅ การอัปโหลดไฟล์นี้จะบันทึกราคาลง Database ทันที (พนักงานทุกคนจะเห็นราคาใหม่นี้)
                </div>
              </div>
            </div>
         )}
 
-        {/* Main Interface (Calculator) */}
         <div className="flex flex-col lg:flex-row gap-8">
           <div className="flex-1 min-w-0">
-            {/* Tabs */}
             <div className="bg-white rounded-xl shadow-sm p-2 mb-6 flex overflow-x-auto gap-2 no-scrollbar">
               {TABS.map((tab) => {
-                const Icon = tab.icon;
-                const isDisabled = tab.id !== 'exclusive'; // ✅ Disable other tabs
+                const isDisabled = tab.id !== 'exclusive';
                 return (
-                  <button
-                    key={tab.id}
-                    onClick={() => !isDisabled && setActiveTab(tab.id)}
-                    disabled={isDisabled}
-                    className={`flex items-center gap-2 px-4 py-3 rounded-lg whitespace-nowrap transition-all ${
-                      activeTab === tab.id 
-                        ? 'bg-blue-600 text-white shadow-md' 
-                        : isDisabled 
-                          ? 'text-slate-300 bg-slate-50 cursor-not-allowed' // Style for disabled tabs
-                          : 'text-slate-600 hover:bg-slate-50'
-                    }`}
-                  >
-                    <Icon className="w-4 h-4" /> {tab.label}
+                  <button key={tab.id} onClick={() => !isDisabled && setActiveTab(tab.id)} disabled={isDisabled}
+                    className={`flex items-center gap-2 px-4 py-3 rounded-lg whitespace-nowrap transition-all ${activeTab === tab.id ? 'bg-blue-600 text-white shadow-md' : isDisabled ? 'text-slate-300 bg-slate-50 cursor-not-allowed' : 'text-slate-600 hover:bg-slate-50'}`}>
+                    <tab.icon className="w-4 h-4" /> {tab.label}
                   </button>
                 );
               })}
             </div>
-            {/* Form Content */}
-             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                {/* 1. Structure & Size */}
+
+            <div className="space-y-8">
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
                     <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2"><Settings className="w-5 h-5 text-blue-600"/> ข้อมูลโครงสร้างและขนาด</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-2 gap-6">
                         <div>
-                            {/* Type (ภายนอก/ภายใน) - ภายนอก Disabled */}
                             <label className="block text-sm font-medium text-slate-600 mb-1">ประเภทการใช้งาน</label>
-                            <div className="flex bg-slate-100 p-1 rounded-lg mb-4">
+                            <div className="flex bg-slate-100 p-1 rounded-lg">
                                 {['ภายนอก', 'ภายใน'].map(t => {
-                                  const isTypeDisabled = t === 'ภายนอก';
+                                  const isDis = t === 'ภายนอก';
                                   return (
-                                    <button 
-                                      key={t} 
-                                      onClick={() => !isTypeDisabled && handleInputChange('type', t)} 
-                                      disabled={isTypeDisabled}
-                                      className={`flex-1 py-2 text-sm rounded-md transition-all ${
-                                        formData.type === t 
-                                          ? 'bg-white shadow text-blue-600 font-bold' 
-                                          : isTypeDisabled
-                                            ? 'text-slate-300 cursor-not-allowed' // Disabled style
-                                            : 'text-slate-500'
-                                      }`}
-                                    >
-                                      {t}
-                                    </button>
+                                    <button key={t} disabled={isDis} onClick={() => handleInputChange('type', t)}
+                                      className={`flex-1 py-2 text-sm rounded-md ${formData.type === t ? 'bg-white shadow text-blue-600 font-bold' : isDis ? 'text-slate-300 cursor-not-allowed' : 'text-slate-500'}`}>{t}</button>
                                   );
                                 })}
                             </div>
-
-                            <label className="block text-sm font-medium text-slate-600 mb-1">โครงสร้างวัสดุ</label>
-                            <select value={formData.structure} onChange={(e) => handleInputChange('structure', e.target.value)} className="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
-                                <option value="uPVC">ประตู uPVC</option>
-                                <option value="WPC RIGID">ประตู WPC RIGID</option>
-                                <option value="WPC MAX">ประตู WPC MAX</option>
+                            <label className="block text-sm font-medium text-slate-600 mt-4 mb-1">โครงสร้างวัสดุ</label>
+                            <select value={formData.structure} onChange={(e) => handleInputChange('structure', e.target.value)} className="w-full p-2.5 border rounded-lg">
+                                <option value="uPVC">ประตู uPVC</option><option value="WPC RIGID">ประตู WPC RIGID</option><option value="WPC MAX">ประตู WPC MAX</option>
                             </select>
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-slate-600 mb-2">ขนาดประตู</label>
-                            <div className="grid grid-cols-2 gap-3 mb-4">
-                                {[{id: '70x200cm', label: '70x200cm'}, {id: '80x200cm', label: '80x200cm'}, {id: '90x200cm', label: '90x200cm'}, {id: 'custom', label: 'อื่นๆ (Custom)'}].map(s => (
-                                    <div key={s.id} onClick={() => handleInputChange('sizeType', s.id)} className={`cursor-pointer border-2 rounded-lg p-3 text-center transition-all ${formData.sizeType === s.id ? 'border-blue-500 bg-blue-50 text-blue-700 font-bold' : 'border-slate-200 hover:border-blue-300'}`}><div className="text-sm">{s.label}</div></div>
+                            <div className="grid grid-cols-2 gap-3">
+                                {[{id: '70x200cm', l: '70x200'}, {id: '80x200cm', l: '80x200'}, {id: '90x200cm', l: '90x200'}, {id: 'custom', l: 'Custom'}].map(s => (
+                                    <div key={s.id} onClick={() => handleInputChange('sizeType', s.id)} className={`cursor-pointer border-2 rounded-lg p-3 text-center transition-all ${formData.sizeType === s.id ? 'border-blue-500 bg-blue-50 text-blue-700 font-bold' : 'border-slate-200'}`}>{s.l}</div>
                                 ))}
                             </div>
                             {formData.sizeType === 'custom' && (
-                                <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 animate-in fade-in">
+                                <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 mt-4">
                                     <div className="grid grid-cols-2 gap-4">
-                                        <div><label className="text-xs text-slate-600 font-medium">กว้าง (Max 95cm)</label><input type="number" step="1" min={1} max={95} value={formData.customWidth} onChange={(e) => handleInputChange('customWidth', e.target.value)} className="w-full mt-1 p-2 border rounded focus:ring-2 focus:ring-yellow-400 outline-none bg-white"/></div>
-                                        <div><label className="text-xs text-slate-600 font-medium">สูง (Max 240cm)</label><input type="number" step="1" min={1} max={240} value={formData.customHeight} onChange={(e) => handleInputChange('customHeight', e.target.value)} className="w-full mt-1 p-2 border rounded focus:ring-2 focus:ring-yellow-400 outline-none bg-white"/></div>
+                                        <div><label className="text-xs text-slate-600">กว้าง (Max 110cm)</label><input type="number" value={formData.customWidth} onChange={(e) => handleInputChange('customWidth', e.target.value)} className="w-full p-2 border rounded"/></div>
+                                        <div><label className="text-xs text-slate-600">สูง (Max 240cm)</label><input type="number" value={formData.customHeight} onChange={(e) => handleInputChange('customHeight', e.target.value)} className="w-full p-2 border rounded"/></div>
                                     </div>
-                                    {activeSurcharges.length > 0 && <div className="mt-3 pt-3 border-t border-yellow-200 text-xs text-orange-700"><div className="font-semibold flex items-center gap-1 mb-1"><AlertCircle className="w-3 h-3"/> เงื่อนไขราคาพิเศษ:</div><ul className="list-disc list-inside space-y-1">{activeSurcharges.map((s, i) => <li key={i}>{s}</li>)}</ul></div>}
+                                    {/* ✅ แสดงข้อความแจ้งเตือนแบบเรียบง่าย (ไม่มีราคา) */}
+                                    {activeSurcharges.map((s, i) => <div key={i} className="text-xs text-orange-700 mt-1">{s}</div>)}
                                 </div>
                             )}
                         </div>
                     </div>
                 </div>
-                
-                {/* 2. Surface */}
+
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
                     <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2"><Palette className="w-5 h-5 text-purple-600"/> สีและดีไซน์หน้าบาน</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="md:col-span-2 space-y-3">
-                            <label className="block text-sm font-medium text-slate-600">เลือกชนิดผิว/สี</label>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div onClick={() => handleInputChange('surfaceType', 'TOA')} className={`p-4 rounded-lg border-2 cursor-pointer ${formData.surfaceType === 'TOA' ? 'border-purple-500 bg-purple-50' : 'border-slate-200'}`}>
-                                    <div className="flex items-center gap-2 mb-2"><div className={`w-4 h-4 rounded-full border ${formData.surfaceType === 'TOA' ? 'bg-purple-500' : 'bg-white'}`}></div>ผิวเรียบพ่นสี TOA</div>
-                                    {formData.surfaceType === 'TOA' && <input type="text" placeholder="ระบุโค้ดสี TOA" value={formData.toaCode} onChange={(e) => handleInputChange('toaCode', e.target.value)} className="w-full p-2 text-sm border rounded focus:outline-none focus:border-purple-500" onClick={(e) => e.stopPropagation()}/>}
-                                </div>
-                                <div onClick={() => handleInputChange('surfaceType', 'SVL')} className={`p-4 rounded-lg border-2 cursor-pointer ${formData.surfaceType === 'SVL' ? 'border-purple-500 bg-purple-50' : 'border-slate-200'}`}>
-                                    <div className="flex items-center gap-2 mb-2"><div className={`w-4 h-4 rounded-full border ${formData.surfaceType === 'SVL' ? 'bg-purple-500' : 'bg-white'}`}></div>ปิดผิว SVL</div>
-                                    {formData.surfaceType === 'SVL' && <select value={formData.svlCode} onChange={(e) => handleInputChange('svlCode', e.target.value)} className="w-full p-2 text-sm border rounded focus:outline-none focus:border-purple-500" onClick={(e) => e.stopPropagation()}><option value="SVL F-102">SVL F-102</option><option value="M-304-1">M-304-1</option></select>}
-                                </div>
+                    <div className="grid grid-cols-2 gap-6">
+                        <div className="col-span-2 grid grid-cols-2 gap-4">
+                            {/* ✅ TOA แบบ Clean (เอาช่องกรอกรหัสสีออก) */}
+                            <div onClick={() => handleInputChange('surfaceType', 'TOA')} className={`p-4 rounded-lg border-2 cursor-pointer ${formData.surfaceType === 'TOA' ? 'border-purple-500 bg-purple-50' : 'border-slate-200'}`}>
+                                <label className="flex items-center gap-2"><div className={`w-4 h-4 rounded-full border ${formData.surfaceType === 'TOA' ? 'bg-purple-500' : ''}`}></div>พ่นสี TOA</label>
+                            </div>
+                            {/* ✅ SVL แบบ Clean (เอาตัวเลือกย่อยออก) */}
+                            <div onClick={() => handleInputChange('surfaceType', 'SVL')} className={`p-4 rounded-lg border-2 cursor-pointer ${formData.surfaceType === 'SVL' ? 'border-purple-500 bg-purple-50' : 'border-slate-200'}`}>
+                                <label className="flex items-center gap-2"><div className={`w-4 h-4 rounded-full border ${formData.surfaceType === 'SVL' ? 'bg-purple-500' : ''}`}></div>ปิดผิว SVL</label>
                             </div>
                         </div>
-                        
-                        {/* คืนค่าและ Disable: การเซาะร่อง */}
-                        <div className="opacity-50 pointer-events-none">
-                            <label className="block text-sm font-medium text-slate-600 mb-1">การเซาะร่อง (ปิดปรับปรุง)</label>
-                            <select value={formData.grooving} disabled className="w-full p-2.5 border rounded-lg bg-slate-100 text-slate-400">
-                              <option value="none">ไม่เซาะร่อง</option>
-                              <option value="standard">เซาะร่องปกติ</option>
-                              <option value="black_line">เซาะร่องแปะเส้นดำ</option>
-                              <option value="painted">เซาะร่องทำสี</option>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-600 mb-1">การเซาะร่อง</label>
+                            <select value={formData.grooving} onChange={(e) => handleInputChange('grooving', e.target.value)} className="w-full p-2.5 border rounded-lg">
+                                <option value="none">ไม่เซาะร่อง</option>
+                                <option value="standard">เซาะร่องปกติ</option>
+                                <option value="black_line">เซาะร่องแปะเส้นดำ</option>
+                                <option value="painted">เซาะร่องทำสี</option>
                             </select>
                         </div>
-
                         <div>
                             <label className="block text-sm font-medium text-slate-600 mb-1">ติดคิ้วพ่นสี</label>
-                            <select value={formData.molding} onChange={(e) => handleInputChange('molding', e.target.value)} className="w-full p-2.5 border rounded-lg"><option value="none">ไม่ติดคิ้ว</option><option value="first_1">First Class 1 ช่อง</option><option value="first_2">First Class 2 ช่อง</option><option value="roma_1">ROMA 1 ช่อง</option><option value="roma_2">ROMA 2 ช่อง</option></select>
+                            <select value={formData.molding} onChange={(e) => handleInputChange('molding', e.target.value)} className="w-full p-2.5 border rounded-lg">
+                                <option value="none">ไม่ติดคิ้ว</option>
+                                <option value="first_1">First Class 1 ช่อง</option>
+                                <option value="first_2">First Class 2 ช่อง</option>
+                                <option value="roma_1">ROMA 1 ช่อง</option>
+                                <option value="roma_2">ROMA 2 ช่อง</option>
+                            </select>
                         </div>
-                        
-                        {/* คืนค่าและ Disable: กระจก */}
-                        <div className="opacity-50 pointer-events-none">
-                           <label className="block text-sm font-medium text-slate-600 mb-1">กระจก (ปิดปรับปรุง)</label>
-                           <select value={formData.glass} disabled className="w-full p-2.5 border rounded-lg bg-slate-100 text-slate-400">
-                             <option value="none">ไม่ติดกระจก</option>
-                             <option value="frosted">กระจกฝ้าเต็มบาน</option>
-                           </select>
-                        </div>
-                        
-                        {/* คืนค่าและ Disable: เกล็ดระบายอากาศ */}
-                        <div className="opacity-50 pointer-events-none">
-                           <label className="block text-sm font-medium text-slate-600 mb-1">เกล็ดระบายอากาศ (ปิดปรับปรุง)</label>
-                           <select value={formData.louver} disabled className="w-full p-2.5 border rounded-lg bg-slate-100 text-slate-400">
-                             <option value="none">ไม่ใส่เกล็ด</option>
-                             <option value="full">เกล็ดเต็มบาน</option>
-                           </select>
-                        </div>
-                    </div>
-                </div>
-
-                {/* 3. Drilling & Reinforce */}
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-                    <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2"><Calculator className="w-5 h-5 text-orange-600"/> การเจาะและเสริมโครง</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* คืนค่าและ Disable: เสริมโครง */}
-                        <div className="opacity-50 pointer-events-none">
-                          <label className="block text-sm font-medium text-slate-600 mb-1">เสริมโครง (ปิดปรับปรุง)</label>
-                          <select value={formData.reinforce} disabled className="w-full p-2.5 border rounded-lg bg-slate-100 text-slate-400">
-                            <option value="none">ไม่เสริมโครง</option>
-                            <option value="lever">เสริมโครงก้านโยก</option>
+                        <div><label className="block text-sm font-medium text-slate-600 mb-1">กระจก</label>
+                          <select value={formData.glass} onChange={(e) => handleInputChange('glass', e.target.value)} className="w-full p-2.5 border rounded-lg">
+                            <option value="none">ไม่ติดกระจก</option>
+                            <option value="frosted">กระจกฝ้าเต็มบาน</option>
+                            <option value="frosted_half">กระจกฝ้าครึ่งบาน</option>
+                            <option value="frosted_side">กระจกฝ้าข้าง</option>
+                            <option value="green_full">กระจกเขียวตัดแสงเต็มบาน</option>
+                            <option value="green_half">กระจกเขียวตัดแสงครึ่งบาน</option>
+                            <option value="green_side">กระจกเขียวตัดแสงข้าง</option>
                           </select>
                         </div>
-                        
-                        <div><label className="block text-sm font-medium text-slate-600 mb-1">การเจาะลูกบิด</label><select value={formData.drilling} onChange={(e) => handleInputChange('drilling', e.target.value)} className="w-full p-2.5 border rounded-lg"><option value="none">ไม่เจาะลูกบิด</option><option value="knob">เจาะลูกบิด</option></select></div>
+                        <div><label className="block text-sm font-medium text-slate-600 mb-1">เกล็ดระบายอากาศ</label>
+                          <select value={formData.louver} onChange={(e) => handleInputChange('louver', e.target.value)} className="w-full p-2.5 border rounded-lg">
+                            <option value="none">ไม่ใส่เกล็ด</option>
+                            <option value="full">เกล็ดเต็มบาน</option>
+                            <option value="half">เกล็ดครึ่งบาน</option>
+                            <option value="side">เกล็ดข้าง</option>
+                            <option value="bottom">เกล็ดล่าง</option>
+                            <option value="full_painted">เกล็ดเต็มบาน พ่นสี</option>
+                            <option value="half_painted">เกล็ดครึ่งบาน พ่นสี</option>
+                            <option value="side_painted">เกล็ดข้าง พ่นสี</option>
+                            <option value="bottom_painted">เกล็ดล่าง พ่นสี</option>
+                          </select>
+                        </div>
                     </div>
                 </div>
 
-                {/* 4. Options (คืนค่าและ Disable ทั้งหมด) */}
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                    <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2"><Calculator className="w-5 h-5 text-orange-600"/> การเจาะและเสริมโครง</h3>
+                    <div className="grid grid-cols-2 gap-6">
+                        <div><label className="block text-sm font-medium text-slate-600 mb-1">เสริมโครง</label>
+                          <select value={formData.reinforce} onChange={(e) => handleInputChange('reinforce', e.target.value)} className="w-full p-2.5 border rounded-lg">
+                            <option value="none">ไม่เสริมโครง</option>
+                            <option value="lever">เสริมโครงก้านโยก</option>
+                            <option value="digital">เสริมโครงดิจิตอลล็อก</option>
+                            <option value="recessed">เสริมโครงมือจับฝัง</option>
+                          </select>
+                        </div>
+                        <div><label className="block text-sm font-medium text-slate-600 mb-1">การเจาะลูกบิด</label>
+                          <select value={formData.drilling} onChange={(e) => handleInputChange('drilling', e.target.value)} className="w-full p-2.5 border rounded-lg">
+                            <option value="none">ไม่เจาะลูกบิด</option>
+                            <option value="knob">เจาะลูกบิด</option>
+                            <option value="lever">เจาะก้านโยก</option>
+                            <option value="digital">เจาะดิจิตอลล็อค</option>
+                            <option value="recessed">เจาะมือจับฝัง</option>
+                          </select>
+                        </div>
+                    </div>
+                </div>
+
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 opacity-50 pointer-events-none grayscale">
                     <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2"><Check className="w-5 h-5 text-green-600"/> Option เสริม (ปิดปรับปรุง)</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {[
-                            { key: 'shock_up', label: 'เสริมโครงติด SHOCK UP' }, { key: 'handle', label: 'เสริมโครงด้ามจับ' },
-                            { key: 'sliding', label: 'เสริมโครงบานเลื่อน' }, { key: 'stopper', label: 'เสริมโครง Stopper' },
-                            { key: 'peephole', label: 'เจาะตาแมว' }, { key: 'rabbet', label: 'ทำบังใบ' },
-                            { key: 'knob_plate_40', label: 'เสริมโครงแป้นรองลูกบิด 40cm' }, { key: 'wood_top_bottom', label: 'เสริมโครงไม้สังเคราะห์ บน หรือ ล่าง' },
-                        ].map(opt => (
-                            <label key={opt.key} className="flex items-center justify-between p-3 border rounded-lg bg-slate-50 cursor-not-allowed">
-                                <div className="flex items-center space-x-3">
-                                  <input 
-                                    type="checkbox" 
-                                    checked={formData.options[opt.key]} 
-                                    onChange={() => handleOptionToggle(opt.key)} // Add this back
-                                    disabled
-                                    className="w-5 h-5 text-slate-400 rounded border-gray-300 bg-slate-200"
-                                  />
-                                  <span className="text-slate-400 text-sm">{opt.label}</span>
-                                </div>
+                    <div className="grid grid-cols-2 gap-3">
+                        {[{k: 'shock_up', l: 'เสริมโครงติด SHOCK UP'}, {k: 'peephole', l: 'เจาะตาแมว'}].map(o => (
+                            <label key={o.k} className="flex items-center space-x-3 p-3 border rounded-lg">
+                                <input type="checkbox" checked={formData.options[o.k]} onChange={() => handleOptionToggle(o.k)} disabled className="w-5 h-5"/>
+                                <span className="text-sm">{o.l}</span>
                             </label>
                         ))}
                     </div>
@@ -888,24 +753,15 @@ option,wood_top_bottom,เสริมโครงไม้ บน/ล่าง,
             </div>
           </div>
 
-          {/* Sidebar Summary */}
           <div className="lg:w-96 shrink-0">
              <div className="bg-white rounded-xl shadow-lg border border-slate-200 sticky top-8 overflow-hidden">
-                <div className="bg-slate-800 p-4 text-white flex items-center justify-between">
-                  <h2 className="font-semibold flex items-center gap-2"><FileText className="w-5 h-5" /> สรุปรายการ</h2>
-                  <span className="text-xs bg-slate-700 px-2 py-1 rounded">Draft</span>
-                </div>
+                <div className="bg-slate-800 p-4 text-white flex items-center justify-between"><h2 className="font-semibold flex items-center gap-2"><FileText className="w-5 h-5" /> สรุปรายการ</h2></div>
                 <div className="p-6 space-y-6">
-                  <div className="text-center pb-6 border-b border-slate-100">
-                    <p className="text-slate-500 text-sm mb-1">ราคาสุทธิ (อัปเดตล่าสุด)</p>
-                    <div className="text-4xl font-bold text-blue-600">฿{totalPrice.toLocaleString()}</div>
-                  </div>
-                  <div className="space-y-3">
-                    <h4 className="text-sm font-semibold text-slate-700 mb-2">รายละเอียดสินค้า</h4>
-                    <div className="flex justify-between text-sm"><span className="text-slate-500">ประเภท</span><span className="text-slate-800 font-medium">{formData.structure} ({formData.type})</span></div>
-                    <div className="flex justify-between text-sm"><span className="text-slate-500">ขนาด</span><span className="text-slate-800 font-medium">{formData.sizeType === 'custom' ? `${formData.customWidth}x${formData.customHeight}cm` : formData.sizeType}</span></div>
-                    {(formData.grooving !== 'none' || formData.molding !== 'none' || formData.glass !== 'none' || formData.reinforce !== 'none') && <div className="text-xs text-slate-400 mt-2">มีงานเพิ่มเติม (เซาะร่อง/คิ้ว/กระจก/โครง)</div>}
-                    {Object.values(formData.options).some(Boolean) && <div className="text-xs text-slate-400">มี Option เสริม</div>}
+                  <div className="text-center pb-6 border-b"><p className="text-slate-500 text-sm mb-1">ราคาสุทธิ</p><div className="text-4xl font-bold text-blue-600">฿{totalPrice.toLocaleString()}</div></div>
+                  <div className="space-y-3 text-sm">
+                    <div className="flex justify-between"><span className="text-slate-500">โครงสร้าง</span><span className="font-medium">{formData.structure}</span></div>
+                    <div className="flex justify-between"><span className="text-slate-500">ขนาด</span><span className="font-medium">{formData.sizeType === 'custom' ? `${formData.customWidth}x${formData.customHeight}` : formData.sizeType}</span></div>
+                    <div className="flex justify-between"><span className="text-slate-500">สี</span><span className="font-medium">{formData.surfaceType}</span></div>
                   </div>
                 </div>
              </div>
