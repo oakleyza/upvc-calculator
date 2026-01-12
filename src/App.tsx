@@ -88,7 +88,9 @@ const DEFAULT_PRICES: PricingStructure = {
   size: { 
     '70x200cm': 0, '80x200cm': 200, '90x200cm': 400, 
     'custom': 1000, 
-    'custom_w_81_89': 300, 'custom_w_91_95': 500, 
+    'custom_w_81_89': 300, 
+    'custom_w_90': 400, // ✅ เพิ่มรายการใหม่: กว้าง 90cm
+    'custom_w_91_95': 500, 
     'custom_h_under_200': 100,
     'custom_h_201_210': 400, 'custom_h_211_220': 600, 'custom_h_221_240': 1000 
   },
@@ -422,6 +424,11 @@ export default function App() {
         price += prices.size['custom_w_81_89']; 
         surcharges.push(`กว้าง 81-89cm`); 
       }
+      // ✅ Logic ใหม่: เพิ่มเคสสำหรับ กว้าง 90cm
+      else if (width === 90) {
+        price += prices.size['custom_w_90'] || 0;
+        surcharges.push(`กว้าง 90cm`);
+      }
       else if (width >= 91 && width <= 95) { 
         price += prices.size['custom_w_91_95']; 
         surcharges.push(`กว้าง 91-95cm`); 
@@ -430,19 +437,15 @@ export default function App() {
       // ✅ Logic ใหม่: สูงน้อยกว่า 200cm
       if (height < 200) {
         price += prices.size['custom_h_under_200'] || 0;
-        // ลบข้อความแสดงผล แต่ราคายังบวกตามปกติ
       }
       else if (height >= 201 && height <= 210) { 
         price += prices.size['custom_h_201_210']; 
-        // ลบข้อความแสดงผล
       }
       else if (height >= 211 && height <= 220) { 
         price += prices.size['custom_h_211_220']; 
-        // ลบข้อความแสดงผล
       }
       else if (height >= 221 && height <= 240) { 
         price += prices.size['custom_h_221_240']; 
-        // ลบข้อความแสดงผล
       }
     } else { price += prices.size[formData.sizeType] || 0; }
     
@@ -472,6 +475,7 @@ export default function App() {
   const handleLogout = () => { localStorage.removeItem('upvc_user'); setCurrentUser(null); };
 
   const handleDownloadTemplate = () => {
+    // ✅ อัปเดต CSV Template เพิ่ม custom_w_90
     const csvContent = `Category,Key,Description,Price
 structure,uPVC,ราคาตั้งต้น ประตู uPVC,2500
 structure,WPC RIGID,ราคาตั้งต้น ประตู WPC RIGID,3500
@@ -481,6 +485,7 @@ size,80x200cm,ขนาด 80x200cm (ราคาบวกเพิ่ม),200
 size,90x200cm,ขนาด 90x200cm (ราคาบวกเพิ่ม),400
 size,custom,ขนาดสั่งทำพิเศษ (ค่าดำเนินการพื้นฐาน),1000
 size,custom_w_81_89,Surcharge กว้าง 81-89cm,300
+size,custom_w_90,Surcharge กว้าง 90cm,400
 size,custom_w_91_95,Surcharge กว้าง 91-95cm,500
 size,custom_h_under_200,Surcharge สูงน้อยกว่า 200cm,100
 size,custom_h_201_210,Surcharge สูง 201-210cm,400
