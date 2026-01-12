@@ -739,13 +739,27 @@ options,wood_top_bottom,เสริมโครงไม้ บน/ล่าง
                     </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 opacity-50 pointer-events-none grayscale">
-                    <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2"><Check className="w-5 h-5 text-green-600"/> Option เสริม (ปิดปรับปรุง)</h3>
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100"> {/* Removed opacity/pointer-events/grayscale */}
+                    <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2"><Check className="w-5 h-5 text-green-600"/> Option เสริม</h3> {/* Removed (ปิดปรับปรุง) */}
                     <div className="grid grid-cols-2 gap-3">
-                        {[{k: 'shock_up', l: 'เสริมโครงติด SHOCK UP'}, {k: 'peephole', l: 'เจาะตาแมว'}].map(o => (
-                            <label key={o.k} className="flex items-center space-x-3 p-3 border rounded-lg">
-                                <input type="checkbox" checked={formData.options[o.k]} onChange={() => handleOptionToggle(o.k)} disabled className="w-5 h-5"/>
-                                <span className="text-sm">{o.l}</span>
+                        {[
+                            {k: 'shock_up', l: 'เสริมโครงติด SHOCK UP'},
+                            {k: 'handle', l: 'เสริมโครงด้ามจับ'},
+                            {k: 'sliding', l: 'เสริมโครงบานเลื่อน'},
+                            {k: 'stopper', l: 'เสริมโครง Stopper'},
+                            {k: 'peephole', l: 'เจาะตาแมว'},
+                            {k: 'rabbet', l: 'ทำบังใบ'},
+                            {k: 'knob_plate_40', l: 'เสริมโครงแป้นรอง 40cm'},
+                            {k: 'wood_top_bottom', l: 'เสริมโครงไม้ บน/ล่าง'}
+                        ].map(o => (
+                            <label key={o.k} className="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-slate-50 transition-colors">
+                                <input 
+                                    type="checkbox" 
+                                    checked={formData.options[o.k]} 
+                                    onChange={() => handleOptionToggle(o.k)} 
+                                    className="w-5 h-5 rounded text-blue-600 focus:ring-blue-500" // Removed disabled, added styles
+                                />
+                                <span className="text-sm text-slate-700 font-medium">{o.l}</span>
                             </label>
                         ))}
                     </div>
