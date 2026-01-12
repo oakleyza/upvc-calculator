@@ -573,7 +573,7 @@ options,wood_top_bottom,เสริมโครงไม้ บน/ล่าง
           <div className="flex gap-2">
             <div className="flex flex-col items-end mr-2">
               <span className="text-sm font-medium text-slate-700 flex items-center gap-1.5"><User className="w-3 h-3"/> {currentUser.name} ({currentUser.role})</span>
-              <button onClick={handleLogout} className="text-xs text-red-500 hover:text-red-700">ออกจากระบบ</button>
+              <button onClick={handleLogout} className="text-xs text-red-500 hover:text-red-700 flex items-center gap-1"><LogOut className="w-3 h-3"/> ออกจากระบบ</button>
             </div>
             {currentUser.role === 'admin' && (
               <><button onClick={() => setShowUserPanel(true)} className="p-2.5 bg-white border rounded-lg shadow-sm"><Users className="w-4 h-4 text-blue-600"/></button>
@@ -590,12 +590,12 @@ options,wood_top_bottom,เสริมโครงไม้ บน/ล่าง
                <div className="p-8 grid grid-cols-2 gap-8 bg-slate-50">
                   <div className="space-y-4">
                     <h4 className="font-bold">1. ดาวน์โหลด Template</h4>
-                    <button onClick={handleDownloadTemplate} className="w-full py-2.5 border-2 border-green-600 text-green-700 hover:bg-green-50 rounded-lg font-bold">ดาวน์โหลด (.csv)</button>
+                    <button onClick={handleDownloadTemplate} className="w-full py-2.5 border-2 border-green-600 text-green-700 hover:bg-green-50 rounded-lg font-bold flex items-center justify-center gap-2"><Download className="w-5 h-5"/> ดาวน์โหลด (.csv)</button>
                   </div>
                   <div className="space-y-4 border-l pl-8">
                     <h4 className="font-bold">2. อัปโหลดไฟล์ใหม่</h4>
                     <input type="file" accept=".csv" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
-                    <button onClick={() => fileInputRef.current?.click()} className="w-full py-2.5 bg-blue-600 text-white rounded-lg font-bold">เลือกไฟล์ & อัปเดต</button>
+                    <button onClick={() => fileInputRef.current?.click()} className="w-full py-2.5 bg-blue-600 text-white rounded-lg font-bold flex items-center justify-center gap-2"><Upload className="w-5 h-5"/> เลือกไฟล์ & อัปเดต</button>
                   </div>
                </div>
              </div>
