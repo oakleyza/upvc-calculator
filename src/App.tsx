@@ -41,13 +41,30 @@ try {
 // --- Types & Interfaces ---
 interface PriceCategory { [key: string]: number; }
 interface PricingStructure {
-  structure: PriceCategory; size: PriceCategory; surface: PriceCategory;
-  grooving: PriceCategory; molding: PriceCategory; glass: PriceCategory;
-  louver: PriceCategory; reinforce: PriceCategory; drilling: PriceCategory;
+  // ✅ แยกหมวดหมู่ชัดเจนระหว่าง ประตู (door_) และ วงกบ (frame_)
+  door_base: PriceCategory;     // ราคาโครงสร้างประตู (uPVC, WPC)
+  door_size: PriceCategory;     // Surcharge ขนาดประตู
+  door_surface: PriceCategory;  // ค่าทำสีประตู
+  
+  frame_base: PriceCategory;    // ราคาตั้งต้นวงกบ
+  frame_size: PriceCategory;    // Surcharge ขนาดวงกบ
+  frame_surface: PriceCategory; // ค่าทำสีวงกบ
+
+  // ✅ Legacy Support (เพิ่มกลับมาเพื่อป้องกัน Error ในสูตรคำนวณ)
+  structure?: PriceCategory;
+  size?: PriceCategory;
+  surface?: PriceCategory;
+
+  // หมวดทั่วไป
+  grooving: PriceCategory; 
+  molding: PriceCategory; 
+  glass: PriceCategory;
+  louver: PriceCategory; 
+  reinforce: PriceCategory; 
+  drilling: PriceCategory;
   options: PriceCategory;
-  frame_base: PriceCategory;
-  wall_thickness: PriceCategory;
 }
+
 interface DoorOptions { [key: string]: boolean; }
 interface DoorFormData {
   type: string; structure: string; sizeType: string; customWidth: string; customHeight: string;
@@ -73,48 +90,84 @@ const DEFAULT_USERS: UserAccount[] = [
 
 // --- Default Prices ---
 const DEFAULT_PRICES: PricingStructure = {
-  structure: { 'uPVC': 2500, 'WPC RIGID': 3500, 'WPC MAX': 4500 },
-  size: { 
-    '70x200cm': 0, '80x200cm': 200, '90x200cm': 400, 
-    'custom': 1000, 
+  // 🚪 --- ราคาประตู (Updated v9) ---
+  door_base: { 
+    'uPVC': 3200, 
+    'WPC RIGID': 3700, 
+    'WPC MAX': 4500 
+  },
+  door_size: { 
+    '70x200cm': 0, 
+    '80x200cm': 0, 
+    '90x200cm': 300, 
+    'custom': 0, 
     'custom_w_81_89': 300, 
-    'custom_w_90': 400,
-    // ✅ เปลี่ยนช่วงราคาตามความต้องการใหม่ (91-100, 101-110)
-    'custom_w_91_100': 500, 
-    'custom_w_101_110': 600,
-    'custom_h_under_200': 100,
-    'custom_h_201_210': 400, 'custom_h_211_220': 600, 'custom_h_221_240': 1000 
+    'custom_w_90': 300,
+    'custom_w_91_100': 1900, 
+    'custom_w_101_110': 2200,
+    'custom_h_under_200': 200,
+    'custom_h_201_210': 400, 
+    'custom_h_211_220': 999,
+    'custom_h_221_240': 999,
   },
-  surface: { 
-    'TOA_h200': 500,  'TOA_h220': 700,  'TOA_h240': 900,
-    'SVL_h200': 800,  'SVL_h220': 1000, 'SVL_h240': 1200 
+  door_surface: { 
+    'TOA_h200': 999,  'TOA_h220': 999,  'TOA_h240': 999,
+    'SVL_h200': 999,  'SVL_h220': 999,  'SVL_h240': 999 
   },
-  grooving: { 'none': 0, 'standard': 300, 'black_line': 400, 'painted': 500 },
-  molding: { 'none': 0, 'first_1': 800, 'first_2': 1000, 'roma_1': 900, 'roma_2': 1100 },
-  glass: { 
-    'none': 0, 'frosted': 1500, 'frosted_half': 1000, 'frosted_side': 800,
-    'green_full': 1800, 'green_half': 1200, 'green_side': 1000 
-  },
-  louver: { 
-    'none': 0, 'full': 1200, 'half': 800, 'side': 600, 'bottom': 600,
-    'full_painted': 1500, 'half_painted': 1000, 'side_painted': 800, 'bottom_painted': 800 
-  },
-  reinforce: { 'none': 0, 'lever': 300, 'digital': 400, 'recessed': 400 },
-  drilling: { 'none': 0, 'knob': 100, 'lever': 150, 'digital': 200, 'recessed': 200 },
-  options: { 'shock_up': 200, 'handle': 150, 'sliding': 400, 'stopper': 100, 'peephole': 150, 'rabbet': 250, 'knob_plate_40': 100, 'wood_top_bottom': 300 },
 
+  // 🔲 --- ราคาวงกบ (Updated v9/Logic) ---
   frame_base: {
     'wpc_4in_t2': 900, 'wpc_4in_f10': 950, 'wpc_5in_square': 1200,
-    'wpc_adjust_eco': 1400, 'wpc_adjust_click': 1600, 'wpc_adjust_x': 1800,
-    'wpc_adjust_big_six': 1300, 'upvc_revo': 1000, 'upvc_cornice': 1100,
-    'upvc_premium_7cm': 1500, 'upvc_comfort': 1400, 'pvc_cornice': 850
+    'wpc_adjust_eco': 999, 'wpc_adjust_click': 999, 'wpc_adjust_x': 999,
+    'wpc_adjust_big_six': 999, 'upvc_revo': 999, 'upvc_cornice': 999,
+    'upvc_premium_7cm': 999, 'upvc_comfort': 999, 'pvc_cornice': 999
   },
-  wall_thickness: { 'standard': 0, 'special': 500 }
+  frame_size: {
+    '70x200cm': 999, '80x200cm': 999, '90x200cm': 999,
+    'custom': 999, 
+
+    // Width Surcharges (Frame)
+    'w_71_80': 999, 'w_81_89': 999, 'w_90': 999,
+    'w_91_140': 999, 'w_141_180': 999,
+
+    // Height Surcharges (Frame)
+    'h_201_220': 999, 'h_221_240': 999
+  },
+  frame_surface: {
+    'TOA_h200': 999,  'TOA_h220': 999,  'TOA_h240': 999,
+    'SVL_h200': 999,  'SVL_h220': 999,  'SVL_h240': 999,
+    // ✅ เพิ่มหัวข้อไม่ทำสี (None)
+    'none': 0 
+  },
+
+  // ✅ Legacy Support (ใส่ค่าว่างไว้ป้องกัน Error ตอนโหลดครั้งแรก)
+  structure: {},
+  size: {},
+  surface: {},
+
+  // --- หมวดอื่นๆ (Updated v9) ---
+  grooving: { 'none': 0, 'standard': 999, 'black_line': 999, 'painted': 999 },
+  molding: { 'none': 0, 'first_1': 999, 'first_2': 999, 'roma_1': 999, 'roma_2': 999 },
+  glass: { 
+    'none': 0, 'frosted': 999, 'frosted_half': 999, 'frosted_side': 999,
+    'green_full': 999, 'green_half': 999, 'green_side': 999 
+  },
+  louver: { 
+    'none': 0, 'full': 999, 'half': 999, 'side': 999, 'bottom': 999,
+    'full_painted': 999, 'half_painted': 999, 'side_painted': 999, 'bottom_painted': 999 
+  },
+  reinforce: { 'none': 0, 'lever': 200, 'digital': 400, 'recessed': 200 }, 
+  drilling: { 'none': 0, 'knob': 300, 'lever': 300, 'digital': 300, 'recessed': 300 }, 
+  options: { 
+    'shock_up': 200, 'handle': 200, 'sliding': 500, 
+    'stopper': 100, 'peephole': 200, 'rabbet': 400, 
+    'knob_plate_40': 0, 'wood_top_bottom': 0 
+  }
 };
 
 const TABS: TabInfo[] = [
   { id: 'exclusive', label: 'ประตู Exclusive', icon: DoorOpen },
-  { id: 'standard', label: 'ประตู Standard', icon: Layers },
+  { id: 'standard', label: 'ประตู Standard', icon: Layers }, // Will be disabled in UI logic
   { id: 'frame', label: 'วงกบ (Frame)', icon: Maximize },
   { id: 'architrave', label: 'บังราง (Architrave)', icon: Grid },
 ];
@@ -345,45 +398,47 @@ export default function App() {
 
     // ✅ แยกการคำนวณตาม Tab ที่เลือก
     if (activeTab === 'exclusive' || activeTab === 'standard') {
-        // --- สูตรคำนวณประตู ---
-        price += prices.structure[formData.structure] || 0;
+        // --- 🚪 สูตรคำนวณประตู ---
+        // ใช้ door_base แทน structure (และรองรับ structure เก่าด้วย)
+        price += prices.door_base?.[formData.structure] || prices.structure?.[formData.structure] || 0;
         
         // 1. Calculate Door Price & Surcharge (Size)
-        let height = 200; // Default height for calculation
+        let height = 200; // Default height
         
         if (formData.sizeType === 'custom') {
-            price += prices.size['custom'];
+            price += prices.door_size?.['custom'] || prices.size?.['custom'] || 0;
             const width = parseInt(formData.customWidth) || 0;
             const h = parseInt(formData.customHeight) || 0;
-            height = h; // Update height for paint calculation
+            height = h;
 
-            if (width >= 81 && width <= 89) { price += prices.size['custom_w_81_89']; surcharges.push(`กว้าง 81-89cm`); }
-            else if (width === 90) { price += prices.size['custom_w_90'] || 0; surcharges.push(`กว้าง 90cm`); }
-            
-            // ✅ Updated Range Logic (91-100, 101-110)
-            else if (width >= 91 && width <= 100) { price += prices.size['custom_w_91_100']; surcharges.push(`กว้าง 91-100cm`); }
-            else if (width >= 101 && width <= 110) { price += prices.size['custom_w_101_110']; surcharges.push(`กว้าง 101-110cm`); }
+            // Use 'door_size' category first, fallback to 'size' (for safety)
+            const getDoorSizePrice = (key: string) => prices.door_size?.[key] || prices.size?.[key] || 0;
 
-            if (h < 200) { price += prices.size['custom_h_under_200'] || 0; }
-            else if (h >= 201 && h <= 210) { price += prices.size['custom_h_201_210']; }
-            else if (h >= 211 && h <= 220) { price += prices.size['custom_h_211_220']; }
-            else if (h >= 221 && h <= 240) { price += prices.size['custom_h_221_240']; }
+            if (width >= 81 && width <= 89) { price += getDoorSizePrice('custom_w_81_89'); surcharges.push(`กว้าง 81-89cm`); }
+            else if (width === 90) { price += getDoorSizePrice('custom_w_90'); surcharges.push(`กว้าง 90cm`); }
+            else if (width >= 91 && width <= 100) { price += getDoorSizePrice('custom_w_91_100'); surcharges.push(`กว้าง 91-100cm`); }
+            else if (width >= 101 && width <= 110) { price += getDoorSizePrice('custom_w_101_110'); surcharges.push(`กว้าง 101-110cm`); }
+
+            if (h < 200) { price += getDoorSizePrice('custom_h_under_200'); }
+            else if (h >= 201 && h <= 210) { price += getDoorSizePrice('custom_h_201_210'); }
+            else if (h >= 211 && h <= 220) { price += getDoorSizePrice('custom_h_211_220'); }
+            else if (h >= 221 && h <= 240) { price += getDoorSizePrice('custom_h_221_240'); }
         } else { 
-            price += prices.size[formData.sizeType] || 0; 
-            // Standard sizes are 200cm height
+            // Standard Size
+            price += prices.door_size?.[formData.sizeType] || prices.size?.[formData.sizeType] || 0; 
             height = 200;
         }
         
-        // 2. Calculate Surface Price based on Height
-        // Logic: TOA/SVL price depends on height range
-        let surfaceSuffix = '_h200'; // Default <= 200
+        // 2. Door Surface Price
+        let surfaceSuffix = '_h200';
         if (height >= 201 && height <= 220) surfaceSuffix = '_h220';
         else if (height >= 221) surfaceSuffix = '_h240';
 
         const surfaceKey = formData.surfaceType + surfaceSuffix;
-        const surfacePrice = prices.surface[surfaceKey] || 0;
+        const surfacePrice = prices.door_surface?.[surfaceKey] || prices.surface?.[surfaceKey] || 0;
         price += surfacePrice;
         
+        // General options
         price += prices.grooving[formData.grooving] || 0;
         price += prices.molding[formData.molding] || 0;
         price += prices.glass[formData.glass] || 0;
@@ -393,29 +448,49 @@ export default function App() {
         Object.keys(formData.options).forEach(key => { if (formData.options[key]) price += prices.options[key] || 0; });
     
     } else if (activeTab === 'frame') {
-        // --- สูตรคำนวณวงกบ ---
+        // --- 🔲 สูตรคำนวณวงกบ ---
         price += prices.frame_base?.[formData.frameMaterial] || 0;
 
         let height = 200;
+        let width = 0;
+
         if (formData.sizeType === 'custom') {
-            price += prices.size['custom'];
-            const width = parseInt(formData.customWidth) || 0;
-            const h = parseInt(formData.customHeight) || 0;
-            height = h;
-            if (width >= 81 && width <= 110) { // ✅ Updated to cover new max width 110
-                 price += 300; 
-                 surcharges.push('Size พิเศษ');
-            }
+            // ใช้ frame_size, fallback size
+            price += prices.frame_size?.['custom'] || prices.size?.['custom'] || 0;
+            width = parseInt(formData.customWidth) || 0;
+            height = parseInt(formData.customHeight) || 0;
+            
+            // ✅ ใช้ราคาจาก frame_size เท่านั้น (หรือ size ถ้าไม่มี)
+            const getFrameSizePrice = (key: string) => prices.frame_size?.[key] || prices.size?.[key] || 0;
+
+            // Height Surcharges (Frame)
+            if (height >= 201 && height <= 220) { price += getFrameSizePrice('h_201_220'); surcharges.push('สูง 201-220cm'); }
+            else if (height >= 221 && height <= 240) { price += getFrameSizePrice('h_221_240'); surcharges.push('สูง 221-240cm'); }
+
+            // Width Surcharges (Frame)
+            if (width >= 71 && width <= 80) { price += getFrameSizePrice('w_71_80'); surcharges.push('กว้าง 71-80cm'); }
+            else if (width >= 81 && width <= 89) { price += getFrameSizePrice('w_81_89'); surcharges.push('กว้าง 81-89cm'); }
+            else if (width === 90) { price += getFrameSizePrice('w_90'); surcharges.push('กว้าง 90cm'); }
+            else if (width >= 91 && width <= 140) { price += getFrameSizePrice('w_91_140'); surcharges.push('กว้าง 91-140cm'); }
+            else if (width >= 141 && width <= 180) { price += getFrameSizePrice('w_141_180'); surcharges.push('กว้าง 141-180cm'); }
+
         } else {
-            price += prices.size[formData.sizeType] || 0; 
+            // Standard Frame Size
+            price += prices.frame_size?.[formData.sizeType] || prices.size?.[formData.sizeType] || 0; 
+            height = 200;
         }
 
         let surfaceSuffix = '_h200'; 
         if (height >= 201 && height <= 220) surfaceSuffix = '_h220';
         else if (height >= 221) surfaceSuffix = '_h240';
 
-        if (formData.surfaceType === 'TOA') price += prices.surface['TOA' + surfaceSuffix] || 0;
-        else if (formData.surfaceType === 'SVL') price += prices.surface['SVL' + surfaceSuffix] || 0;
+        // ✅ ใช้ราคาจาก frame_surface
+        if (formData.surfaceType === 'none') {
+            price += prices.frame_surface?.['none'] || 0;
+        } else {
+            const surfaceKey = formData.surfaceType + surfaceSuffix;
+            price += prices.frame_surface?.[surfaceKey] || prices.surface?.[surfaceKey] || 0;
+        }
     }
     
     setTotalPrice(price);
@@ -423,8 +498,17 @@ export default function App() {
   }, [formData, prices, activeTab]);
 
   const handleInputChange = (field: keyof DoorFormData, value: any) => {
-    if (field === 'customWidth' && Number(value) > 110) return;
-    if (field === 'customHeight' && Number(value) > 240) return;
+    // ✅ Limit for Door Tab
+    if (activeTab === 'exclusive') {
+        if (field === 'customWidth' && Number(value) > 110) return;
+        if (field === 'customHeight' && Number(value) > 240) return;
+    }
+    // ✅ Limit for Frame Tab (Specifically T2)
+    if (activeTab === 'frame' && formData.frameMaterial === 'wpc_4in_t2') {
+        if (field === 'customWidth' && Number(value) > 180) return; // Limit to 180
+        if (field === 'customHeight' && Number(value) > 240) return; // Limit to 240
+    }
+
     setFormData(prev => ({ ...prev, [field]: value }));
   };
   
@@ -432,83 +516,101 @@ export default function App() {
   const handleLogout = () => { localStorage.removeItem('upvc_user'); setCurrentUser(null); };
 
   const handleDownloadTemplate = () => {
-    // ✅ Updated CSV Template
+    // ✅ Updated CSV Template to be distinct for Door vs Frame
     const csvContent = `Category,Key,Description,Price
-structure,uPVC,ราคาตั้งต้น ประตู uPVC,2500
-structure,WPC RIGID,ราคาตั้งต้น ประตู WPC RIGID,3500
-structure,WPC MAX,ราคาตั้งต้น ประตู WPC MAX,4500
-size,70x200cm,ขนาด 70x200cm (ราคาบวกเพิ่ม),0
-size,80x200cm,ขนาด 80x200cm (ราคาบวกเพิ่ม),200
-size,90x200cm,ขนาด 90x200cm (ราคาบวกเพิ่ม),400
-size,custom,ขนาดสั่งทำพิเศษ (ค่าดำเนินการพื้นฐาน),1000
-size,custom_w_81_89,Surcharge กว้าง 81-89cm,300
-size,custom_w_90,Surcharge กว้าง 90cm,400
-size,custom_w_91_100,Surcharge กว้าง 91-100cm,500
-size,custom_w_101_110,Surcharge กว้าง 101-110cm,600
-size,custom_h_under_200,Surcharge สูงน้อยกว่า 200cm,100
-size,custom_h_201_210,Surcharge สูง 201-210cm,400
-size,custom_h_211_220,Surcharge สูง 211-220cm,600
-size,custom_h_221_240,Surcharge สูง 221-240cm,1000
-surface,TOA_h200,งานสี TOA (สูงไม่เกิน 2.00ม),500
-surface,TOA_h220,งานสี TOA (สูง 2.01-2.20ม),700
-surface,TOA_h240,งานสี TOA (สูง 2.21-2.40ม),900
-surface,SVL_h200,งานปิดผิว SVL (สูงไม่เกิน 2.00ม),800
-surface,SVL_h220,งานปิดผิว SVL (สูง 2.01-2.20ม),1000
-surface,SVL_h240,งานปิดผิว SVL (สูง 2.21-2.40ม),1200
-grooving,none,ไม่เซาะร่อง,0
-grooving,standard,เซาะร่องมาตรฐาน,300
-grooving,black_line,เซาะร่องเส้นดำ,400
-grooving,painted,เซาะร่องทำสี,500
-molding,none,ไม่ติดคิ้ว,0
-molding,first_1,คิ้ว First Class 1 ช่อง,800
-molding,first_2,คิ้ว First Class 2 ช่อง,1000
-molding,roma_1,คิ้ว ROMA 1 ช่อง,900
-molding,roma_2,คิ้ว ROMA 2 ช่อง,1100
-glass,none,ไม่ติดกระจก,0
-glass,frosted,กระจกฝ้าเต็มบาน,1500
-glass,frosted_half,กระจกฝ้าครึ่งบาน,1000
-glass,frosted_side,กระจกฝ้าข้าง,800
-glass,green_full,กระจกเขียวตัดแสงเต็มบาน,1800
-glass,green_half,กระจกเขียวตัดแสงครึ่งบาน,1200
-glass,green_side,กระจกเขียวตัดแสงข้าง,1000
-louver,none,ไม่ติดเกล็ด,0
-louver,full,เกล็ดเต็มบาน,1200
-louver,half,เกล็ดครึ่งบาน,800
-louver,side,เกล็ดข้าง,600
-louver,bottom,เกล็ดล่าง,600
-louver,full_painted,เกล็ดเต็มบาน พ่นสี,1500
-louver,half_painted,เกล็ดครึ่งบาน พ่นสี,1000
-louver,side_painted,เกล็ดข้าง พ่นสี,800
-louver,bottom_painted,เกล็ดล่าง พ่นสี,800
-reinforce,none,ไม่เสริมโครง,0
-reinforce,lever,เสริมโครงก้านโยก,300
-reinforce,digital,เสริมโครงดิจิตอลล็อก,400
-reinforce,recessed,เสริมโครงมือจับฝัง,400
-drilling,none,ไม่เจาะลูกบิด,0
-drilling,knob,เจาะลูกบิด,100
-drilling,lever,เจาะก้านโยก,150
-drilling,digital,เจาะดิจิตอลล็อค,200
-drilling,recessed,เจาะมือจับฝัง,200
-options,shock_up,เสริมโครง SHOCK UP,200
-options,handle,เสริมโครงด้ามจับ,150
-options,sliding,เสริมโครงบานเลื่อน,400
-options,stopper,เสริมโครง Stopper,100
-options,peephole,เจาะตาแมว,150
-options,rabbet,ทำบังใบ,250
-options,knob_plate_40,เสริมโครงแป้นรอง 40cm,100
-options,wood_top_bottom,เสริมโครงไม้ บน/ล่าง,300
+door_base,uPVC,ราคาตั้งต้น ประตู uPVC,3200
+door_base,WPC RIGID,ราคาตั้งต้น ประตู WPC RIGID,3700
+door_base,WPC MAX,ราคาตั้งต้น ประตู WPC MAX,4500
+door_size,70x200cm,ขนาดประตู 70x200cm,0
+door_size,80x200cm,ขนาดประตู 80x200cm,0
+door_size,90x200cm,ขนาดประตู 90x200cm,300
+door_size,custom,ขนาดประตูสั่งทำ (ค่าดำเนินการ),0
+door_size,custom_w_81_89,Surcharge ประตู กว้าง 81-89cm,300
+door_size,custom_w_90,Surcharge ประตู กว้าง 90cm,300
+door_size,custom_w_91_100,Surcharge ประตู กว้าง 91-100cm,1900
+door_size,custom_w_101_110,Surcharge ประตู กว้าง 101-110cm,2200
+door_size,custom_h_under_200,Surcharge ประตู สูง < 200cm,200
+door_size,custom_h_201_210,Surcharge ประตู สูง 201-210cm,400
+door_size,custom_h_211_220,Surcharge ประตู สูง 211-220cm,999
+door_size,custom_h_221_240,Surcharge ประตู สูง 221-240cm,999
+door_surface,TOA_h200,งานสีประตู TOA (สูง <= 2.00ม),999
+door_surface,TOA_h220,งานสีประตู TOA (สูง 2.01-2.20ม),999
+door_surface,TOA_h240,งานสีประตู TOA (สูง 2.21-2.40ม),999
+door_surface,SVL_h200,งานปิดผิวประตู SVL (สูง <= 2.00ม),999
+door_surface,SVL_h220,งานปิดผิวประตู SVL (สูง 2.01-2.20ม),999
+door_surface,SVL_h240,งานปิดผิวประตู SVL (สูง 2.21-2.40ม),999
 frame_base,wpc_4in_t2,วงกบไม้สังเคราะห์ 4 นิ้ว เหลียม (T2),900
 frame_base,wpc_4in_f10,วงกบไม้สังเคราะห์ 4 นิ้ว เหลียม (F10),950
 frame_base,wpc_5in_square,วงกบไม้สังเคราะห์ 5 นิ้ว เหลียม,1200
-frame_base,wpc_adjust_eco,วงกบไม้สังเคราะห์ มีซับ รุ่น Adjust Eco,1400
-frame_base,wpc_adjust_click,วงกบไม้สังเคราะห์ มีซับ รุ่น Adjust Click,1600
-frame_base,wpc_adjust_x,วงกบไม้สังเคราะห์ มีซับ รุ่น Adjust X,1800
-frame_base,wpc_adjust_big_six,วงกบไม้สังเคราะห์ รุ่น Adjust Big Six (ไม่มีซับ),1300
-frame_base,upvc_revo,วงกบ UPVC รุ่น Revo (ขอบเหลียม),1000
-frame_base,upvc_cornice,วงกบ UPVC (ขอบบัว),1100
-frame_base,upvc_premium_7cm,วงกบ UPVC มีซับ รุ่น Premium 7 cm,1500
-frame_base,upvc_comfort,วงกบ UPVC มีซับ รุ่น Comfort,1400
-frame_base,pvc_cornice,วงกบ PVC มีบัว,850
+frame_base,wpc_adjust_eco,วงกบไม้สังเคราะห์ มีซับ รุ่น Adjust Eco,999
+frame_base,wpc_adjust_click,วงกบไม้สังเคราะห์ มีซับ รุ่น Adjust Click,999
+frame_base,wpc_adjust_x,วงกบไม้สังเคราะห์ มีซับ รุ่น Adjust X,999
+frame_base,wpc_adjust_big_six,วงกบไม้สังเคราะห์ รุ่น Adjust Big Six (ไม่มีซับ),999
+frame_base,upvc_revo,วงกบ UPVC รุ่น Revo (ขอบเหลียม),999
+frame_base,upvc_cornice,วงกบ UPVC (ขอบบัว),999
+frame_base,upvc_premium_7cm,วงกบ UPVC มีซับ รุ่น Premium 7 cm,999
+frame_base,upvc_comfort,วงกบ UPVC มีซับ รุ่น Comfort,999
+frame_base,pvc_cornice,วงกบ PVC มีบัว,999
+frame_size,70x200cm,ขนาดวงกบ 70x200cm,999
+frame_size,80x200cm,ขนาดวงกบ 80x200cm,999
+frame_size,90x200cm,ขนาดวงกบ 90x200cm,999
+frame_size,custom,ขนาดวงกบสั่งทำ (ค่าดำเนินการ),999
+frame_size,w_71_80,Surcharge วงกบ กว้าง 71-80cm,999
+frame_size,w_81_89,Surcharge วงกบ กว้าง 81-89cm,999
+frame_size,w_90,Surcharge วงกบ กว้าง 90cm,999
+frame_size,w_91_140,Surcharge วงกบ กว้าง 91-140cm,999
+frame_size,w_141_180,Surcharge วงกบ กว้าง 141-180cm,999
+frame_size,h_201_220,Surcharge วงกบ สูง 201-220cm,999
+frame_size,h_221_240,Surcharge วงกบ สูง 221-240cm,999
+frame_surface,TOA_h200,งานสีวงกบ TOA (สูง <= 2.00ม),999
+frame_surface,TOA_h220,งานสีวงกบ TOA (สูง 2.01-2.20ม),999
+frame_surface,TOA_h240,งานสีวงกบ TOA (สูง 2.21-2.40ม),999
+frame_surface,SVL_h200,งานปิดผิววงกบ SVL (สูง <= 2.00ม),999
+frame_surface,SVL_h220,งานปิดผิววงกบ SVL (สูง 2.01-2.20ม),999
+frame_surface,SVL_h240,งานปิดผิววงกบ SVL (สูง 2.21-2.40ม),999
+frame_surface,none,ไม่ทำสีวงกบ (งานดิบ),0
+grooving,none,ไม่เซาะร่อง,0
+grooving,standard,เซาะร่องมาตรฐาน,999
+grooving,black_line,เซาะร่องเส้นดำ,999
+grooving,painted,เซาะร่องทำสี,999
+molding,none,ไม่ติดคิ้ว,0
+molding,first_1,คิ้ว First Class 1 ช่อง,999
+molding,first_2,คิ้ว First Class 2 ช่อง,999
+molding,roma_1,คิ้ว ROMA 1 ช่อง,999
+molding,roma_2,คิ้ว ROMA 2 ช่อง,999
+glass,none,ไม่ติดกระจก,0
+glass,frosted,กระจกฝ้าเต็มบาน,999
+glass,frosted_half,กระจกฝ้าครึ่งบาน,999
+glass,frosted_side,กระจกฝ้าข้าง,999
+glass,green_full,กระจกเขียวตัดแสงเต็มบาน,999
+glass,green_half,กระจกเขียวตัดแสงครึ่งบาน,999
+glass,green_side,กระจกเขียวตัดแสงข้าง,999
+louver,none,ไม่ติดเกล็ด,0
+louver,full,เกล็ดเต็มบาน,999
+louver,half,เกล็ดครึ่งบาน,999
+louver,side,เกล็ดข้าง,999
+louver,bottom,เกล็ดล่าง,999
+louver,full_painted,เกล็ดเต็มบาน พ่นสี,999
+louver,half_painted,เกล็ดครึ่งบาน พ่นสี,999
+louver,side_painted,เกล็ดข้าง พ่นสี,999
+louver,bottom_painted,เกล็ดล่าง พ่นสี,999
+reinforce,none,ไม่เสริมโครง,0
+reinforce,lever,เสริมโครงก้านโยก,200
+reinforce,digital,เสริมโครงดิจิตอลล็อก,400
+reinforce,recessed,เสริมโครงมือจับฝัง,200
+drilling,none,ไม่เจาะลูกบิด,0
+drilling,knob,เจาะลูกบิด,300
+drilling,lever,เจาะก้านโยก,300
+drilling,digital,เจาะดิจิตอลล็อค,300
+drilling,recessed,เจาะมือจับฝัง,300
+options,shock_up,เสริมโครง SHOCK UP,200
+options,handle,เสริมโครงด้ามจับ,200
+options,sliding,เสริมโครงบานเลื่อน,500
+options,stopper,เสริมโครง Stopper,100
+options,peephole,เจาะตาแมว,200
+options,rabbet,ทำบังใบ,400
+options,knob_plate_40,เสริมโครงแป้นรอง 40cm,0
+options,wood_top_bottom,เสริมโครงไม้ บน/ล่าง,0
 wall_thickness,standard,ความหนาผนังมาตรฐาน (10cm),0
 wall_thickness,special,ความหนาผนังพิเศษ (Adjustable/Custom),500`;
     const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -529,6 +631,7 @@ wall_thickness,special,ความหนาผนังพิเศษ (Adjusta
         const [cat, key, , prc] = parts.map(s => s.trim());
         const price = parseFloat(prc);
         if (!isNaN(price) && cat in newPrices) {
+            // ✅ Handle generic options vs specific categories
             if (cat === 'options') newPrices.options[key] = price;
             else (newPrices as any)[cat][key] = price;
         }
@@ -580,7 +683,7 @@ wall_thickness,special,ความหนาผนังพิเศษ (Adjusta
           <div className="flex-1 min-w-0">
             <div className="bg-white rounded-xl shadow-sm p-2 mb-6 flex overflow-x-auto gap-2 no-scrollbar">
               {TABS.map((tab) => {
-                const isDisabled = tab.id === 'architrave'; // Disable only Architrave
+                const isDisabled = tab.id === 'architrave' || tab.id === 'standard'; // ✅ Disable Standard Tab
                 return (
                   <button key={tab.id} onClick={() => !isDisabled && setActiveTab(tab.id)} disabled={isDisabled}
                     className={`flex items-center gap-2 px-4 py-3 rounded-lg whitespace-nowrap transition-all ${activeTab === tab.id ? 'bg-blue-600 text-white shadow-md' : isDisabled ? 'text-slate-300 bg-slate-50 cursor-not-allowed' : 'text-slate-600 hover:bg-slate-50'}`}>
@@ -771,8 +874,14 @@ wall_thickness,special,ความหนาผนังพิเศษ (Adjusta
                                 </div>
                                 {formData.sizeType === 'custom' && (
                                     <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 mt-4 flex gap-4">
-                                        <div className="flex-1"><label className="text-xs text-slate-600">กว้าง</label><input type="number" value={formData.customWidth} onChange={(e) => handleInputChange('customWidth', e.target.value)} className="w-full p-2 border rounded"/></div>
-                                        <div className="flex-1"><label className="text-xs text-slate-600">สูง</label><input type="number" value={formData.customHeight} onChange={(e) => handleInputChange('customHeight', e.target.value)} className="w-full p-2 border rounded"/></div>
+                                        <div className="flex-1">
+                                            <label className="text-xs text-slate-600">กว้าง {formData.frameMaterial === 'wpc_4in_t2' && <span className="text-red-500">(Max 180)</span>}</label>
+                                            <input type="number" value={formData.customWidth} onChange={(e) => handleInputChange('customWidth', e.target.value)} className="w-full p-2 border rounded"/>
+                                        </div>
+                                        <div className="flex-1">
+                                            <label className="text-xs text-slate-600">สูง {formData.frameMaterial === 'wpc_4in_t2' && <span className="text-red-500">(Max 240)</span>}</label>
+                                            <input type="number" value={formData.customHeight} onChange={(e) => handleInputChange('customHeight', e.target.value)} className="w-full p-2 border rounded"/>
+                                        </div>
                                     </div>
                                 )}
                             </div>
@@ -800,6 +909,10 @@ wall_thickness,special,ความหนาผนังพิเศษ (Adjusta
                                         </div>
                                     );
                                 })()}
+                                {/* ✅ เพิ่มตัวเลือกไม่ทำสี */}
+                                <div onClick={() => handleInputChange('surfaceType', 'none')} className={`p-4 rounded-lg border-2 cursor-pointer ${formData.surfaceType === 'none' ? 'border-gray-500 bg-gray-50' : 'border-slate-200'}`}>
+                                    <label className="flex items-center gap-2"><div className={`w-4 h-4 rounded-full border ${formData.surfaceType === 'none' ? 'bg-gray-500' : ''}`}></div><span className="text-gray-700">ไม่ทำสี (งานดิบ)</span></label>
+                                </div>
                         </div>
                     </div>
                 </div>
@@ -826,7 +939,7 @@ wall_thickness,special,ความหนาผนังพิเศษ (Adjusta
                                 <span className="font-medium text-right ml-4">{getFrameLabel(formData.frameMaterial)}</span>
                              </div>
                              <div className="flex justify-between"><span className="text-slate-500">ขนาด</span><span className="font-medium">{formData.sizeType === 'custom' ? `${formData.customWidth}x${formData.customHeight}` : formData.sizeType}</span></div>
-                             <div className="flex justify-between"><span className="text-slate-500">สี</span><span className="font-medium">{formData.surfaceType}</span></div>
+                             <div className="flex justify-between"><span className="text-slate-500">สี</span><span className="font-medium">{formData.surfaceType === 'none' ? 'ไม่ทำสี (งานดิบ)' : formData.surfaceType}</span></div>
                         </>
                     )}
                   </div>
