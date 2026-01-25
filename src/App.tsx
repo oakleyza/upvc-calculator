@@ -115,7 +115,7 @@ const DEFAULT_PRICES: PricingStructure = {
     'SVL_h200': 999,  'SVL_h220': 999,  'SVL_h240': 999 
   },
 
-  // 🔲 --- ราคาวงกบ (Updated v9/Logic) ---
+  // 🔲 --- ราคาวงกบ (Disable for now but keeping data) ---
   frame_base: {
     'wpc_4in_t2': 900, 'wpc_4in_f10': 950, 'wpc_5in_square': 1200,
     'wpc_adjust_eco': 999, 'wpc_adjust_click': 999, 'wpc_adjust_x': 999,
@@ -125,27 +125,20 @@ const DEFAULT_PRICES: PricingStructure = {
   frame_size: {
     '70x200cm': 999, '80x200cm': 999, '90x200cm': 999,
     'custom': 999, 
-
-    // Width Surcharges (Frame)
     'w_71_80': 999, 'w_81_89': 999, 'w_90': 999,
     'w_91_140': 999, 'w_141_180': 999,
-
-    // Height Surcharges (Frame)
     'h_201_220': 999, 'h_221_240': 999
   },
   frame_surface: {
     'TOA_h200': 999,  'TOA_h220': 999,  'TOA_h240': 999,
     'SVL_h200': 999,  'SVL_h220': 999,  'SVL_h240': 999,
-    // ✅ เพิ่มหัวข้อไม่ทำสี (None)
     'none': 0 
   },
 
-  // ✅ Legacy Support (ใส่ค่าว่างไว้ป้องกัน Error ตอนโหลดครั้งแรก)
-  structure: {},
-  size: {},
-  surface: {},
+  // ✅ Legacy Support
+  structure: {}, size: {}, surface: {},
 
-  // --- หมวดอื่นๆ (Updated v9) ---
+  // --- หมวดอื่นๆ ---
   grooving: { 'none': 0, 'standard': 999, 'black_line': 999, 'painted': 999 },
   molding: { 'none': 0, 'first_1': 999, 'first_2': 999, 'roma_1': 999, 'roma_2': 999 },
   glass: { 
@@ -167,7 +160,7 @@ const DEFAULT_PRICES: PricingStructure = {
 
 const TABS: TabInfo[] = [
   { id: 'exclusive', label: 'ประตู Exclusive', icon: DoorOpen },
-  { id: 'standard', label: 'ประตู Standard', icon: Layers }, // Will be disabled in UI logic
+  { id: 'standard', label: 'ประตู Standard', icon: Layers }, 
   { id: 'frame', label: 'วงกบ (Frame)', icon: Maximize },
   { id: 'architrave', label: 'บังราง (Architrave)', icon: Grid },
 ];
@@ -683,7 +676,7 @@ wall_thickness,special,ความหนาผนังพิเศษ (Adjusta
           <div className="flex-1 min-w-0">
             <div className="bg-white rounded-xl shadow-sm p-2 mb-6 flex overflow-x-auto gap-2 no-scrollbar">
               {TABS.map((tab) => {
-                const isDisabled = tab.id === 'architrave' || tab.id === 'standard'; // ✅ Disable Standard Tab
+                const isDisabled = tab.id === 'architrave' || tab.id === 'standard' || tab.id === 'frame'; // ✅ Disabled Frame Tab
                 return (
                   <button key={tab.id} onClick={() => !isDisabled && setActiveTab(tab.id)} disabled={isDisabled}
                     className={`flex items-center gap-2 px-4 py-3 rounded-lg whitespace-nowrap transition-all ${activeTab === tab.id ? 'bg-blue-600 text-white shadow-md' : isDisabled ? 'text-slate-300 bg-slate-50 cursor-not-allowed' : 'text-slate-600 hover:bg-slate-50'}`}>
