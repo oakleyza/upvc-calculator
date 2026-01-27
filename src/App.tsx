@@ -178,6 +178,9 @@ const LABEL_MAP: {[key: string]: string} = {
 
   // 3. Adjust X
   'wpc_adjust_x': 'วงกบ Adjust X (มีซับ)',
+  'x_std_70': 'X: มาตรฐาน 70x200',
+  'x_std_80': 'X: มาตรฐาน 80x200',
+  'x_std_90': 'X: มาตรฐาน 90x200',
   'x_w_81_90': 'X: กว้าง 81-90cm',
   'x_w_91_140': 'X: กว้าง 91-140cm',
   'x_w_141_180': 'X: กว้าง 141-180cm',
@@ -185,6 +188,7 @@ const LABEL_MAP: {[key: string]: string} = {
   'x_h_211_220': 'X: สูง 211-220cm',
   'x_h_221_240': 'X: สูง 221-240cm',
   'x_h_under_200': 'X: ค่าลดไซส์ (สูง < 2.00m)',
+  
   // New Adjust X Surface Keys
   'x_toa_h_200': 'X: สี TOA (สูง<2.0m)',
   'x_toa_h_201_210': 'X: สี TOA (สูง 2.0-2.1m)',
@@ -197,6 +201,9 @@ const LABEL_MAP: {[key: string]: string} = {
 
   // 4. Adjust Eco
   'wpc_adjust_eco': 'วงกบ Adjust Eco (มีซับ)',
+  'eco_std_70': 'Eco: มาตรฐาน 70x200',
+  'eco_std_80': 'Eco: มาตรฐาน 80x200',
+  'eco_std_90': 'Eco: มาตรฐาน 90x200',
   'eco_w_81_90': 'Eco: กว้าง 81-90cm',
   'eco_w_91_140': 'Eco: กว้าง 91-140cm',
   'eco_w_141_180': 'Eco: กว้าง 141-180cm',
@@ -259,11 +266,13 @@ const DEFAULT_PRICES: PricingStructure = {
     'f10_h_under_200': 200,
 
     // Adjust X Specifics
+    'x_std_70': 0, 'x_std_80': 0, 'x_std_90': 0, // NEW
     'x_w_81_90': 0, 'x_w_91_140': 0, 'x_w_141_180': 0,
     'x_h_201_210': 0, 'x_h_211_220': 0, 'x_h_221_240': 0,
     'x_h_under_200': 200,
 
     // Adjust Eco Specifics
+    'eco_std_70': 0, 'eco_std_80': 0, 'eco_std_90': 0, // NEW
     'eco_w_81_90': 80, 'eco_w_91_140': 200, 'eco_w_141_180': 280,
     'eco_h_201_210': 200, 'eco_h_211_220': 400, 'eco_h_221_240': 600,
     'eco_h_under_200': 200,
@@ -462,7 +471,12 @@ const AdminPriceEditor = ({
             <div className="space-y-6">
               <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 mb-4"><h4 className="font-bold text-yellow-800 flex items-center gap-2"><LayoutDashboard className="w-5 h-5"/> การตั้งค่า Adjust X</h4></div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-white p-4 rounded-lg shadow-sm border"><h4 className="font-bold text-slate-800 mb-3 pb-2 border-b">ราคาตั้งต้น</h4>{renderInput('frame_base', 'wpc_adjust_x')}</div>
+                <div className="bg-white p-4 rounded-lg shadow-sm border"><h4 className="font-bold text-slate-800 mb-3 pb-2 border-b">ราคาตั้งต้น & มาตรฐาน</h4>
+                    {renderInput('frame_base', 'wpc_adjust_x')}
+                    {renderInput('frame_size', 'x_std_70')}
+                    {renderInput('frame_size', 'x_std_80')}
+                    {renderInput('frame_size', 'x_std_90')}
+                </div>
                 <div className="bg-white p-4 rounded-lg shadow-sm border"><h4 className="font-bold text-orange-600 mb-3 pb-2 border-b">Surcharge ความกว้าง (X)</h4>{Object.keys(localPrices.frame_size).filter(k => k.startsWith('x_w_')).map(k => renderInput('frame_size', k))}</div>
                 <div className="bg-white p-4 rounded-lg shadow-sm border"><h4 className="font-bold text-orange-600 mb-3 pb-2 border-b">Surcharge ความสูง (X)</h4>{Object.keys(localPrices.frame_size).filter(k => k.startsWith('x_h_')).map(k => renderInput('frame_size', k))}</div>
                 <div className="bg-white p-4 rounded-lg shadow-sm border md:col-span-2"><h4 className="font-bold text-purple-600 mb-3 pb-2 border-b">ราคาทำสี/ผิว (X) - คิดตามความสูง</h4>
@@ -480,7 +494,12 @@ const AdminPriceEditor = ({
             <div className="space-y-6">
               <div className="bg-green-50 p-4 rounded-lg border border-green-200 mb-4"><h4 className="font-bold text-green-800 flex items-center gap-2"><LayoutDashboard className="w-5 h-5"/> การตั้งค่า Adjust Eco</h4></div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-white p-4 rounded-lg shadow-sm border"><h4 className="font-bold text-slate-800 mb-3 pb-2 border-b">ราคาตั้งต้น</h4>{renderInput('frame_base', 'wpc_adjust_eco')}</div>
+                <div className="bg-white p-4 rounded-lg shadow-sm border"><h4 className="font-bold text-slate-800 mb-3 pb-2 border-b">ราคาตั้งต้น & มาตรฐาน</h4>
+                    {renderInput('frame_base', 'wpc_adjust_eco')}
+                    {renderInput('frame_size', 'eco_std_70')}
+                    {renderInput('frame_size', 'eco_std_80')}
+                    {renderInput('frame_size', 'eco_std_90')}
+                </div>
                 <div className="bg-white p-4 rounded-lg shadow-sm border"><h4 className="font-bold text-orange-600 mb-3 pb-2 border-b">Surcharge ความกว้าง (Eco)</h4>{Object.keys(localPrices.frame_size).filter(k => k.startsWith('eco_w_')).map(k => renderInput('frame_size', k))}</div>
                 <div className="bg-white p-4 rounded-lg shadow-sm border"><h4 className="font-bold text-orange-600 mb-3 pb-2 border-b">Surcharge ความสูง (Eco)</h4>{Object.keys(localPrices.frame_size).filter(k => k.startsWith('eco_h_')).map(k => renderInput('frame_size', k))}</div>
                 <div className="bg-white p-4 rounded-lg shadow-sm border md:col-span-2"><h4 className="font-bold text-purple-600 mb-3 pb-2 border-b">ราคาทำสี/ผิว (Eco)</h4>
@@ -892,19 +911,28 @@ export default function App() {
         // ============================================
         // 3. ADJUST X SPECIFIC LOGIC
         // ============================================
-        else if (formData.frameMaterial === 'wpc_adjust_x' && formData.sizeType === 'custom') {
-             // Height Surcharges (Custom)
-             if (height < 200) { price += getSize('x_h_under_200'); surcharges.push('X: ค่าลดไซส์ (สูง < 2.00m)'); }
-             else if (height >= 201 && height <= 210) { price += getSize('x_h_201_210'); surcharges.push('X: สูง 201-210cm'); }
-             else if (height >= 211 && height <= 220) { price += getSize('x_h_211_220'); surcharges.push('X: สูง 211-220cm'); }
-             else if (height >= 221 && height <= 240) { price += getSize('x_h_221_240'); surcharges.push('X: สูง 221-240cm'); }
+        else if (formData.frameMaterial === 'wpc_adjust_x') {
+             // Handle Standard Sizes
+             if (formData.sizeType === '70x200cm') price += getSize('x_std_70');
+             else if (formData.sizeType === '80x200cm') price += getSize('x_std_80');
+             else if (formData.sizeType === '90x200cm') price += getSize('x_std_90');
 
-             // Width Surcharges (Custom)
-             if (width >= 81 && width <= 90) { price += getSize('x_w_81_90'); surcharges.push('X: กว้าง 81-90cm'); }
-             else if (width >= 91 && width <= 140) { price += getSize('x_w_91_140'); surcharges.push('X: กว้าง 91-140cm'); }
-             else if (width >= 141 && width <= 180) { price += getSize('x_w_141_180'); surcharges.push('X: กว้าง 141-180cm'); }
+             // Handle Custom Sizes
+             else if (formData.sizeType === 'custom') {
+                 // Height Surcharges (Custom)
+                 if (height < 200) { price += getSize('x_h_under_200'); surcharges.push('X: ค่าลดไซส์ (สูง < 2.00m)'); }
+                 else if (height >= 201 && height <= 210) { price += getSize('x_h_201_210'); surcharges.push('X: สูง 201-210cm'); }
+                 else if (height >= 211 && height <= 220) { price += getSize('x_h_211_220'); surcharges.push('X: สูง 211-220cm'); }
+                 else if (height >= 221 && height <= 240) { price += getSize('x_h_221_240'); surcharges.push('X: สูง 221-240cm'); }
+
+                 // Width Surcharges (Custom)
+                 if (width >= 81 && width <= 90) { price += getSize('x_w_81_90'); surcharges.push('X: กว้าง 81-90cm'); }
+                 else if (width >= 91 && width <= 140) { price += getSize('x_w_91_140'); surcharges.push('X: กว้าง 91-140cm'); }
+                 else if (width >= 141 && width <= 180) { price += getSize('x_w_141_180'); surcharges.push('X: กว้าง 141-180cm'); }
+             }
 
              // Surface X (Height Based for both TOA and SVL)
+             // Note: Standard sizes have height=200, so they fall into the first bucket automatically
              if (formData.surfaceType === 'TOA') {
                 if (height <= 200) price += getSurf('x_toa_h_200');
                 else if (height <= 210) price += getSurf('x_toa_h_201_210');
@@ -921,25 +949,34 @@ export default function App() {
         // ============================================
         // 4. ADJUST ECO SPECIFIC LOGIC
         // ============================================
-        else if (formData.frameMaterial === 'wpc_adjust_eco' && formData.sizeType === 'custom') {
-             // Height Surcharges (Custom)
-             if (height < 200) { price += getSize('eco_h_under_200'); surcharges.push('Eco: ค่าลดไซส์ (สูง < 2.00m)'); }
-             else if (height >= 201 && height <= 210) { price += getSize('eco_h_201_210'); surcharges.push('Eco: สูง 201-210cm'); }
-             else if (height >= 211 && height <= 220) { price += getSize('eco_h_211_220'); surcharges.push('Eco: สูง 211-220cm'); }
-             else if (height >= 221 && height <= 240) { price += getSize('eco_h_221_240'); surcharges.push('Eco: สูง 221-240cm'); }
+        else if (formData.frameMaterial === 'wpc_adjust_eco') {
+             // Handle Standard Sizes
+             if (formData.sizeType === '70x200cm') price += getSize('eco_std_70');
+             else if (formData.sizeType === '80x200cm') price += getSize('eco_std_80');
+             else if (formData.sizeType === '90x200cm') price += getSize('eco_std_90');
 
-             // Width Surcharges (Custom)
-             if (width >= 81 && width <= 90) { price += getSize('eco_w_81_90'); surcharges.push('Eco: กว้าง 81-90cm'); }
-             else if (width >= 91 && width <= 140) { price += getSize('eco_w_91_140'); surcharges.push('Eco: กว้าง 91-140cm'); }
-             else if (width >= 141 && width <= 180) { price += getSize('eco_w_141_180'); surcharges.push('Eco: กว้าง 141-180cm'); }
+             // Handle Custom Sizes
+             else if (formData.sizeType === 'custom') {
+                 // Height Surcharges (Custom)
+                 if (height < 200) { price += getSize('eco_h_under_200'); surcharges.push('Eco: ค่าลดไซส์ (สูง < 2.00m)'); }
+                 else if (height >= 201 && height <= 210) { price += getSize('eco_h_201_210'); surcharges.push('Eco: สูง 201-210cm'); }
+                 else if (height >= 211 && height <= 220) { price += getSize('eco_h_211_220'); surcharges.push('Eco: สูง 211-220cm'); }
+                 else if (height >= 221 && height <= 240) { price += getSize('eco_h_221_240'); surcharges.push('Eco: สูง 221-240cm'); }
+
+                 // Width Surcharges (Custom)
+                 if (width >= 81 && width <= 90) { price += getSize('eco_w_81_90'); surcharges.push('Eco: กว้าง 81-90cm'); }
+                 else if (width >= 91 && width <= 140) { price += getSize('eco_w_91_140'); surcharges.push('Eco: กว้าง 91-140cm'); }
+                 else if (width >= 141 && width <= 180) { price += getSize('eco_w_141_180'); surcharges.push('Eco: กว้าง 141-180cm'); }
+             }
 
              // Surface Eco (Standard Logic: TOA=Width, SVL=Height)
+             // Note: Standard sizes have height=200 and specific widths (70,80,90)
              if (formData.surfaceType === 'TOA') {
                 if (width >= 70 && width <= 90) price += getSurf('eco_toa_w_70_90');
                 else if (width >= 91 && width <= 140) price += getSurf('eco_toa_w_91_140');
                 else if (width >= 141 && width <= 180) price += getSurf('eco_toa_w_141_180');
              } else if (formData.surfaceType === 'SVL') {
-                if (height >= 200 && height <= 210) price += getSurf('eco_svl_h_200_210');
+                if (height >= 200 && height <= 210) price += getSurf('eco_svl_h_200_210'); // Standard sizes hit this (h=200)
                 else if (height >= 211 && height <= 220) price += getSurf('eco_svl_h_211_220');
                 else if (height >= 221 && height <= 240) price += getSurf('eco_svl_h_221_240');
              }
