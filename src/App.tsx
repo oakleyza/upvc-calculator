@@ -678,7 +678,6 @@ export default function App() {
     wallThickness: 'standard'
   });
   const [totalPrice, setTotalPrice] = useState<number>(0);
-  const [activeSurcharges, setActiveSurcharges] = useState<string[]>([]);
 
   // 0. Set Browser Title
   useEffect(() => { document.title = "ระบบคำนวณราคา - กลางซอยค้าไม้"; }, []);
@@ -781,7 +780,6 @@ export default function App() {
   // 3. Logic คำนวณราคา
   useEffect(() => {
     let price = 0;
-    let surcharges: string[] = [];
 
     // ✅ แยกการคำนวณตาม Tab ที่เลือก
     if (activeTab === 'exclusive' || activeTab === 'standard') {
@@ -798,10 +796,10 @@ export default function App() {
 
             const getDoorSizePrice = (key: string) => prices.door_size?.[key] || prices.size?.[key] || 0;
 
-            if (width >= 81 && width <= 89) { price += getDoorSizePrice('custom_w_81_89'); surcharges.push(`กว้าง 81-89cm`); }
-            else if (width === 90) { price += getDoorSizePrice('custom_w_90'); surcharges.push(`กว้าง 90cm`); }
-            else if (width >= 91 && width <= 100) { price += getDoorSizePrice('custom_w_91_100'); surcharges.push(`กว้าง 91-100cm`); }
-            else if (width >= 101 && width <= 110) { price += getDoorSizePrice('custom_w_101_110'); surcharges.push(`กว้าง 101-110cm`); }
+            if (width >= 81 && width <= 89) { price += getDoorSizePrice('custom_w_81_89'); }
+            else if (width === 90) { price += getDoorSizePrice('custom_w_90'); }
+            else if (width >= 91 && width <= 100) { price += getDoorSizePrice('custom_w_91_100'); }
+            else if (width >= 101 && width <= 110) { price += getDoorSizePrice('custom_w_101_110'); }
 
             if (h < 200) { price += getDoorSizePrice('custom_h_under_200'); }
             else if (h >= 201 && h <= 210) { price += getDoorSizePrice('custom_h_201_210'); }
@@ -861,16 +859,16 @@ export default function App() {
              // Custom Size Surcharges
              else if (formData.sizeType === 'custom') {
                  // Width Logic
-                 if (width >= 71 && width <= 80) { price += getSize('t2_w_71_80'); surcharges.push('T2: กว้าง 71-80cm'); }
-                 else if (width >= 81 && width <= 89) { price += getSize('t2_w_81_89'); surcharges.push('T2: กว้าง 81-89cm'); }
-                 else if (width === 90) { price += getSize('t2_w_90'); surcharges.push('T2: กว้าง 90cm'); }
-                 else if (width >= 91 && width <= 140) { price += getSize('t2_w_91_140'); surcharges.push('T2: กว้าง 91-140cm'); }
-                 else if (width >= 141 && width <= 180) { price += getSize('t2_w_141_180'); surcharges.push('T2: กว้าง 141-180cm'); }
+                 if (width >= 71 && width <= 80) { price += getSize('t2_w_71_80'); }
+                 else if (width >= 81 && width <= 89) { price += getSize('t2_w_81_89'); }
+                 else if (width === 90) { price += getSize('t2_w_90'); }
+                 else if (width >= 91 && width <= 140) { price += getSize('t2_w_91_140'); }
+                 else if (width >= 141 && width <= 180) { price += getSize('t2_w_141_180'); }
 
                  // Height Logic
-                 if (height < 200) { price += getSize('t2_h_under_200'); surcharges.push('T2: ค่าลดไซส์ (สูง < 2.00m)'); }
-                 else if (height >= 201 && height <= 220) { price += getSize('t2_h_201_220'); surcharges.push('T2: สูง 201-220cm'); }
-                 else if (height >= 221 && height <= 240) { price += getSize('t2_h_221_240'); surcharges.push('T2: สูง 221-240cm'); }
+                 if (height < 200) { price += getSize('t2_h_under_200'); }
+                 else if (height >= 201 && height <= 220) { price += getSize('t2_h_201_220'); }
+                 else if (height >= 221 && height <= 240) { price += getSize('t2_h_221_240'); }
              }
              
              // Surface T2
@@ -892,13 +890,13 @@ export default function App() {
              
              // Custom Size Surcharges
              else if (formData.sizeType === 'custom') {
-                 if (width >= 71 && width <= 80) { price += getSize('f10_w_71_80'); surcharges.push('F10: กว้าง 71-80cm'); }
-                 else if (width >= 81 && width <= 90) { price += getSize('f10_w_81_90'); surcharges.push('F10: กว้าง 81-90cm'); }
-                 else if (width >= 91 && width <= 140) { price += getSize('f10_w_91_140'); surcharges.push('F10: กว้าง 91-140cm'); }
-                 else if (width >= 141 && width <= 180) { price += getSize('f10_w_141_180'); surcharges.push('F10: กว้าง 141-180cm'); }
+                 if (width >= 71 && width <= 80) { price += getSize('f10_w_71_80'); }
+                 else if (width >= 81 && width <= 90) { price += getSize('f10_w_81_90'); }
+                 else if (width >= 91 && width <= 140) { price += getSize('f10_w_91_140'); }
+                 else if (width >= 141 && width <= 180) { price += getSize('f10_w_141_180'); }
 
-                 if (height < 200) { price += getSize('f10_h_under_200'); surcharges.push('F10: ค่าลดไซส์ (สูง < 2.00m)'); }
-                 else if (height >= 201 && height <= 220) { price += getSize('f10_h_201_220'); surcharges.push('F10: สูง 201-220cm'); }
+                 if (height < 200) { price += getSize('f10_h_under_200'); }
+                 else if (height >= 201 && height <= 220) { price += getSize('f10_h_201_220'); }
              }
 
              // Surface F10 (Max height 220)
@@ -920,15 +918,15 @@ export default function App() {
              // Handle Custom Sizes
              else if (formData.sizeType === 'custom') {
                  // Height Surcharges (Custom)
-                 if (height < 200) { price += getSize('x_h_under_200'); surcharges.push('X: ค่าลดไซส์ (สูง < 2.00m)'); }
-                 else if (height >= 201 && height <= 210) { price += getSize('x_h_201_210'); surcharges.push('X: สูง 201-210cm'); }
-                 else if (height >= 211 && height <= 220) { price += getSize('x_h_211_220'); surcharges.push('X: สูง 211-220cm'); }
-                 else if (height >= 221 && height <= 240) { price += getSize('x_h_221_240'); surcharges.push('X: สูง 221-240cm'); }
+                 if (height < 200) { price += getSize('x_h_under_200'); }
+                 else if (height >= 201 && height <= 210) { price += getSize('x_h_201_210'); }
+                 else if (height >= 211 && height <= 220) { price += getSize('x_h_211_220'); }
+                 else if (height >= 221 && height <= 240) { price += getSize('x_h_221_240'); }
 
                  // Width Surcharges (Custom)
-                 if (width >= 81 && width <= 90) { price += getSize('x_w_81_90'); surcharges.push('X: กว้าง 81-90cm'); }
-                 else if (width >= 91 && width <= 140) { price += getSize('x_w_91_140'); surcharges.push('X: กว้าง 91-140cm'); }
-                 else if (width >= 141 && width <= 180) { price += getSize('x_w_141_180'); surcharges.push('X: กว้าง 141-180cm'); }
+                 if (width >= 81 && width <= 90) { price += getSize('x_w_81_90'); }
+                 else if (width >= 91 && width <= 140) { price += getSize('x_w_91_140'); }
+                 else if (width >= 141 && width <= 180) { price += getSize('x_w_141_180'); }
              }
 
              // Surface X (Height Based for both TOA and SVL)
@@ -958,15 +956,15 @@ export default function App() {
              // Handle Custom Sizes
              else if (formData.sizeType === 'custom') {
                  // Height Surcharges (Custom)
-                 if (height < 200) { price += getSize('eco_h_under_200'); surcharges.push('Eco: ค่าลดไซส์ (สูง < 2.00m)'); }
-                 else if (height >= 201 && height <= 210) { price += getSize('eco_h_201_210'); surcharges.push('Eco: สูง 201-210cm'); }
-                 else if (height >= 211 && height <= 220) { price += getSize('eco_h_211_220'); surcharges.push('Eco: สูง 211-220cm'); }
-                 else if (height >= 221 && height <= 240) { price += getSize('eco_h_221_240'); surcharges.push('Eco: สูง 221-240cm'); }
+                 if (height < 200) { price += getSize('eco_h_under_200'); }
+                 else if (height >= 201 && height <= 210) { price += getSize('eco_h_201_210'); }
+                 else if (height >= 211 && height <= 220) { price += getSize('eco_h_211_220'); }
+                 else if (height >= 221 && height <= 240) { price += getSize('eco_h_221_240'); }
 
                  // Width Surcharges (Custom)
-                 if (width >= 81 && width <= 90) { price += getSize('eco_w_81_90'); surcharges.push('Eco: กว้าง 81-90cm'); }
-                 else if (width >= 91 && width <= 140) { price += getSize('eco_w_91_140'); surcharges.push('Eco: กว้าง 91-140cm'); }
-                 else if (width >= 141 && width <= 180) { price += getSize('eco_w_141_180'); surcharges.push('Eco: กว้าง 141-180cm'); }
+                 if (width >= 81 && width <= 90) { price += getSize('eco_w_81_90'); }
+                 else if (width >= 91 && width <= 140) { price += getSize('eco_w_91_140'); }
+                 else if (width >= 141 && width <= 180) { price += getSize('eco_w_141_180'); }
              }
 
              // Surface Eco (Standard Logic: TOA=Width, SVL=Height)
@@ -984,7 +982,6 @@ export default function App() {
     }
     
     setTotalPrice(price);
-    setActiveSurcharges(surcharges);
   }, [formData, prices, activeTab]);
 
   const handleInputChange = (field: keyof DoorFormData, value: any) => {
@@ -1094,7 +1091,7 @@ export default function App() {
                                             <div><label className="text-xs text-slate-600">กว้าง (Max 110cm)</label><input type="number" value={formData.customWidth} onChange={(e) => handleInputChange('customWidth', e.target.value)} className="w-full p-2 border rounded"/></div>
                                             <div><label className="text-xs text-slate-600">สูง (Max 240cm)</label><input type="number" value={formData.customHeight} onChange={(e) => handleInputChange('customHeight', e.target.value)} className="w-full p-2 border rounded"/></div>
                                         </div>
-                                        {activeSurcharges.map((s, i) => <div key={i} className="text-xs text-orange-700 mt-1">{s}</div>)}
+                                        {/* REMOVED: Surcharges display */}
                                     </div>
                                 )}
                             </div>
@@ -1278,34 +1275,56 @@ export default function App() {
                 <div className="bg-slate-800 p-4 text-white flex items-center justify-between"><h2 className="font-semibold flex items-center gap-2"><FileText className="w-5 h-5" /> สรุปรายการ ({activeTab === 'exclusive' ? 'ประตู' : 'วงกบ'})</h2></div>
                 <div className="p-6 space-y-6">
                   <div className="text-center pb-6 border-b"><p className="text-slate-500 text-sm mb-1">ราคาสุทธิ</p><div className="text-4xl font-bold text-blue-600">฿{totalPrice.toLocaleString()}</div></div>
+                  
                   <div className="space-y-3 text-sm">
-                    {activeTab === 'exclusive' ? (
+                    {activeTab === 'exclusive' || activeTab === 'standard' ? (
                         <>
-                            <div className="flex justify-between"><span className="text-slate-500">โครงสร้าง</span><span className="font-medium">{formData.structure}</span></div>
-                            <div className="flex justify-between"><span className="text-slate-500">ขนาด</span><span className="font-medium">{formData.sizeType === 'custom' ? `${formData.customWidth}x${formData.customHeight}` : formData.sizeType}</span></div>
-                            <div className="flex justify-between"><span className="text-slate-500">สี</span><span className="font-medium">{formData.surfaceType}</span></div>
+                            <div className="flex justify-between border-b pb-2 mb-2"><span className="text-slate-900 font-bold">รายการที่เลือก</span></div>
+                            
+                            <div className="flex justify-between"><span className="text-slate-500">ประเภท</span><span className="font-medium text-right">{formData.type}</span></div>
+                            <div className="flex justify-between"><span className="text-slate-500">โครงสร้าง</span><span className="font-medium text-right">{formData.structure}</span></div>
+                            <div className="flex justify-between"><span className="text-slate-500">ขนาด</span><span className="font-medium text-right">{formData.sizeType === 'custom' ? `${formData.customWidth}x${formData.customHeight} cm` : formData.sizeType}</span></div>
+                            <div className="flex justify-between"><span className="text-slate-500">สี/ผิว</span><span className="font-medium text-right">{formData.surfaceType}</span></div>
+
+                            {/* Conditional Renders */}
+                            {formData.grooving !== 'none' && <div className="flex justify-between"><span className="text-slate-500">เซาะร่อง</span><span className="font-medium text-right">{LABEL_MAP[formData.grooving]}</span></div>}
+                            {formData.molding !== 'none' && <div className="flex justify-between"><span className="text-slate-500">คิ้ว</span><span className="font-medium text-right">{LABEL_MAP[formData.molding]}</span></div>}
+                            {formData.glass !== 'none' && <div className="flex justify-between"><span className="text-slate-500">กระจก</span><span className="font-medium text-right">{LABEL_MAP[formData.glass]}</span></div>}
+                            {formData.louver !== 'none' && <div className="flex justify-between"><span className="text-slate-500">เกล็ด</span><span className="font-medium text-right">{LABEL_MAP[formData.louver]}</span></div>}
+                            
+                            {/* Drilling & Reinforce */}
+                            {formData.reinforce !== 'none' && <div className="flex justify-between"><span className="text-slate-500">เสริมโครง</span><span className="font-medium text-right">{LABEL_MAP[formData.reinforce]}</span></div>}
+                            {formData.drilling !== 'none' && <div className="flex justify-between"><span className="text-slate-500">เจาะ</span><span className="font-medium text-right">{LABEL_MAP[formData.drilling]}</span></div>}
+
+                            {/* Boolean Options */}
+                             {Object.keys(formData.options).some(k => formData.options[k]) && (
+                                <div className="pt-2 mt-2 border-t border-slate-100">
+                                    <span className="text-slate-500 block mb-1 font-medium">Option เสริม:</span>
+                                    <ul className="text-xs text-slate-700 space-y-1">
+                                        {Object.entries(formData.options)
+                                            .filter(([_, v]) => v)
+                                            .map(([k, _]) => (
+                                                <li key={k} className="flex items-start gap-1">
+                                                    <Check className="w-3 h-3 text-green-500 mt-0.5" />
+                                                    {LABEL_MAP[k] || k}
+                                                </li>
+                                            ))
+                                        }
+                                    </ul>
+                                </div>
+                             )}
                         </>
                     ) : (
                         <>
                              {/* สรุปของวงกบ */}
+                             <div className="flex justify-between border-b pb-2 mb-2"><span className="text-slate-900 font-bold">รายการที่เลือก</span></div>
+                             
                              <div className="flex justify-between items-start">
                                 <span className="text-slate-500 shrink-0">รุ่น</span>
                                 <span className="font-medium text-right ml-4">{getFrameLabel(formData.frameMaterial)}</span>
                              </div>
-                             <div className="flex justify-between"><span className="text-slate-500">ขนาด</span><span className="font-medium">{formData.sizeType === 'custom' ? `${formData.customWidth}x${formData.customHeight}` : formData.sizeType}</span></div>
+                             <div className="flex justify-between"><span className="text-slate-500">ขนาด</span><span className="font-medium">{formData.sizeType === 'custom' ? `${formData.customWidth}x${formData.customHeight} cm` : formData.sizeType}</span></div>
                              <div className="flex justify-between"><span className="text-slate-500">สี</span><span className="font-medium">{formData.surfaceType === 'none' ? 'ไม่ทำสี (งานดิบ)' : formData.surfaceType}</span></div>
-                             
-                             {/* แสดง Surcharges ของวงกบ */}
-                             {activeSurcharges.length > 0 && (
-                                <div className="mt-2 pt-2 border-t border-slate-100">
-                                   <span className="text-xs text-slate-400 block mb-1">รายละเอียดราคาเพิ่มเติม:</span>
-                                   {activeSurcharges.map((s, i) => (
-                                     <div key={i} className="flex justify-between text-xs text-orange-600">
-                                       <span>- {s}</span>
-                                     </div>
-                                   ))}
-                                </div>
-                             )}
                         </>
                     )}
                   </div>
