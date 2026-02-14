@@ -173,8 +173,11 @@ const LABEL_MAP: {[key: string]: string} = {
   'f10_w_141_180': 'F10: กว้าง 141-180cm',
   'f10_h_201_220': 'F10: สูง 201-220cm',
   'f10_h_under_200': 'F10: ค่าลดไซส์ (สูง < 2.00m)',
-  'f10_color_h200': 'F10: ทำสี (สูง<2.0m)',
-  'f10_color_h220': 'F10: ทำสี (สูง 2.0-2.2m)',
+  
+  // ✅ UPDATED F10 COLOR KEYS (Height Tiers)
+  'f10_color_h_under_200': 'F10: ทำสี (สูง < 2.00m)',
+  'f10_color_h_200_210': 'F10: ทำสี (สูง 2.00-2.10m)',
+  'f10_color_h_211_220': 'F10: ทำสี (สูง 2.11-2.20m)',
 
   // 3. Adjust X
   'wpc_adjust_x': 'วงกบ Adjust X (มีซับ)',
@@ -212,7 +215,6 @@ const LABEL_MAP: {[key: string]: string} = {
   'eco_h_221_240': 'Eco: สูง 221-240cm',
   'eco_h_under_200': 'Eco: ค่าลดไซส์ (สูง < 2.00m)',
   
-  // ✅ UPDATED ECO KEYS (Height Based for both)
   'eco_toa_h_200': 'Eco: สี TOA (สูง<2.0m)',
   'eco_toa_h_201_210': 'Eco: สี TOA (สูง 2.0-2.1m)',
   'eco_toa_h_211_220': 'Eco: สี TOA (สูง 2.1-2.2m)',
@@ -290,14 +292,16 @@ const DEFAULT_PRICES: PricingStructure = {
     // T2 Color
     't2_color_h200': 0, 't2_color_h220': 0, 't2_color_h240': 0,
     
-    // F10 Color
-    'f10_color_h200': 0, 'f10_color_h220': 0,
+    // F10 Color (✅ UPDATED: 3 Tiers)
+    'f10_color_h_under_200': 0, 
+    'f10_color_h_200_210': 0, 
+    'f10_color_h_211_220': 0,
 
     // Adjust X Color
     'x_toa_h_200': 0, 'x_toa_h_201_210': 0, 'x_toa_h_211_220': 0, 'x_toa_h_221_240': 0,
     'x_svl_h_200': 0, 'x_svl_h_201_210': 0, 'x_svl_h_211_220': 0, 'x_svl_h_221_240': 0,
     
-    // Adjust Eco Color (✅ UPDATED: All Height Based)
+    // Adjust Eco Color
     'eco_toa_h_200': 0, 'eco_toa_h_201_210': 0, 'eco_toa_h_211_220': 0, 'eco_toa_h_221_240': 0,
     'eco_svl_h_200': 0, 'eco_svl_h_201_210': 0, 'eco_svl_h_211_220': 0, 'eco_svl_h_221_240': 0,
   },
@@ -372,11 +376,7 @@ const AdminPriceEditor = ({
   };
 
   // ✅ FIX 3: STRICT KEY FILTERING
-  // Instead of iterating over `localPrices` (which might contain DB ghost keys),
-  // we iterate over `DEFAULT_PRICES` keys to ensure only valid code-defined keys are shown.
-  
   const getKeys = (category: keyof PricingStructure) => {
-    // This forces the UI to only show keys that exist in our clean DEFAULT_PRICES
     return Object.keys(DEFAULT_PRICES[category] || {});
   };
 
@@ -473,7 +473,7 @@ const AdminPriceEditor = ({
                 <div className="bg-white p-4 rounded-lg shadow-sm border"><h4 className="font-bold text-slate-800 mb-3 pb-2 border-b">ราคาตั้งต้น & มาตรฐาน</h4>{renderInput('frame_base', 'wpc_4in_f10')}{renderInput('frame_size', 'f10_std_70')}{renderInput('frame_size', 'f10_std_80')}{renderInput('frame_size', 'f10_std_90')}</div>
                 <div className="bg-white p-4 rounded-lg shadow-sm border"><h4 className="font-bold text-orange-600 mb-3 pb-2 border-b">Surcharge ความกว้าง (F10)</h4>{getKeys('frame_size').filter(k => k.startsWith('f10_w_')).map(k => renderInput('frame_size', k))}</div>
                 <div className="bg-white p-4 rounded-lg shadow-sm border"><h4 className="font-bold text-orange-600 mb-3 pb-2 border-b">Surcharge ความสูง (F10)</h4>{getKeys('frame_size').filter(k => k.startsWith('f10_h_')).map(k => renderInput('frame_size', k))}</div>
-                <div className="bg-white p-4 rounded-lg shadow-sm border"><h4 className="font-bold text-purple-600 mb-3 pb-2 border-b">ราคาทำสี (F10)</h4>{getKeys('frame_surface').filter(k => k.startsWith('f10_color_')).map(k => renderInput('frame_surface', k))}</div>
+                <div className="bg-white p-4 rounded-lg shadow-sm border"><h4 className="font-bold text-purple-600 mb-3 pb-2 border-b">ราคาทำสี (F10) - คิดตามความสูง</h4>{getKeys('frame_surface').filter(k => k.startsWith('f10_color_')).map(k => renderInput('frame_surface', k))}</div>
               </div>
             </div>
           )}
@@ -892,7 +892,7 @@ export default function App() {
         }
         
         // ============================================
-        // 2. F10 SPECIFIC LOGIC
+        // 2. F10 SPECIFIC LOGIC (✅ UPDATED: 3 Height Tiers)
         // ============================================
         else if (formData.frameMaterial === 'wpc_4in_f10') {
              // Standard Size Pricing
@@ -911,10 +911,11 @@ export default function App() {
                  else if (height >= 201 && height <= 220) { price += getSize('f10_h_201_220'); }
              }
 
-             // Surface F10 (Max height 220)
+             // Surface F10 (New Logic: 3 Tiers)
              if (formData.surfaceType !== 'none') {
-                 if (height <= 200) price += getSurf('f10_color_h200');
-                 else price += getSurf('f10_color_h220');
+                 if (height < 200) price += getSurf('f10_color_h_under_200');
+                 else if (height >= 200 && height <= 210) price += getSurf('f10_color_h_200_210');
+                 else if (height >= 211) price += getSurf('f10_color_h_211_220');
              }
         }
 
