@@ -158,9 +158,12 @@ const LABEL_MAP: {[key: string]: string} = {
   't2_h_201_220': 'T2: สูง 201-220cm',
   't2_h_221_240': 'T2: สูง 221-240cm',
   't2_h_under_200': 'T2: ค่าลดไซส์ (สูง < 2.00m)',
-  't2_color_h200': 'T2: ทำสี (สูง<2.0m)',
-  't2_color_h220': 'T2: ทำสี (สูง 2.0-2.2m)',
-  't2_color_h240': 'T2: ทำสี (สูง 2.2-2.4m)',
+  
+  // ✅ UPDATED T2 COLOR KEYS (Height Tiers)
+  't2_color_h_under_200': 'T2: ทำสี (สูง < 2.00m)',
+  't2_color_h_200_210': 'T2: ทำสี (สูง 2.00-2.10m)',
+  't2_color_h_211_220': 'T2: ทำสี (สูง 2.11-2.20m)',
+  't2_color_h_221_240': 'T2: ทำสี (สูง 2.21-2.40m)',
 
   // 2. F10 (Max 180x220)
   'wpc_4in_f10': 'วงกบไม้สังเคราะห์ 4" (F10)',
@@ -289,8 +292,11 @@ const DEFAULT_PRICES: PricingStructure = {
   frame_surface: {
     'none': 0,
     
-    // T2 Color
-    't2_color_h200': 0, 't2_color_h220': 0, 't2_color_h240': 0,
+    // T2 Color (✅ UPDATED: 4 Tiers)
+    't2_color_h_under_200': 0,
+    't2_color_h_200_210': 0,
+    't2_color_h_211_220': 0,
+    't2_color_h_221_240': 0,
     
     // F10 Color (✅ UPDATED: 3 Tiers)
     'f10_color_h_under_200': 0, 
@@ -460,7 +466,7 @@ const AdminPriceEditor = ({
                 <div className="bg-white p-4 rounded-lg shadow-sm border"><h4 className="font-bold text-orange-600 mb-3 pb-2 border-b">Surcharge ความสูง (T2)</h4>
                     {getKeys('frame_size').filter(k => k.startsWith('t2_h_')).map(k => renderInput('frame_size', k))}
                 </div>
-                <div className="bg-white p-4 rounded-lg shadow-sm border"><h4 className="font-bold text-purple-600 mb-3 pb-2 border-b">ราคาทำสี (T2)</h4>{getKeys('frame_surface').filter(k => k.startsWith('t2_color_')).map(k => renderInput('frame_surface', k))}</div>
+                <div className="bg-white p-4 rounded-lg shadow-sm border"><h4 className="font-bold text-purple-600 mb-3 pb-2 border-b">ราคาทำสี (T2) - คิดตามความสูง</h4>{getKeys('frame_surface').filter(k => k.startsWith('t2_color_')).map(k => renderInput('frame_surface', k))}</div>
               </div>
             </div>
           )}
@@ -883,11 +889,12 @@ export default function App() {
                  else if (height >= 221 && height <= 240) { price += getSize('t2_h_221_240'); }
              }
              
-             // Surface T2
+             // Surface T2 (New Logic: 4 Tiers)
              if (formData.surfaceType !== 'none') {
-                 if (height <= 200) price += getSurf('t2_color_h200');
-                 else if (height <= 220) price += getSurf('t2_color_h220');
-                 else price += getSurf('t2_color_h240');
+                 if (height < 200) price += getSurf('t2_color_h_under_200');
+                 else if (height >= 200 && height <= 210) price += getSurf('t2_color_h_200_210');
+                 else if (height >= 211 && height <= 220) price += getSurf('t2_color_h_211_220');
+                 else if (height >= 221) price += getSurf('t2_color_h_221_240');
              }
         }
         
@@ -1003,22 +1010,31 @@ export default function App() {
   }, [formData, prices, activeTab]);
 
   const handleInputChange = (field: keyof DoorFormData, value: any) => {
-    // Limits
+    let finalValue = value;
+
+    // Limits & Auto-Snapping
     if (activeTab === 'exclusive') {
-        if (field === 'customWidth' && Number(value) > 110) return;
-        if (field === 'customHeight' && Number(value) > 240) return;
+        if (field === 'customWidth' && Number(value) > 110) finalValue = '110';
+        if (field === 'customHeight' && Number(value) > 240) finalValue = '240';
     }
     if (activeTab === 'frame') {
-        if (field === 'customWidth' && Number(value) > 180) return; 
+        if (field === 'customWidth' && Number(value) > 180) finalValue = '180'; 
         
         // Height Limits per model
         if (field === 'customHeight') {
            const h = Number(value);
-           if (formData.frameMaterial === 'wpc_4in_f10' && h > 220) return; // F10 Max 220
-           if (h > 240) return; // General Max 240
+           if (formData.frameMaterial === 'wpc_4in_f10' && h > 220) finalValue = '220'; // F10 Max 220
+           else if (h > 240) finalValue = '240'; // General Max 240
+        }
+
+        // ถ้าระบุความสูงเกิน 220 ค้างไว้ แล้วเปลี่ยนวัสดุเป็น F10 ให้ตัดเหลือ 220 ทันที
+        if (field === 'frameMaterial' && value === 'wpc_4in_f10' && Number(formData.customHeight) > 220) {
+            setFormData(prev => ({ ...prev, [field]: value, customHeight: '220' }));
+            return;
         }
     }
-    setFormData(prev => ({ ...prev, [field]: value }));
+    
+    setFormData(prev => ({ ...prev, [field]: finalValue }));
   };
   
   const handleOptionToggle = (optionKey: string) => setFormData(prev => ({ ...prev, options: { ...prev.options, [optionKey]: !prev.options[optionKey] } }));
@@ -1106,8 +1122,8 @@ export default function App() {
                                 {formData.sizeType === 'custom' && (
                                     <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 mt-4">
                                         <div className="grid grid-cols-2 gap-4">
-                                            <div><label className="text-xs text-slate-600">กว้าง (Max 110cm)</label><input type="number" value={formData.customWidth} onChange={(e) => handleInputChange('customWidth', e.target.value)} className="w-full p-2 border rounded"/></div>
-                                            <div><label className="text-xs text-slate-600">สูง (Max 240cm)</label><input type="number" value={formData.customHeight} onChange={(e) => handleInputChange('customHeight', e.target.value)} className="w-full p-2 border rounded"/></div>
+                                            <div><label className="text-xs text-slate-600">กว้าง (Max 110cm)</label><input type="number" max="110" value={formData.customWidth} onChange={(e) => handleInputChange('customWidth', e.target.value)} className="w-full p-2 border rounded"/></div>
+                                            <div><label className="text-xs text-slate-600">สูง (Max 240cm)</label><input type="number" max="240" value={formData.customHeight} onChange={(e) => handleInputChange('customHeight', e.target.value)} className="w-full p-2 border rounded"/></div>
                                         </div>
                                         {/* REMOVED: Surcharges display */}
                                     </div>
@@ -1247,11 +1263,11 @@ export default function App() {
                                     <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 mt-4 flex gap-4">
                                         <div className="flex-1">
                                             <label className="text-xs text-slate-600">กว้าง {formData.frameMaterial === 'wpc_4in_t2' && <span className="text-red-500">(Max 180)</span>}</label>
-                                            <input type="number" value={formData.customWidth} onChange={(e) => handleInputChange('customWidth', e.target.value)} className="w-full p-2 border rounded"/>
+                                            <input type="number" max="180" value={formData.customWidth} onChange={(e) => handleInputChange('customWidth', e.target.value)} className="w-full p-2 border rounded"/>
                                         </div>
                                         <div className="flex-1">
                                             <label className="text-xs text-slate-600">สูง {formData.frameMaterial === 'wpc_4in_t2' && <span className="text-red-500">(Max 240)</span>}{formData.frameMaterial === 'wpc_4in_f10' && <span className="text-red-500">(Max 220)</span>}</label>
-                                            <input type="number" value={formData.customHeight} onChange={(e) => handleInputChange('customHeight', e.target.value)} className="w-full p-2 border rounded"/>
+                                            <input type="number" max={formData.frameMaterial === 'wpc_4in_f10' ? "220" : "240"} value={formData.customHeight} onChange={(e) => handleInputChange('customHeight', e.target.value)} className="w-full p-2 border rounded"/>
                                         </div>
                                     </div>
                                 )}
