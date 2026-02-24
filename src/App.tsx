@@ -158,8 +158,6 @@ const LABEL_MAP: {[key: string]: string} = {
   't2_h_201_220': 'T2: สูง 201-220cm',
   't2_h_221_240': 'T2: สูง 221-240cm',
   't2_h_under_200': 'T2: ค่าลดไซส์ (สูง < 2.00m)',
-  
-  // ✅ UPDATED T2 COLOR KEYS (Height Tiers)
   't2_color_h_under_200': 'T2: ทำสี (สูง < 2.00m)',
   't2_color_h_200_210': 'T2: ทำสี (สูง 2.00-2.10m)',
   't2_color_h_211_220': 'T2: ทำสี (สูง 2.11-2.20m)',
@@ -176,8 +174,6 @@ const LABEL_MAP: {[key: string]: string} = {
   'f10_w_141_180': 'F10: กว้าง 141-180cm',
   'f10_h_201_220': 'F10: สูง 201-220cm',
   'f10_h_under_200': 'F10: ค่าลดไซส์ (สูง < 2.00m)',
-  
-  // ✅ UPDATED F10 COLOR KEYS (Height Tiers)
   'f10_color_h_under_200': 'F10: ทำสี (สูง < 2.00m)',
   'f10_color_h_200_210': 'F10: ทำสี (สูง 2.00-2.10m)',
   'f10_color_h_211_220': 'F10: ทำสี (สูง 2.11-2.20m)',
@@ -292,13 +288,13 @@ const DEFAULT_PRICES: PricingStructure = {
   frame_surface: {
     'none': 0,
     
-    // T2 Color (✅ UPDATED: 4 Tiers)
+    // T2 Color
     't2_color_h_under_200': 0,
     't2_color_h_200_210': 0,
     't2_color_h_211_220': 0,
     't2_color_h_221_240': 0,
     
-    // F10 Color (✅ UPDATED: 3 Tiers)
+    // F10 Color
     'f10_color_h_under_200': 0, 
     'f10_color_h_200_210': 0, 
     'f10_color_h_211_220': 0,
@@ -733,11 +729,9 @@ export default function App() {
         const firestoreData = docSnap.data() as PricingStructure;
         
         // ✅ MERGE LOGIC: Combine DEFAULT_PRICES with Firestore Data
-        // This ensures new keys added to the code appear even if not in DB yet
         const mergedPrices = {
             ...DEFAULT_PRICES,
             ...firestoreData,
-            // Manually merge nested objects to prevent overwriting
             frame_size: { ...DEFAULT_PRICES.frame_size, ...(firestoreData.frame_size || {}) },
             frame_surface: { ...DEFAULT_PRICES.frame_surface, ...(firestoreData.frame_surface || {}) },
             frame_base: { ...DEFAULT_PRICES.frame_base, ...(firestoreData.frame_base || {}) },
@@ -777,15 +771,15 @@ export default function App() {
   // Mapping Key to Label for Display in Summary and Logic
   const getFrameLabel = (key: string) => {
       const map: {[key:string]: string} = {
-        'wpc_4in_t2': 'วงกบไม้สังเคราะห์ 4" เหลียม (T2)',
-        'wpc_4in_f10': 'วงกบไม้สังเคราะห์ 4" เหลียม (F10)',
+        'wpc_4in_t2': 'วงกบไม้สังเคราะห์ 4 นิ้วเหลี่ยม (T2) (ตัวพิเศษ ทำได้สูงสุด 240cm)',
+        'wpc_4in_f10': 'วงกบไม้สังเคราะห์ 4 นิ้วเหลี่ยม (F10) (ตัวเริ่มต้น ทำได้สูงสุด 220cm)',
         'wpc_adjust_eco': 'วงกบไม้สังเคราะห์ มีซับ (Adjust Eco)',
         'wpc_adjust_x': 'วงกบไม้สังเคราะห์ มีซับ (Adjust X)',
       };
       return map[key] || key;
   };
 
-  // Auto-switch logic
+  // Auto-switch & restriction logic (SVL no molding, Frame SVL check)
   useEffect(() => {
       if (activeTab === 'frame') {
           const label = getFrameLabel(formData.frameMaterial);
@@ -793,7 +787,12 @@ export default function App() {
               setFormData(prev => ({ ...prev, surfaceType: 'TOA' }));
           }
       }
-  }, [formData.frameMaterial, activeTab, formData.surfaceType]);
+      
+      // เงื่อนไขประตู: ถ้าเลือกปิดผิว SVL ให้ล็อคและเปลี่ยนคิ้วเป็นแบบ "ไม่ติดคิ้ว"
+      if (formData.surfaceType === 'SVL' && formData.molding !== 'none') {
+          setFormData(prev => ({ ...prev, molding: 'none' }));
+      }
+  }, [formData.frameMaterial, activeTab, formData.surfaceType, formData.molding]);
 
   // 3. Logic คำนวณราคา
   useEffect(() => {
@@ -1009,6 +1008,8 @@ export default function App() {
     setTotalPrice(price);
   }, [formData, prices, activeTab]);
 
+  // --- UPDATE: เพิ่มระบบ Auto-Snap จำกัดความสูง F10 ไม่เกิน 220cm ---
+  // --- และปรับลดความสูงอัตโนมัติหากสลับจากรุ่นอื่นมาเป็น F10 ---
   const handleInputChange = (field: keyof DoorFormData, value: any) => {
     let finalValue = value;
 
@@ -1125,7 +1126,6 @@ export default function App() {
                                             <div><label className="text-xs text-slate-600">กว้าง (Max 110cm)</label><input type="number" max="110" value={formData.customWidth} onChange={(e) => handleInputChange('customWidth', e.target.value)} className="w-full p-2 border rounded"/></div>
                                             <div><label className="text-xs text-slate-600">สูง (Max 240cm)</label><input type="number" max="240" value={formData.customHeight} onChange={(e) => handleInputChange('customHeight', e.target.value)} className="w-full p-2 border rounded"/></div>
                                         </div>
-                                        {/* REMOVED: Surcharges display */}
                                     </div>
                                 )}
                             </div>
@@ -1153,8 +1153,15 @@ export default function App() {
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-slate-600 mb-1">ติดคิ้วพ่นสี</label>
-                                <select value={formData.molding} onChange={(e) => handleInputChange('molding', e.target.value)} className="w-full p-2.5 border rounded-lg">
+                                <label className="block text-sm font-medium text-slate-600 mb-1">
+                                    ติดคิ้วพ่นสี {formData.surfaceType === 'SVL' && <span className="text-red-500 text-[10px] ml-1">(ไม่รับติดคิ้วสำหรับผิว SVL)</span>}
+                                </label>
+                                <select 
+                                    value={formData.molding} 
+                                    onChange={(e) => handleInputChange('molding', e.target.value)} 
+                                    className={`w-full p-2.5 border rounded-lg ${formData.surfaceType === 'SVL' ? 'bg-slate-100 cursor-not-allowed text-slate-400' : ''}`}
+                                    disabled={formData.surfaceType === 'SVL'}
+                                >
                                     <option value="none">ไม่ติดคิ้ว</option>
                                     <option value="first_1">First Class 1 ช่อง</option>
                                     <option value="first_2">First Class 2 ช่อง</option>
@@ -1243,8 +1250,8 @@ export default function App() {
                                 <label className="block text-sm font-medium text-slate-600 mb-2">ประเภท/รุ่น ของวงกบ</label>
                                 <select value={formData.frameMaterial} onChange={(e) => handleInputChange('frameMaterial', e.target.value)} className="w-full p-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 text-slate-700">
                                     <optgroup label="--- ไม้สังเคราะห์ (WPC) ---">
-                                        <option value="wpc_4in_t2">วงกบไม้สังเคราะห์ 4 นิ้ว เหลียม (T2)</option>
-                                        <option value="wpc_4in_f10">วงกบไม้สังเคราะห์ 4 นิ้ว เหลียม (F10)</option>
+                                        <option value="wpc_4in_t2">วงกบไม้สังเคราะห์ 4 นิ้ว เหลียม (T2) (ตัวพิเศษ ทำได้สูงสุด 240cm)</option>
+                                        <option value="wpc_4in_f10">วงกบไม้สังเคราะห์ 4 นิ้ว เหลียม (F10) (ตัวเริ่มต้น ทำได้สูงสุด 220cm)</option>
                                         <option value="wpc_adjust_eco">วงกบไม้สังเคราะห์ มีซับ รุ่น Adjust Eco</option>
                                         <option value="wpc_adjust_x">วงกบไม้สังเคราะห์ มีซับ รุ่น Adjust X</option>
                                     </optgroup>
