@@ -692,6 +692,12 @@ export default function App() {
     wallThickness: 'standard'
   });
   const [totalPrice, setTotalPrice] = useState<number>(0);
+  const [notification, setNotification] = useState<{message: string} | null>(null);
+
+  const showNotification = (message: string) => {
+    setNotification({ message });
+    // เอา setTimeout ออก เพื่อให้ผู้ใช้ต้องกดปุ่ม "รับทราบ" เท่านั้นถึงจะปิดได้
+  };
 
   // 0. Set Browser Title
   useEffect(() => { document.title = "ระบบคำนวณราคา - กลางซอยค้าไม้"; }, []);
@@ -1008,29 +1014,43 @@ export default function App() {
     setTotalPrice(price);
   }, [formData, prices, activeTab]);
 
-  // --- UPDATE: เพิ่มระบบ Auto-Snap จำกัดความสูง F10 ไม่เกิน 220cm ---
-  // --- และปรับลดความสูงอัตโนมัติหากสลับจากรุ่นอื่นมาเป็น F10 ---
+  // --- UPDATE: แจ้งเตือนกลางจอและเคลียร์ค่าเป็นช่องว่าง หากระบุขนาดเกินกำหนด ---
   const handleInputChange = (field: keyof DoorFormData, value: any) => {
     let finalValue = value;
+    const numValue = Number(value);
 
-    // Limits & Auto-Snapping
-    if (activeTab === 'exclusive') {
-        if (field === 'customWidth' && Number(value) > 110) finalValue = '110';
-        if (field === 'customHeight' && Number(value) > 240) finalValue = '240';
+    // Limits & Clear Input
+    if (activeTab === 'exclusive' || activeTab === 'standard') {
+        if (field === 'customWidth' && numValue > 110) {
+            finalValue = '';
+            showNotification('ความกว้างประตูทำได้สูงสุด 110 cm กรุณาระบุใหม่');
+        }
+        if (field === 'customHeight' && numValue > 240) {
+            finalValue = '';
+            showNotification('ความสูงประตูทำได้สูงสุด 240 cm กรุณาระบุใหม่');
+        }
     }
     if (activeTab === 'frame') {
-        if (field === 'customWidth' && Number(value) > 180) finalValue = '180'; 
+        if (field === 'customWidth' && numValue > 180) {
+            finalValue = ''; 
+            showNotification('ความกว้างวงกบทำได้สูงสุด 180 cm กรุณาระบุใหม่');
+        }
         
         // Height Limits per model
         if (field === 'customHeight') {
-           const h = Number(value);
-           if (formData.frameMaterial === 'wpc_4in_f10' && h > 220) finalValue = '220'; // F10 Max 220
-           else if (h > 240) finalValue = '240'; // General Max 240
+           if (formData.frameMaterial === 'wpc_4in_f10' && numValue > 220) {
+               finalValue = ''; 
+               showNotification('วงกบ F10 (ตัวเริ่มต้น) ทำความสูงได้สูงสุด 220 cm กรุณาระบุใหม่');
+           } else if (numValue > 240) {
+               finalValue = ''; 
+               showNotification('ความสูงวงกบทำได้สูงสุด 240 cm กรุณาระบุใหม่');
+           }
         }
 
-        // ถ้าระบุความสูงเกิน 220 ค้างไว้ แล้วเปลี่ยนวัสดุเป็น F10 ให้ตัดเหลือ 220 ทันที
+        // ถ้าระบุความสูงเกิน 220 ค้างไว้ แล้วเปลี่ยนวัสดุเป็น F10 ให้เคลียร์ความสูงทิ้ง
         if (field === 'frameMaterial' && value === 'wpc_4in_f10' && Number(formData.customHeight) > 220) {
-            setFormData(prev => ({ ...prev, [field]: value, customHeight: '220' }));
+            setFormData(prev => ({ ...prev, [field]: value, customHeight: '' }));
+            showNotification('วงกบ F10 (ตัวเริ่มต้น) รองรับความสูงได้สูงสุด 220 cm (ระบบได้ล้างค่าความสูงเดิม กรุณาระบุใหม่)');
             return;
         }
     }
@@ -1045,7 +1065,27 @@ export default function App() {
   if (!currentUser) return <LoginScreen onLogin={setCurrentUser} isFirebaseReady={isFirebaseReady} permissionError={permissionError} />;
 
   return (
-    <div className="min-h-screen bg-slate-100 p-4 md:p-8 font-sans">
+    <div className="min-h-screen bg-slate-100 p-4 md:p-8 font-sans relative">
+      
+      {/* ALERT MODAL (ป๊อปอัปแจ้งเตือนกลางจอ) */}
+      {notification && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl p-6 md:p-8 max-w-sm w-full text-center transform scale-100 animate-in zoom-in-95">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <AlertCircle className="w-8 h-8 text-red-600" />
+            </div>
+            <h3 className="text-xl font-bold text-slate-800 mb-2">ขนาดเกินกำหนด!</h3>
+            <p className="text-slate-600 mb-6">{notification.message}</p>
+            <button 
+              onClick={() => setNotification(null)} 
+              className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-colors shadow-lg shadow-blue-200"
+            >
+              รับทราบ
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-7xl mx-auto">
         <header className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div className="flex items-center gap-3">
