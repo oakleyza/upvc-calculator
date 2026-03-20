@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Calculator, Check, DoorOpen, Layers, Maximize, Palette, Settings, 
-  Grid, FileText, X, AlertCircle, LogOut, User,
+  Calculator, Check, DoorOpen, Maximize, Palette, Settings, 
+  FileText, X, AlertCircle, LogOut, User,
   Users, Edit, Save, Trash2, Tag,
   Database, Hammer, LayoutDashboard
 } from 'lucide-react';
@@ -321,9 +321,9 @@ const DEFAULT_PRICES: PricingStructure = {
 
 const TABS: TabInfo[] = [
   { id: 'exclusive', label: 'ประตู Exclusive', icon: DoorOpen },
-  { id: 'standard', label: 'ประตู Standard', icon: Layers }, 
+  // { id: 'standard', label: 'ประตู Standard', icon: Layers }, // ซ่อนไว้ก่อนตามที่ต้องการ
   { id: 'frame', label: 'วงกบ (Frame)', icon: Maximize },
-  { id: 'architrave', label: 'บังราง (Architrave)', icon: Grid },
+  // { id: 'architrave', label: 'บังราง (Architrave)', icon: Grid }, // ซ่อนไว้ก่อนตามที่ต้องการ
 ];
 
 // ------------------------------------------------------------------
