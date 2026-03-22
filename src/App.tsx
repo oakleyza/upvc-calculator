@@ -1031,9 +1031,15 @@ export default function App() {
         }
     }
     if (activeTab === 'frame') {
-        if (field === 'customWidth' && numValue > 180) {
-            finalValue = ''; 
-            showNotification('ความกว้างวงกบทำได้สูงสุด 180 cm กรุณาระบุใหม่');
+        // Width Limits per model
+        if (field === 'customWidth') {
+            if (formData.frameMaterial === 'wpc_adjust_x' && numValue > 90) {
+                finalValue = '';
+                showNotification('วงกบ Adjust X ทำความกว้างได้สูงสุด 90 cm กรุณาระบุใหม่');
+            } else if (numValue > 180) {
+                finalValue = ''; 
+                showNotification('ความกว้างวงกบทำได้สูงสุด 180 cm กรุณาระบุใหม่');
+            }
         }
         
         // Height Limits per model
@@ -1041,17 +1047,35 @@ export default function App() {
            if (formData.frameMaterial === 'wpc_4in_f10' && numValue > 220) {
                finalValue = ''; 
                showNotification('วงกบ F10 (ตัวเริ่มต้น) ทำความสูงได้สูงสุด 220 cm กรุณาระบุใหม่');
+           } else if (formData.frameMaterial === 'wpc_adjust_x' && numValue > 220) {
+               finalValue = ''; 
+               showNotification('วงกบ Adjust X ทำความสูงได้สูงสุด 220 cm กรุณาระบุใหม่');
            } else if (numValue > 240) {
                finalValue = ''; 
                showNotification('ความสูงวงกบทำได้สูงสุด 240 cm กรุณาระบุใหม่');
            }
         }
 
-        // ถ้าระบุความสูงเกิน 220 ค้างไว้ แล้วเปลี่ยนวัสดุเป็น F10 ให้เคลียร์ความสูงทิ้ง
-        if (field === 'frameMaterial' && value === 'wpc_4in_f10' && Number(formData.customHeight) > 220) {
-            setFormData(prev => ({ ...prev, [field]: value, customHeight: '' }));
-            showNotification('วงกบ F10 (ตัวเริ่มต้น) รองรับความสูงได้สูงสุด 220 cm (ระบบได้ล้างค่าความสูงเดิม กรุณาระบุใหม่)');
-            return;
+        // ถ้าระบุขนาดเกินค้างไว้ แล้วเปลี่ยนวัสดุให้เคลียร์ค่าทิ้งอัตโนมัติ
+        if (field === 'frameMaterial') {
+            if (value === 'wpc_4in_f10' && Number(formData.customHeight) > 220) {
+                setFormData(prev => ({ ...prev, [field]: value, customHeight: '' }));
+                showNotification('วงกบ F10 (ตัวเริ่มต้น) รองรับความสูงได้สูงสุด 220 cm (ระบบได้ล้างค่าความสูงเดิม กรุณาระบุใหม่)');
+                return;
+            } else if (value === 'wpc_adjust_x') {
+                const needClearW = Number(formData.customWidth) > 90;
+                const needClearH = Number(formData.customHeight) > 220;
+                if (needClearW || needClearH) {
+                    setFormData(prev => ({ 
+                        ...prev, 
+                        [field]: value, 
+                        customWidth: needClearW ? '' : prev.customWidth, 
+                        customHeight: needClearH ? '' : prev.customHeight 
+                    }));
+                    showNotification('วงกบ Adjust X รองรับความกว้างสุด 90cm ความสูง 220cm (ระบบล้างค่าเดิมที่เกินกำหนด กรุณาระบุใหม่)');
+                    return;
+                }
+            }
         }
     }
     
@@ -1121,11 +1145,12 @@ export default function App() {
           <div className="flex-1 min-w-0">
             <div className="bg-white rounded-xl shadow-sm p-2 mb-6 flex overflow-x-auto gap-2 no-scrollbar">
               {TABS.map((tab) => {
+                const Icon = tab.icon;
                 const isDisabled = tab.id === 'architrave' || tab.id === 'standard'; 
                 return (
                   <button key={tab.id} onClick={() => !isDisabled && setActiveTab(tab.id)} disabled={isDisabled}
                     className={`flex items-center gap-2 px-4 py-3 rounded-lg whitespace-nowrap transition-all ${activeTab === tab.id ? 'bg-blue-600 text-white shadow-md' : isDisabled ? 'text-slate-300 bg-slate-50 cursor-not-allowed' : 'text-slate-600 hover:bg-slate-50'}`}>
-                    <tab.icon className="w-4 h-4" /> {tab.label}
+                    <Icon className="w-4 h-4" /> {tab.label}
                   </button>
                 );
               })}
@@ -1163,8 +1188,8 @@ export default function App() {
                                 {formData.sizeType === 'custom' && (
                                     <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 mt-4">
                                         <div className="grid grid-cols-2 gap-4">
-                                            <div><label className="text-xs text-slate-600">กว้าง (Max 110cm)</label><input type="number" max="110" value={formData.customWidth} onChange={(e) => handleInputChange('customWidth', e.target.value)} className="w-full p-2 border rounded"/></div>
-                                            <div><label className="text-xs text-slate-600">สูง (Max 240cm)</label><input type="number" max="240" value={formData.customHeight} onChange={(e) => handleInputChange('customHeight', e.target.value)} className="w-full p-2 border rounded"/></div>
+                                            <div><label className="text-xs text-slate-600">กว้าง (Max 110cm)</label><input type="number" value={formData.customWidth} onChange={(e) => handleInputChange('customWidth', e.target.value)} className="w-full p-2 border rounded"/></div>
+                                            <div><label className="text-xs text-slate-600">สูง (Max 240cm)</label><input type="number" value={formData.customHeight} onChange={(e) => handleInputChange('customHeight', e.target.value)} className="w-full p-2 border rounded"/></div>
                                         </div>
                                     </div>
                                 )}
@@ -1309,12 +1334,16 @@ export default function App() {
                                 {formData.sizeType === 'custom' && (
                                     <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 mt-4 flex gap-4">
                                         <div className="flex-1">
-                                            <label className="text-xs text-slate-600">กว้าง {formData.frameMaterial === 'wpc_4in_t2' && <span className="text-red-500">(Max 180)</span>}</label>
-                                            <input type="number" max="180" value={formData.customWidth} onChange={(e) => handleInputChange('customWidth', e.target.value)} className="w-full p-2 border rounded"/>
+                                            <label className="text-xs text-slate-600">กว้าง 
+                                                {formData.frameMaterial === 'wpc_adjust_x' ? <span className="text-red-500 ml-1">(Max 90)</span> : <span className="text-red-500 ml-1">(Max 180)</span>}
+                                            </label>
+                                            <input type="number" value={formData.customWidth} onChange={(e) => handleInputChange('customWidth', e.target.value)} className="w-full p-2 border rounded"/>
                                         </div>
                                         <div className="flex-1">
-                                            <label className="text-xs text-slate-600">สูง {formData.frameMaterial === 'wpc_4in_t2' && <span className="text-red-500">(Max 240)</span>}{formData.frameMaterial === 'wpc_4in_f10' && <span className="text-red-500">(Max 220)</span>}</label>
-                                            <input type="number" max={formData.frameMaterial === 'wpc_4in_f10' ? "220" : "240"} value={formData.customHeight} onChange={(e) => handleInputChange('customHeight', e.target.value)} className="w-full p-2 border rounded"/>
+                                            <label className="text-xs text-slate-600">สูง 
+                                                {['wpc_4in_f10', 'wpc_adjust_x'].includes(formData.frameMaterial) ? <span className="text-red-500 ml-1">(Max 220)</span> : <span className="text-red-500 ml-1">(Max 240)</span>}
+                                            </label>
+                                            <input type="number" value={formData.customHeight} onChange={(e) => handleInputChange('customHeight', e.target.value)} className="w-full p-2 border rounded"/>
                                         </div>
                                     </div>
                                 )}
