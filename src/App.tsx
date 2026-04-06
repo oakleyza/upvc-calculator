@@ -441,6 +441,16 @@ const AdminPriceEditor = ({
                   <div><h5 className="text-sm font-bold text-slate-500 mb-2">ติดคิ้ว</h5>{getKeys('molding').map(k => renderInput('molding', k))}</div>
                 </div>
               </div>
+
+              {/* --- เพิ่มหมวด กระจก & เกล็ดระบายอากาศ ที่หายไป --- */}
+              <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                <h4 className="font-bold text-teal-600 mb-4 pb-2 border-b flex items-center gap-2"><LayoutDashboard className="w-4 h-4"/> งานกระจก & เกล็ดระบายอากาศ</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div><h5 className="text-sm font-bold text-slate-500 mb-2">ช่องกระจก</h5>{getKeys('glass').map(k => renderInput('glass', k))}</div>
+                  <div><h5 className="text-sm font-bold text-slate-500 mb-2">เกล็ดระบายอากาศ</h5>{getKeys('louver').map(k => renderInput('louver', k))}</div>
+                </div>
+              </div>
+
               <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
                 <h4 className="font-bold text-slate-700 mb-4 pb-2 border-b flex items-center gap-2"><Hammer className="w-4 h-4"/> การเจาะ & อุปกรณ์เสริม</h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
