@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Calculator, Check, DoorOpen, Layers, Maximize, Palette, Settings, 
-  Grid, FileText, X, AlertCircle, LogOut, User,
+  Calculator, Check, DoorOpen, Maximize, Palette, Settings, 
+  FileText, X, AlertCircle, LogOut, User,
   Users, Edit, Save, Trash2, Tag,
   Database, Hammer, LayoutDashboard
 } from 'lucide-react';
@@ -313,9 +313,7 @@ const DEFAULT_PRICES: PricingStructure = {
 
 const TABS: TabInfo[] = [
   { id: 'exclusive', label: 'ประตู Exclusive', icon: DoorOpen },
-  { id: 'standard', label: 'ประตู Standard', icon: Layers }, 
   { id: 'frame', label: 'วงกบ (Frame)', icon: Maximize },
-  { id: 'architrave', label: 'บังราง (Architrave)', icon: Grid },
 ];
 
 // ------------------------------------------------------------------
@@ -685,7 +683,6 @@ export default function App() {
     wallThickness: 'standard'
   });
   const [totalPrice, setTotalPrice] = useState<number>(0);
-  const [activeSurcharges, setActiveSurcharges] = useState<string[]>([]);
 
   // 0. Set Browser Title
   useEffect(() => { document.title = "ระบบคำนวณราคา - กลางซอยค้าไม้"; }, []);
@@ -767,8 +764,8 @@ export default function App() {
   // Mapping Key to Label for Display in Summary and Logic
   const getFrameLabel = (key: string) => {
       const map: {[key:string]: string} = {
-        'wpc_4in_t2': 'วงกบไม้สังเคราะห์ 4" เหลียม (T2)',
-        'wpc_4in_f10': 'วงกบไม้สังเคราะห์ 4" เหลียม (F10)',
+        'wpc_4in_t2': 'วงกบไม้สังเคราะห์ 4" เหลี่ยม (T2) (ตัวพิเศษ ทำได้สูงสุด 240cm)',
+        'wpc_4in_f10': 'วงกบไม้สังเคราะห์ 4" เหลี่ยม (F10) (ตัวเริ่มต้น ทำได้สูงสุด 220cm)',
         'wpc_adjust_eco': 'วงกบไม้สังเคราะห์ มีซับ (Adjust Eco)',
         'wpc_adjust_x': 'วงกบไม้สังเคราะห์ มีซับ (Adjust X)',
       };
@@ -788,7 +785,6 @@ export default function App() {
   // 3. Logic คำนวณราคา
   useEffect(() => {
     let price = 0;
-    let surcharges: string[] = [];
 
     // ✅ แยกการคำนวณตาม Tab ที่เลือก
     if (activeTab === 'exclusive' || activeTab === 'standard') {
@@ -805,10 +801,10 @@ export default function App() {
 
             const getDoorSizePrice = (key: string) => prices.door_size?.[key] || prices.size?.[key] || 0;
 
-            if (width >= 81 && width <= 89) { price += getDoorSizePrice('custom_w_81_89'); surcharges.push(`กว้าง 81-89cm`); }
-            else if (width === 90) { price += getDoorSizePrice('custom_w_90'); surcharges.push(`กว้าง 90cm`); }
-            else if (width >= 91 && width <= 100) { price += getDoorSizePrice('custom_w_91_100'); surcharges.push(`กว้าง 91-100cm`); }
-            else if (width >= 101 && width <= 110) { price += getDoorSizePrice('custom_w_101_110'); surcharges.push(`กว้าง 101-110cm`); }
+            if (width >= 81 && width <= 89) { price += getDoorSizePrice('custom_w_81_89'); }
+            else if (width === 90) { price += getDoorSizePrice('custom_w_90'); }
+            else if (width >= 91 && width <= 100) { price += getDoorSizePrice('custom_w_91_100'); }
+            else if (width >= 101 && width <= 110) { price += getDoorSizePrice('custom_w_101_110'); }
 
             if (h < 200) { price += getDoorSizePrice('custom_h_under_200'); }
             else if (h >= 201 && h <= 210) { price += getDoorSizePrice('custom_h_201_210'); }
@@ -875,16 +871,16 @@ export default function App() {
              // Custom Size Surcharges
              else if (formData.sizeType === 'custom') {
                  // Width Logic
-                 if (width >= 71 && width <= 80) { price += getSize('t2_w_71_80'); surcharges.push('T2: กว้าง 71-80cm'); }
-                 else if (width >= 81 && width <= 89) { price += getSize('t2_w_81_89'); surcharges.push('T2: กว้าง 81-89cm'); }
-                 else if (width === 90) { price += getSize('t2_w_90'); surcharges.push('T2: กว้าง 90cm'); }
-                 else if (width >= 91 && width <= 140) { price += getSize('t2_w_91_140'); surcharges.push('T2: กว้าง 91-140cm'); }
-                 else if (width >= 141 && width <= 180) { price += getSize('t2_w_141_180'); surcharges.push('T2: กว้าง 141-180cm'); }
+                 if (width >= 71 && width <= 80) { price += getSize('t2_w_71_80'); }
+                 else if (width >= 81 && width <= 89) { price += getSize('t2_w_81_89'); }
+                 else if (width === 90) { price += getSize('t2_w_90'); }
+                 else if (width >= 91 && width <= 140) { price += getSize('t2_w_91_140'); }
+                 else if (width >= 141 && width <= 180) { price += getSize('t2_w_141_180'); }
 
                  // Height Logic
-                 if (height < 200) { price += getSize('t2_h_under_200'); surcharges.push('T2: ค่าลดไซส์ (สูง < 2.00m)'); }
-                 else if (height >= 201 && height <= 220) { price += getSize('t2_h_201_220'); surcharges.push('T2: สูง 201-220cm'); }
-                 else if (height >= 221 && height <= 240) { price += getSize('t2_h_221_240'); surcharges.push('T2: สูง 221-240cm'); }
+                 if (height < 200) { price += getSize('t2_h_under_200'); }
+                 else if (height >= 201 && height <= 220) { price += getSize('t2_h_201_220'); }
+                 else if (height >= 221 && height <= 240) { price += getSize('t2_h_221_240'); }
              }
              
              // Surface T2
@@ -906,13 +902,13 @@ export default function App() {
              
              // Custom Size Surcharges
              else if (formData.sizeType === 'custom') {
-                 if (width >= 71 && width <= 80) { price += getSize('f10_w_71_80'); surcharges.push('F10: กว้าง 71-80cm'); }
-                 else if (width >= 81 && width <= 90) { price += getSize('f10_w_81_90'); surcharges.push('F10: กว้าง 81-90cm'); }
-                 else if (width >= 91 && width <= 140) { price += getSize('f10_w_91_140'); surcharges.push('F10: กว้าง 91-140cm'); }
-                 else if (width >= 141 && width <= 180) { price += getSize('f10_w_141_180'); surcharges.push('F10: กว้าง 141-180cm'); }
+                 if (width >= 71 && width <= 80) { price += getSize('f10_w_71_80'); }
+                 else if (width >= 81 && width <= 90) { price += getSize('f10_w_81_90'); }
+                 else if (width >= 91 && width <= 140) { price += getSize('f10_w_91_140'); }
+                 else if (width >= 141 && width <= 180) { price += getSize('f10_w_141_180'); }
 
-                 if (height < 200) { price += getSize('f10_h_under_200'); surcharges.push('F10: ค่าลดไซส์ (สูง < 2.00m)'); }
-                 else if (height >= 201 && height <= 220) { price += getSize('f10_h_201_220'); surcharges.push('F10: สูง 201-220cm'); }
+                 if (height < 200) { price += getSize('f10_h_under_200'); }
+                 else if (height >= 201 && height <= 220) { price += getSize('f10_h_201_220'); }
              }
 
              // Surface F10 (Max height 220)
@@ -934,19 +930,18 @@ export default function App() {
              // Handle Custom Sizes
              else if (formData.sizeType === 'custom') {
                  // Height Surcharges (Custom)
-                 if (height < 200) { price += getSize('x_h_under_200'); surcharges.push('X: ค่าลดไซส์ (สูง < 2.00m)'); }
-                 else if (height >= 201 && height <= 210) { price += getSize('x_h_201_210'); surcharges.push('X: สูง 201-210cm'); }
-                 else if (height >= 211 && height <= 220) { price += getSize('x_h_211_220'); surcharges.push('X: สูง 211-220cm'); }
-                 else if (height >= 221 && height <= 240) { price += getSize('x_h_221_240'); surcharges.push('X: สูง 221-240cm'); }
+                 if (height < 200) { price += getSize('x_h_under_200'); }
+                 else if (height >= 201 && height <= 210) { price += getSize('x_h_201_210'); }
+                 else if (height >= 211 && height <= 220) { price += getSize('x_h_211_220'); }
+                 else if (height >= 221 && height <= 240) { price += getSize('x_h_221_240'); }
 
                  // Width Surcharges (Custom)
-                 if (width >= 81 && width <= 90) { price += getSize('x_w_81_90'); surcharges.push('X: กว้าง 81-90cm'); }
-                 else if (width >= 91 && width <= 140) { price += getSize('x_w_91_140'); surcharges.push('X: กว้าง 91-140cm'); }
-                 else if (width >= 141 && width <= 180) { price += getSize('x_w_141_180'); surcharges.push('X: กว้าง 141-180cm'); }
+                 if (width >= 81 && width <= 90) { price += getSize('x_w_81_90'); }
+                 else if (width >= 91 && width <= 140) { price += getSize('x_w_91_140'); }
+                 else if (width >= 141 && width <= 180) { price += getSize('x_w_141_180'); }
              }
 
              // Surface X (Height Based for both TOA and SVL)
-             // Note: Standard sizes have height=200, so they fall into the first bucket automatically
              if (formData.surfaceType === 'TOA') {
                 if (height <= 200) price += getSurf('x_toa_h_200');
                 else if (height <= 210) price += getSurf('x_toa_h_201_210');
@@ -972,25 +967,24 @@ export default function App() {
              // Handle Custom Sizes
              else if (formData.sizeType === 'custom') {
                  // Height Surcharges (Custom)
-                 if (height < 200) { price += getSize('eco_h_under_200'); surcharges.push('Eco: ค่าลดไซส์ (สูง < 2.00m)'); }
-                 else if (height >= 201 && height <= 210) { price += getSize('eco_h_201_210'); surcharges.push('Eco: สูง 201-210cm'); }
-                 else if (height >= 211 && height <= 220) { price += getSize('eco_h_211_220'); surcharges.push('Eco: สูง 211-220cm'); }
-                 else if (height >= 221 && height <= 240) { price += getSize('eco_h_221_240'); surcharges.push('Eco: สูง 221-240cm'); }
+                 if (height < 200) { price += getSize('eco_h_under_200'); }
+                 else if (height >= 201 && height <= 210) { price += getSize('eco_h_201_210'); }
+                 else if (height >= 211 && height <= 220) { price += getSize('eco_h_211_220'); }
+                 else if (height >= 221 && height <= 240) { price += getSize('eco_h_221_240'); }
 
                  // Width Surcharges (Custom)
-                 if (width >= 81 && width <= 90) { price += getSize('eco_w_81_90'); surcharges.push('Eco: กว้าง 81-90cm'); }
-                 else if (width >= 91 && width <= 140) { price += getSize('eco_w_91_140'); surcharges.push('Eco: กว้าง 91-140cm'); }
-                 else if (width >= 141 && width <= 180) { price += getSize('eco_w_141_180'); surcharges.push('Eco: กว้าง 141-180cm'); }
+                 if (width >= 81 && width <= 90) { price += getSize('eco_w_81_90'); }
+                 else if (width >= 91 && width <= 140) { price += getSize('eco_w_91_140'); }
+                 else if (width >= 141 && width <= 180) { price += getSize('eco_w_141_180'); }
              }
 
              // Surface Eco (Standard Logic: TOA=Width, SVL=Height)
-             // Note: Standard sizes have height=200 and specific widths (70,80,90)
              if (formData.surfaceType === 'TOA') {
                 if (width >= 70 && width <= 90) price += getSurf('eco_toa_w_70_90');
                 else if (width >= 91 && width <= 140) price += getSurf('eco_toa_w_91_140');
                 else if (width >= 141 && width <= 180) price += getSurf('eco_toa_w_141_180');
              } else if (formData.surfaceType === 'SVL') {
-                if (height >= 200 && height <= 210) price += getSurf('eco_svl_h_200_210'); // Standard sizes hit this (h=200)
+                if (height >= 200 && height <= 210) price += getSurf('eco_svl_h_200_210'); 
                 else if (height >= 211 && height <= 220) price += getSurf('eco_svl_h_211_220');
                 else if (height >= 221 && height <= 240) price += getSurf('eco_svl_h_221_240');
              }
@@ -998,7 +992,6 @@ export default function App() {
     }
     
     setTotalPrice(price);
-    setActiveSurcharges(surcharges);
   }, [formData, prices, activeTab]);
 
   const handleInputChange = (field: keyof DoorFormData, value: any) => {
@@ -1063,10 +1056,9 @@ export default function App() {
           <div className="flex-1 min-w-0">
             <div className="bg-white rounded-xl shadow-sm p-2 mb-6 flex overflow-x-auto gap-2 no-scrollbar">
               {TABS.map((tab) => {
-                const isDisabled = tab.id === 'architrave' || tab.id === 'standard'; 
                 return (
-                  <button key={tab.id} onClick={() => !isDisabled && setActiveTab(tab.id)} disabled={isDisabled}
-                    className={`flex items-center gap-2 px-4 py-3 rounded-lg whitespace-nowrap transition-all ${activeTab === tab.id ? 'bg-blue-600 text-white shadow-md' : isDisabled ? 'text-slate-300 bg-slate-50 cursor-not-allowed' : 'text-slate-600 hover:bg-slate-50'}`}>
+                  <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+                    className={`flex items-center gap-2 px-4 py-3 rounded-lg whitespace-nowrap transition-all ${activeTab === tab.id ? 'bg-blue-600 text-white shadow-md' : 'text-slate-600 hover:bg-slate-50'}`}>
                     <tab.icon className="w-4 h-4" /> {tab.label}
                   </button>
                 );
@@ -1225,8 +1217,8 @@ export default function App() {
                                 <label className="block text-sm font-medium text-slate-600 mb-2">ประเภท/รุ่น ของวงกบ</label>
                                 <select value={formData.frameMaterial} onChange={(e) => handleInputChange('frameMaterial', e.target.value)} className="w-full p-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 text-slate-700">
                                     <optgroup label="--- ไม้สังเคราะห์ (WPC) ---">
-                                        <option value="wpc_4in_t2">วงกบไม้สังเคราะห์ 4 นิ้ว เหลียม (T2)</option>
-                                        <option value="wpc_4in_f10">วงกบไม้สังเคราะห์ 4 นิ้ว เหลียม (F10)</option>
+                                        <option value="wpc_4in_t2">วงกบไม้สังเคราะห์ 4 นิ้ว เหลี่ยม (T2) (ตัวพิเศษ ทำได้สูงสุด 240cm)</option>
+                                        <option value="wpc_4in_f10">วงกบไม้สังเคราะห์ 4 นิ้ว เหลี่ยม (F10) (ตัวเริ่มต้น ทำได้สูงสุด 220cm)</option>
                                         <option value="wpc_adjust_eco">วงกบไม้สังเคราะห์ มีซับ รุ่น Adjust Eco</option>
                                         <option value="wpc_adjust_x">วงกบไม้สังเคราะห์ มีซับ รุ่น Adjust X</option>
                                     </optgroup>
@@ -1352,18 +1344,6 @@ export default function App() {
                         </>
                     )}
 
-                    {/* --- นำ activeSurcharges มาแสดงผลเพื่อแก้ Error และแสดงรายละเอียดให้ลูกค้าดู --- */}
-                    {activeSurcharges.length > 0 && (
-                        <div className="mt-4 pt-3 border-t border-slate-200">
-                            <span className="text-xs text-slate-500 font-bold block mb-2">รายละเอียดราคาที่บวกเพิ่ม (Surcharges):</span>
-                            {activeSurcharges.map((s, i) => (
-                                <div key={i} className="flex justify-between text-xs text-orange-600 mb-1">
-                                    <span>- {s}</span>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                    
                   </div>
                 </div>
              </div>
