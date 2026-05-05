@@ -779,8 +779,13 @@ export default function App() {
           if (!label.includes('มีซับ') && formData.surfaceType === 'SVL') {
               setFormData(prev => ({ ...prev, surfaceType: 'TOA' }));
           }
+      } else if (activeTab === 'exclusive') {
+          // ดักเงื่อนไข: ผิว SVL จะไม่สามารถติดคิ้วได้
+          if (formData.surfaceType === 'SVL' && formData.molding !== 'none') {
+              setFormData(prev => ({ ...prev, molding: 'none' }));
+          }
       }
-  }, [formData.frameMaterial, activeTab, formData.surfaceType]);
+  }, [formData.frameMaterial, activeTab, formData.surfaceType, formData.molding]);
 
   // 3. Logic คำนวณราคา
   useEffect(() => {
@@ -1128,13 +1133,19 @@ export default function App() {
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-slate-600 mb-1">ติดคิ้วพ่นสี</label>
-                                <select value={formData.molding} onChange={(e) => handleInputChange('molding', e.target.value)} className="w-full p-2.5 border rounded-lg">
+                                <select 
+                                    value={formData.molding} 
+                                    onChange={(e) => handleInputChange('molding', e.target.value)} 
+                                    className={`w-full p-2.5 border rounded-lg ${formData.surfaceType === 'SVL' ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : ''}`}
+                                    disabled={formData.surfaceType === 'SVL'}
+                                >
                                     <option value="none">ไม่ติดคิ้ว</option>
                                     <option value="first_1">First Class 1 ช่อง</option>
                                     <option value="first_2">First Class 2 ช่อง</option>
                                     <option value="roma_1">ROMA 1 ช่อง</option>
                                     <option value="roma_2">ROMA 2 ช่อง</option>
                                 </select>
+                                {formData.surfaceType === 'SVL' && <div className="text-[10px] text-red-500 mt-1">* ปิดผิว SVL ไม่สามารถติดคิ้วได้</div>}
                             </div>
                             <div><label className="block text-sm font-medium text-slate-600 mb-1">กระจก</label>
                               <select value={formData.glass} onChange={(e) => handleInputChange('glass', e.target.value)} className="w-full p-2.5 border rounded-lg">
