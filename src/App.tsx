@@ -103,7 +103,7 @@ const LABEL_MAP: {[key: string]: string} = {
   'TOA_h200': 'สี TOA (สูงไม่เกิน 2.00m)',
   'TOA_h220': 'สี TOA (สูง 2.01-2.20m)',
   'TOA_h240': 'สี TOA (สูง 2.21-2.40m)',
-  'TOA_plain_extra': 'ส่วนเพิ่ม: บานเรียบพ่นสี TOA (ไม่มีลวดลาย/กระจก)', // ✅ เพิ่มเมนูบานเรียบ TOA พิเศษ
+  'TOA_plain_extra': 'ส่วนเพิ่ม: บานเรียบพ่นสี TOA (ไม่มีลวดลาย/กระจก)',
   'SVL_h200': 'ผิว SVL (สูงไม่เกิน 2.00m)',
   'SVL_h220': 'ผิว SVL (สูง 2.01-2.20m)',
   'SVL_h240': 'ผิว SVL (สูง 2.21-2.40m)',
@@ -212,9 +212,11 @@ const LABEL_MAP: {[key: string]: string} = {
   'eco_h_211_220': 'Eco: สูง 211-220cm',
   'eco_h_221_240': 'Eco: สูง 221-240cm',
   'eco_h_under_200': 'Eco: ค่าลดไซส์ (สูง < 2.00m)',
-  'eco_toa_w_70_90': 'Eco: สี TOA กว้าง 70-90cm',
-  'eco_toa_w_91_140': 'Eco: สี TOA กว้าง 91-140cm',
-  'eco_toa_w_141_180': 'Eco: สี TOA กว้าง 141-180cm',
+  'eco_toa_h_under_200': 'Eco: สี TOA (สูง < 2.00m)',
+  'eco_toa_h_200_210': 'Eco: สี TOA (สูง 2.00-2.10m)',
+  'eco_toa_h_211_220': 'Eco: สี TOA (สูง 2.11-2.20m)',
+  'eco_toa_h_221_240': 'Eco: สี TOA (สูง 2.21-2.40m)',
+  'eco_svl_h_under_200': 'Eco: ผิว SVL (สูง < 2.00m)',
   'eco_svl_h_200_210': 'Eco: ผิว SVL สูง 200-210cm',
   'eco_svl_h_211_220': 'Eco: ผิว SVL สูง 211-220cm',
   'eco_svl_h_221_240': 'Eco: ผิว SVL สูง 221-240cm',
@@ -239,7 +241,7 @@ const DEFAULT_PRICES: PricingStructure = {
   },
   door_surface: { 
     'TOA_h200': 999,  'TOA_h220': 999,  'TOA_h240': 999,
-    'TOA_plain_extra': 0, // ✅ ใส่เป็นค่าพื้นฐาน 0 ไว้ก่อน (ตั้งค่าในหลังบ้านได้)
+    'TOA_plain_extra': 0,
     'SVL_h200': 999,  'SVL_h220': 999,  'SVL_h240': 999 
   },
 
@@ -268,13 +270,13 @@ const DEFAULT_PRICES: PricingStructure = {
     'f10_h_under_200': 200,
 
     // Adjust X Specifics
-    'x_std_70': 0, 'x_std_80': 0, 'x_std_90': 0, // NEW
+    'x_std_70': 0, 'x_std_80': 0, 'x_std_90': 0,
     'x_w_81_90': 0, 'x_w_91_140': 0, 'x_w_141_180': 0,
     'x_h_201_210': 0, 'x_h_211_220': 0, 'x_h_221_240': 0,
     'x_h_under_200': 200,
 
     // Adjust Eco Specifics
-    'eco_std_70': 0, 'eco_std_80': 0, 'eco_std_90': 0, // NEW
+    'eco_std_70': 0, 'eco_std_80': 0, 'eco_std_90': 0,
     'eco_w_81_90': 80, 'eco_w_91_140': 200, 'eco_w_141_180': 280,
     'eco_h_201_210': 200, 'eco_h_211_220': 400, 'eco_h_221_240': 600,
     'eco_h_under_200': 200,
@@ -293,11 +295,10 @@ const DEFAULT_PRICES: PricingStructure = {
     // Adjust X Color
     'x_toa_h_200': 0, 'x_toa_h_201_210': 0, 'x_toa_h_211_220': 0, 'x_toa_h_221_240': 0,
     'x_svl_h_200': 0, 'x_svl_h_201_210': 0, 'x_svl_h_211_220': 0, 'x_svl_h_221_240': 0,
-    'x_toa_w_70_90': 0, 'x_toa_w_91_140': 0, 'x_toa_w_141_180': 0, 
 
     // Adjust Eco Color
-    'eco_toa_w_70_90': 600, 'eco_toa_w_91_140': 720, 'eco_toa_w_141_180': 800,
-    'eco_svl_h_200_210': 1200, 'eco_svl_h_211_220': 1500, 'eco_svl_h_221_240': 1700,
+    'eco_toa_h_under_200': 0, 'eco_toa_h_200_210': 600, 'eco_toa_h_211_220': 700, 'eco_toa_h_221_240': 800,
+    'eco_svl_h_under_200': 1200, 'eco_svl_h_200_210': 1200, 'eco_svl_h_211_220': 1500, 'eco_svl_h_221_240': 1700,
   },
 
   // Legacy & Options
@@ -509,8 +510,8 @@ const AdminPriceEditor = ({
                 <div className="bg-white p-4 rounded-lg shadow-sm border"><h4 className="font-bold text-orange-600 mb-3 pb-2 border-b">Surcharge ความสูง (Eco)</h4>{Object.keys(localPrices.frame_size).filter(k => k.startsWith('eco_h_')).map(k => renderInput('frame_size', k))}</div>
                 <div className="bg-white p-4 rounded-lg shadow-sm border md:col-span-2"><h4 className="font-bold text-purple-600 mb-3 pb-2 border-b">ราคาทำสี/ผิว (Eco)</h4>
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="bg-orange-50 p-3 rounded"><h5 className="font-bold text-orange-800 text-sm mb-2">สี TOA (คิดตามความกว้าง)</h5>{Object.keys(localPrices.frame_surface).filter(k => k.startsWith('eco_toa_')).map(k => renderInput('frame_surface', k))}</div>
-                      <div className="bg-purple-50 p-3 rounded"><h5 className="font-bold text-purple-800 text-sm mb-2">ผิว SVL (คิดตามความสูง)</h5>{Object.keys(localPrices.frame_surface).filter(k => k.startsWith('eco_svl_')).map(k => renderInput('frame_surface', k))}</div>
+                      <div className="bg-orange-50 p-3 rounded"><h5 className="font-bold text-orange-800 text-sm mb-2">สี TOA (คิดตามความสูง)</h5>{Object.keys(localPrices.frame_surface).filter(k => k.startsWith('eco_toa_h_')).map(k => renderInput('frame_surface', k))}</div>
+                      <div className="bg-purple-50 p-3 rounded"><h5 className="font-bold text-purple-800 text-sm mb-2">ผิว SVL (คิดตามความสูง)</h5>{Object.keys(localPrices.frame_surface).filter(k => k.startsWith('eco_svl_h_')).map(k => renderInput('frame_surface', k))}</div>
                    </div>
                 </div>
               </div>
@@ -533,10 +534,9 @@ const AdminPriceEditor = ({
 
 
 // ------------------------------------------------------------------
-// LOGIN & USER PANEL COMPONENT (UNCHANGED BUT INCLUDED FOR CONTEXT)
+// LOGIN & USER PANEL COMPONENT
 // ------------------------------------------------------------------
 const LoginScreen = ({ onLogin, isFirebaseReady, permissionError }: { onLogin: (user: UserAccount) => void, isFirebaseReady: boolean, permissionError: boolean }) => {
-  // ... (Login Code same as before) ...
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -597,7 +597,6 @@ const LoginScreen = ({ onLogin, isFirebaseReady, permissionError }: { onLogin: (
 };
 
 const UserManagementPanel = ({ onClose }: { onClose: () => void }) => {
-  // ... (User Management Code same as before) ...
   const [users, setUsers] = useState<UserAccount[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -682,7 +681,9 @@ export default function App() {
     frameMaterial: 'wpc_4in_t2', 
     wallThickness: 'standard'
   });
+  
   const [totalPrice, setTotalPrice] = useState<number>(0);
+  const [activeSurcharges, setActiveSurcharges] = useState<string[]>([]); // สำหรับเก็บรายละเอียดรายการชาร์จเพิ่ม
 
   // 0. Set Browser Title
   useEffect(() => { document.title = "ระบบคำนวณราคา - กลางซอยค้าไม้"; }, []);
@@ -720,11 +721,9 @@ export default function App() {
         const firestoreData = docSnap.data() as PricingStructure;
         
         // ✅ MERGE LOGIC: Combine DEFAULT_PRICES with Firestore Data
-        // This ensures new keys added to the code appear even if not in DB yet
         const mergedPrices = {
             ...DEFAULT_PRICES,
             ...firestoreData,
-            // Manually merge nested objects to prevent overwriting
             frame_size: { ...DEFAULT_PRICES.frame_size, ...(firestoreData.frame_size || {}) },
             frame_surface: { ...DEFAULT_PRICES.frame_surface, ...(firestoreData.frame_surface || {}) },
             frame_base: { ...DEFAULT_PRICES.frame_base, ...(firestoreData.frame_base || {}) },
@@ -766,13 +765,13 @@ export default function App() {
       const map: {[key:string]: string} = {
         'wpc_4in_t2': 'วงกบไม้สังเคราะห์ 4" เหลี่ยม (T2) (ตัวพิเศษ ทำได้สูงสุด 240cm)',
         'wpc_4in_f10': 'วงกบไม้สังเคราะห์ 4" เหลี่ยม (F10) (ตัวเริ่มต้น ทำได้สูงสุด 220cm)',
-        'wpc_adjust_eco': 'วงกบไม้สังเคราะห์ มีซับ (Adjust Eco)',
-        'wpc_adjust_x': 'วงกบไม้สังเคราะห์ มีซับ (Adjust X)',
+        'wpc_adjust_eco': 'วงกบไม้สังเคราะห์ มีซับ (Adjust Eco) (ทำได้สูงสุด 240cm)',
+        'wpc_adjust_x': 'วงกบไม้สังเคราะห์ มีซับ (Adjust X) (ทำได้สูงสุด 220cm)',
       };
       return map[key] || key;
   };
 
-  // Auto-switch logic
+  // Auto-switch logic for SVL / Molding
   useEffect(() => {
       if (activeTab === 'frame') {
           const label = getFrameLabel(formData.frameMaterial);
@@ -780,7 +779,6 @@ export default function App() {
               setFormData(prev => ({ ...prev, surfaceType: 'TOA' }));
           }
       } else if (activeTab === 'exclusive') {
-          // ดักเงื่อนไข: ผิว SVL จะไม่สามารถติดคิ้วได้
           if (formData.surfaceType === 'SVL' && formData.molding !== 'none') {
               setFormData(prev => ({ ...prev, molding: 'none' }));
           }
@@ -790,13 +788,14 @@ export default function App() {
   // 3. Logic คำนวณราคา
   useEffect(() => {
     let price = 0;
+    let surcharges: string[] = [];
 
     // ✅ แยกการคำนวณตาม Tab ที่เลือก
     if (activeTab === 'exclusive' || activeTab === 'standard') {
         // --- 🚪 สูตรคำนวณประตู ---
         price += prices.door_base?.[formData.structure] || prices.structure?.[formData.structure] || 0;
         
-        let height = 200; // Default height
+        let height = 200; 
         
         if (formData.sizeType === 'custom') {
             price += prices.door_size?.['custom'] || prices.size?.['custom'] || 0;
@@ -806,15 +805,15 @@ export default function App() {
 
             const getDoorSizePrice = (key: string) => prices.door_size?.[key] || prices.size?.[key] || 0;
 
-            if (width >= 81 && width <= 89) { price += getDoorSizePrice('custom_w_81_89'); }
-            else if (width === 90) { price += getDoorSizePrice('custom_w_90'); }
-            else if (width >= 91 && width <= 100) { price += getDoorSizePrice('custom_w_91_100'); }
-            else if (width >= 101 && width <= 110) { price += getDoorSizePrice('custom_w_101_110'); }
+            if (width >= 81 && width <= 89) { const p = getDoorSizePrice('custom_w_81_89'); price += p; surcharges.push(`กว้าง 81-89cm (+฿${p})`); }
+            else if (width === 90) { const p = getDoorSizePrice('custom_w_90'); price += p; surcharges.push(`กว้าง 90cm (+฿${p})`); }
+            else if (width >= 91 && width <= 100) { const p = getDoorSizePrice('custom_w_91_100'); price += p; surcharges.push(`กว้าง 91-100cm (+฿${p})`); }
+            else if (width >= 101 && width <= 110) { const p = getDoorSizePrice('custom_w_101_110'); price += p; surcharges.push(`กว้าง 101-110cm (+฿${p})`); }
 
-            if (h < 200) { price += getDoorSizePrice('custom_h_under_200'); }
-            else if (h >= 201 && h <= 210) { price += getDoorSizePrice('custom_h_201_210'); }
-            else if (h >= 211 && h <= 220) { price += getDoorSizePrice('custom_h_211_220'); }
-            else if (h >= 221 && h <= 240) { price += getDoorSizePrice('custom_h_221_240'); }
+            if (h < 200) { const p = getDoorSizePrice('custom_h_under_200'); price += p; surcharges.push(`ลดความสูง < 200cm (+฿${p})`); }
+            else if (h >= 201 && h <= 210) { const p = getDoorSizePrice('custom_h_201_210'); price += p; surcharges.push(`สูง 201-210cm (+฿${p})`); }
+            else if (h >= 211 && h <= 220) { const p = getDoorSizePrice('custom_h_211_220'); price += p; surcharges.push(`สูง 211-220cm (+฿${p})`); }
+            else if (h >= 221 && h <= 240) { const p = getDoorSizePrice('custom_h_221_240'); price += p; surcharges.push(`สูง 221-240cm (+฿${p})`); }
         } else { 
             price += prices.door_size?.[formData.sizeType] || prices.size?.[formData.sizeType] || 0; 
             height = 200;
@@ -868,27 +867,20 @@ export default function App() {
         // 1. T2 SPECIFIC LOGIC
         // ============================================
         if (formData.frameMaterial === 'wpc_4in_t2') {
-             // Standard Size Pricing
              if (formData.sizeType === '70x200cm') price += getSize('t2_std_70');
              else if (formData.sizeType === '80x200cm') price += getSize('t2_std_80');
              else if (formData.sizeType === '90x200cm') price += getSize('t2_std_90');
-             
-             // Custom Size Surcharges
              else if (formData.sizeType === 'custom') {
-                 // Width Logic
-                 if (width >= 71 && width <= 80) { price += getSize('t2_w_71_80'); }
-                 else if (width >= 81 && width <= 89) { price += getSize('t2_w_81_89'); }
-                 else if (width === 90) { price += getSize('t2_w_90'); }
-                 else if (width >= 91 && width <= 140) { price += getSize('t2_w_91_140'); }
-                 else if (width >= 141 && width <= 180) { price += getSize('t2_w_141_180'); }
+                 if (width >= 71 && width <= 80) { const p = getSize('t2_w_71_80'); price += p; surcharges.push(`T2: กว้าง 71-80cm (+฿${p})`); }
+                 else if (width >= 81 && width <= 89) { const p = getSize('t2_w_81_89'); price += p; surcharges.push(`T2: กว้าง 81-89cm (+฿${p})`); }
+                 else if (width === 90) { const p = getSize('t2_w_90'); price += p; surcharges.push(`T2: กว้าง 90cm (+฿${p})`); }
+                 else if (width >= 91 && width <= 140) { const p = getSize('t2_w_91_140'); price += p; surcharges.push(`T2: กว้าง 91-140cm (+฿${p})`); }
+                 else if (width >= 141 && width <= 180) { const p = getSize('t2_w_141_180'); price += p; surcharges.push(`T2: กว้าง 141-180cm (+฿${p})`); }
 
-                 // Height Logic
-                 if (height < 200) { price += getSize('t2_h_under_200'); }
-                 else if (height >= 201 && height <= 220) { price += getSize('t2_h_201_220'); }
-                 else if (height >= 221 && height <= 240) { price += getSize('t2_h_221_240'); }
+                 if (height < 200) { const p = getSize('t2_h_under_200'); price += p; surcharges.push(`T2: ค่าลดไซส์ (สูง < 2.00m) (+฿${p})`); }
+                 else if (height >= 201 && height <= 220) { const p = getSize('t2_h_201_220'); price += p; surcharges.push(`T2: สูง 201-220cm (+฿${p})`); }
+                 else if (height >= 221 && height <= 240) { const p = getSize('t2_h_221_240'); price += p; surcharges.push(`T2: สูง 221-240cm (+฿${p})`); }
              }
-             
-             // Surface T2
              if (formData.surfaceType !== 'none') {
                  if (height <= 200) price += getSurf('t2_color_h200');
                  else if (height <= 220) price += getSurf('t2_color_h220');
@@ -900,23 +892,18 @@ export default function App() {
         // 2. F10 SPECIFIC LOGIC
         // ============================================
         else if (formData.frameMaterial === 'wpc_4in_f10') {
-             // Standard Size Pricing
              if (formData.sizeType === '70x200cm') price += getSize('f10_std_70');
              else if (formData.sizeType === '80x200cm') price += getSize('f10_std_80');
              else if (formData.sizeType === '90x200cm') price += getSize('f10_std_90');
-             
-             // Custom Size Surcharges
              else if (formData.sizeType === 'custom') {
-                 if (width >= 71 && width <= 80) { price += getSize('f10_w_71_80'); }
-                 else if (width >= 81 && width <= 90) { price += getSize('f10_w_81_90'); }
-                 else if (width >= 91 && width <= 140) { price += getSize('f10_w_91_140'); }
-                 else if (width >= 141 && width <= 180) { price += getSize('f10_w_141_180'); }
+                 if (width >= 71 && width <= 80) { const p = getSize('f10_w_71_80'); price += p; surcharges.push(`F10: กว้าง 71-80cm (+฿${p})`); }
+                 else if (width >= 81 && width <= 90) { const p = getSize('f10_w_81_90'); price += p; surcharges.push(`F10: กว้าง 81-90cm (+฿${p})`); }
+                 else if (width >= 91 && width <= 140) { const p = getSize('f10_w_91_140'); price += p; surcharges.push(`F10: กว้าง 91-140cm (+฿${p})`); }
+                 else if (width >= 141 && width <= 180) { const p = getSize('f10_w_141_180'); price += p; surcharges.push(`F10: กว้าง 141-180cm (+฿${p})`); }
 
-                 if (height < 200) { price += getSize('f10_h_under_200'); }
-                 else if (height >= 201 && height <= 220) { price += getSize('f10_h_201_220'); }
+                 if (height < 200) { const p = getSize('f10_h_under_200'); price += p; surcharges.push(`F10: ค่าลดไซส์ (สูง < 2.00m) (+฿${p})`); }
+                 else if (height >= 201 && height <= 220) { const p = getSize('f10_h_201_220'); price += p; surcharges.push(`F10: สูง 201-220cm (+฿${p})`); }
              }
-
-             // Surface F10 (Max height 220)
              if (formData.surfaceType !== 'none') {
                  if (height <= 200) price += getSurf('f10_color_h200');
                  else price += getSurf('f10_color_h220');
@@ -927,36 +914,30 @@ export default function App() {
         // 3. ADJUST X SPECIFIC LOGIC
         // ============================================
         else if (formData.frameMaterial === 'wpc_adjust_x') {
-             // Handle Standard Sizes
              if (formData.sizeType === '70x200cm') price += getSize('x_std_70');
              else if (formData.sizeType === '80x200cm') price += getSize('x_std_80');
              else if (formData.sizeType === '90x200cm') price += getSize('x_std_90');
-
-             // Handle Custom Sizes
              else if (formData.sizeType === 'custom') {
-                 // Height Surcharges (Custom)
-                 if (height < 200) { price += getSize('x_h_under_200'); }
-                 else if (height >= 201 && height <= 210) { price += getSize('x_h_201_210'); }
-                 else if (height >= 211 && height <= 220) { price += getSize('x_h_211_220'); }
-                 else if (height >= 221 && height <= 240) { price += getSize('x_h_221_240'); }
+                 if (height < 200) { const p = getSize('x_h_under_200'); price += p; surcharges.push(`X: ค่าลดไซส์ (สูง < 2.00m) (+฿${p})`); }
+                 else if (height >= 201 && height <= 210) { const p = getSize('x_h_201_210'); price += p; surcharges.push(`X: สูง 201-210cm (+฿${p})`); }
+                 else if (height >= 211 && height <= 220) { const p = getSize('x_h_211_220'); price += p; surcharges.push(`X: สูง 211-220cm (+฿${p})`); }
+                 else if (height >= 221 && height <= 240) { const p = getSize('x_h_221_240'); price += p; surcharges.push(`X: สูง 221-240cm (+฿${p})`); }
 
-                 // Width Surcharges (Custom)
-                 if (width >= 81 && width <= 90) { price += getSize('x_w_81_90'); }
-                 else if (width >= 91 && width <= 140) { price += getSize('x_w_91_140'); }
-                 else if (width >= 141 && width <= 180) { price += getSize('x_w_141_180'); }
+                 if (width >= 81 && width <= 90) { const p = getSize('x_w_81_90'); price += p; surcharges.push(`X: กว้าง 81-90cm (+฿${p})`); }
+                 else if (width >= 91 && width <= 140) { const p = getSize('x_w_91_140'); price += p; surcharges.push(`X: กว้าง 91-140cm (+฿${p})`); }
+                 else if (width >= 141 && width <= 180) { const p = getSize('x_w_141_180'); price += p; surcharges.push(`X: กว้าง 141-180cm (+฿${p})`); }
              }
 
-             // Surface X (Height Based for both TOA and SVL)
              if (formData.surfaceType === 'TOA') {
-                if (height <= 200) price += getSurf('x_toa_h_200');
-                else if (height <= 210) price += getSurf('x_toa_h_201_210');
-                else if (height <= 220) price += getSurf('x_toa_h_211_220');
-                else price += getSurf('x_toa_h_221_240');
+                if (height <= 200) { const p = getSurf('x_toa_h_200'); price += p; if(p>0) surcharges.push(`X: ทำสี TOA (สูง<2m) (+฿${p})`); }
+                else if (height <= 210) { const p = getSurf('x_toa_h_201_210'); price += p; if(p>0) surcharges.push(`X: ทำสี TOA (สูง 2.0-2.1m) (+฿${p})`); }
+                else if (height <= 220) { const p = getSurf('x_toa_h_211_220'); price += p; if(p>0) surcharges.push(`X: ทำสี TOA (สูง 2.1-2.2m) (+฿${p})`); }
+                else { const p = getSurf('x_toa_h_221_240'); price += p; if(p>0) surcharges.push(`X: ทำสี TOA (สูง 2.2-2.4m) (+฿${p})`); }
              } else if (formData.surfaceType === 'SVL') {
-                if (height <= 200) price += getSurf('x_svl_h_200');
-                else if (height <= 210) price += getSurf('x_svl_h_201_210');
-                else if (height <= 220) price += getSurf('x_svl_h_211_220');
-                else price += getSurf('x_svl_h_221_240');
+                if (height <= 200) { const p = getSurf('x_svl_h_200'); price += p; if(p>0) surcharges.push(`X: ปิดผิว SVL (สูง<2m) (+฿${p})`); }
+                else if (height <= 210) { const p = getSurf('x_svl_h_201_210'); price += p; if(p>0) surcharges.push(`X: ปิดผิว SVL (สูง 2.0-2.1m) (+฿${p})`); }
+                else if (height <= 220) { const p = getSurf('x_svl_h_211_220'); price += p; if(p>0) surcharges.push(`X: ปิดผิว SVL (สูง 2.1-2.2m) (+฿${p})`); }
+                else { const p = getSurf('x_svl_h_221_240'); price += p; if(p>0) surcharges.push(`X: ปิดผิว SVL (สูง 2.2-2.4m) (+฿${p})`); }
              }
         }
 
@@ -964,39 +945,36 @@ export default function App() {
         // 4. ADJUST ECO SPECIFIC LOGIC
         // ============================================
         else if (formData.frameMaterial === 'wpc_adjust_eco') {
-             // Handle Standard Sizes
              if (formData.sizeType === '70x200cm') price += getSize('eco_std_70');
              else if (formData.sizeType === '80x200cm') price += getSize('eco_std_80');
              else if (formData.sizeType === '90x200cm') price += getSize('eco_std_90');
-
-             // Handle Custom Sizes
              else if (formData.sizeType === 'custom') {
-                 // Height Surcharges (Custom)
-                 if (height < 200) { price += getSize('eco_h_under_200'); }
-                 else if (height >= 201 && height <= 210) { price += getSize('eco_h_201_210'); }
-                 else if (height >= 211 && height <= 220) { price += getSize('eco_h_211_220'); }
-                 else if (height >= 221 && height <= 240) { price += getSize('eco_h_221_240'); }
+                 if (height < 200) { const p = getSize('eco_h_under_200'); price += p; surcharges.push(`Eco: ค่าลดไซส์ (สูง < 2.00m) (+฿${p})`); }
+                 else if (height >= 201 && height <= 210) { const p = getSize('eco_h_201_210'); price += p; surcharges.push(`Eco: สูง 201-210cm (+฿${p})`); }
+                 else if (height >= 211 && height <= 220) { const p = getSize('eco_h_211_220'); price += p; surcharges.push(`Eco: สูง 211-220cm (+฿${p})`); }
+                 else if (height >= 221 && height <= 240) { const p = getSize('eco_h_221_240'); price += p; surcharges.push(`Eco: สูง 221-240cm (+฿${p})`); }
 
-                 // Width Surcharges (Custom)
-                 if (width >= 81 && width <= 90) { price += getSize('eco_w_81_90'); }
-                 else if (width >= 91 && width <= 140) { price += getSize('eco_w_91_140'); }
-                 else if (width >= 141 && width <= 180) { price += getSize('eco_w_141_180'); }
+                 if (width >= 81 && width <= 90) { const p = getSize('eco_w_81_90'); price += p; surcharges.push(`Eco: กว้าง 81-90cm (+฿${p})`); }
+                 else if (width >= 91 && width <= 140) { const p = getSize('eco_w_91_140'); price += p; surcharges.push(`Eco: กว้าง 91-140cm (+฿${p})`); }
+                 else if (width >= 141 && width <= 180) { const p = getSize('eco_w_141_180'); price += p; surcharges.push(`Eco: กว้าง 141-180cm (+฿${p})`); }
              }
 
-             // Surface Eco (Standard Logic: TOA=Width, SVL=Height)
              if (formData.surfaceType === 'TOA') {
-                if (width >= 70 && width <= 90) price += getSurf('eco_toa_w_70_90');
-                else if (width >= 91 && width <= 140) price += getSurf('eco_toa_w_91_140');
-                else if (width >= 141 && width <= 180) price += getSurf('eco_toa_w_141_180');
+                if (height < 200) { const p = getSurf('eco_toa_h_under_200'); price += p; if(p>0) surcharges.push(`Eco: ทำสี TOA (สูง<2m) (+฿${p})`); }
+                else if (height >= 200 && height <= 210) { const p = getSurf('eco_toa_h_200_210'); price += p; if(p>0) surcharges.push(`Eco: ทำสี TOA (สูง 2.0-2.1m) (+฿${p})`); }
+                else if (height >= 211 && height <= 220) { const p = getSurf('eco_toa_h_211_220'); price += p; if(p>0) surcharges.push(`Eco: ทำสี TOA (สูง 2.1-2.2m) (+฿${p})`); }
+                else if (height >= 221 && height <= 240) { const p = getSurf('eco_toa_h_221_240'); price += p; if(p>0) surcharges.push(`Eco: ทำสี TOA (สูง 2.2-2.4m) (+฿${p})`); }
              } else if (formData.surfaceType === 'SVL') {
-                if (height >= 200 && height <= 210) price += getSurf('eco_svl_h_200_210'); 
-                else if (height >= 211 && height <= 220) price += getSurf('eco_svl_h_211_220');
-                else if (height >= 221 && height <= 240) price += getSurf('eco_svl_h_221_240');
+                if (height < 200) { const p = getSurf('eco_svl_h_under_200'); price += p; if(p>0) surcharges.push(`Eco: ปิดผิว SVL (สูง<2m) (+฿${p})`); }
+                else if (height >= 200 && height <= 210) { const p = getSurf('eco_svl_h_200_210'); price += p; if(p>0) surcharges.push(`Eco: ปิดผิว SVL (สูง 2.0-2.1m) (+฿${p})`); }
+                else if (height >= 211 && height <= 220) { const p = getSurf('eco_svl_h_211_220'); price += p; if(p>0) surcharges.push(`Eco: ปิดผิว SVL (สูง 2.1-2.2m) (+฿${p})`); }
+                else if (height >= 221 && height <= 240) { const p = getSurf('eco_svl_h_221_240'); price += p; if(p>0) surcharges.push(`Eco: ปิดผิว SVL (สูง 2.2-2.4m) (+฿${p})`); }
              }
         }
     }
     
     setTotalPrice(price);
+    setActiveSurcharges(surcharges);
   }, [formData, prices, activeTab]);
 
   const handleInputChange = (field: keyof DoorFormData, value: any) => {
@@ -1006,12 +984,18 @@ export default function App() {
         if (field === 'customHeight' && Number(value) > 240) return;
     }
     if (activeTab === 'frame') {
-        if (field === 'customWidth' && Number(value) > 180) return; 
+        // Width Limits per model
+        if (field === 'customWidth') {
+           const w = Number(value);
+           if (formData.frameMaterial === 'wpc_adjust_x' && w > 90) return;
+           if (w > 180) return; 
+        }
         
         // Height Limits per model
         if (field === 'customHeight') {
            const h = Number(value);
            if (formData.frameMaterial === 'wpc_4in_f10' && h > 220) return; // F10 Max 220
+           if (formData.frameMaterial === 'wpc_adjust_x' && h > 220) return; // Adjust X Max 220
            if (h > 240) return; // General Max 240
         }
     }
@@ -1020,7 +1004,6 @@ export default function App() {
   
   const handleOptionToggle = (optionKey: string) => setFormData(prev => ({ ...prev, options: { ...prev.options, [optionKey]: !prev.options[optionKey] } }));
   const handleLogout = () => { localStorage.removeItem('upvc_user'); setCurrentUser(null); };
-
 
   if (!currentUser) return <LoginScreen onLogin={setCurrentUser} isFirebaseReady={isFirebaseReady} permissionError={permissionError} />;
 
@@ -1230,8 +1213,8 @@ export default function App() {
                                     <optgroup label="--- ไม้สังเคราะห์ (WPC) ---">
                                         <option value="wpc_4in_t2">วงกบไม้สังเคราะห์ 4 นิ้ว เหลี่ยม (T2) (ตัวพิเศษ ทำได้สูงสุด 240cm)</option>
                                         <option value="wpc_4in_f10">วงกบไม้สังเคราะห์ 4 นิ้ว เหลี่ยม (F10) (ตัวเริ่มต้น ทำได้สูงสุด 220cm)</option>
-                                        <option value="wpc_adjust_eco">วงกบไม้สังเคราะห์ มีซับ รุ่น Adjust Eco</option>
-                                        <option value="wpc_adjust_x">วงกบไม้สังเคราะห์ มีซับ รุ่น Adjust X</option>
+                                        <option value="wpc_adjust_eco">วงกบไม้สังเคราะห์ มีซับ รุ่น Adjust Eco (ทำได้สูงสุด 240cm)</option>
+                                        <option value="wpc_adjust_x">วงกบไม้สังเคราะห์ มีซับ รุ่น Adjust X (ทำได้สูงสุด 220cm)</option>
                                     </optgroup>
                                 </select>
                             </div>
@@ -1247,11 +1230,11 @@ export default function App() {
                                 {formData.sizeType === 'custom' && (
                                     <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 mt-4 flex gap-4">
                                         <div className="flex-1">
-                                            <label className="text-xs text-slate-600">กว้าง {formData.frameMaterial === 'wpc_4in_t2' && <span className="text-red-500">(Max 180)</span>}</label>
+                                            <label className="text-xs text-slate-600">กว้าง {(formData.frameMaterial === 'wpc_4in_t2' || formData.frameMaterial === 'wpc_adjust_eco') && <span className="text-red-500">(Max 180)</span>}{formData.frameMaterial === 'wpc_adjust_x' && <span className="text-red-500">(Max 90)</span>}</label>
                                             <input type="number" value={formData.customWidth} onChange={(e) => handleInputChange('customWidth', e.target.value)} className="w-full p-2 border rounded"/>
                                         </div>
                                         <div className="flex-1">
-                                            <label className="text-xs text-slate-600">สูง {formData.frameMaterial === 'wpc_4in_t2' && <span className="text-red-500">(Max 240)</span>}{formData.frameMaterial === 'wpc_4in_f10' && <span className="text-red-500">(Max 220)</span>}</label>
+                                            <label className="text-xs text-slate-600">สูง {(formData.frameMaterial === 'wpc_4in_t2' || formData.frameMaterial === 'wpc_adjust_eco') && <span className="text-red-500">(Max 240)</span>}{(formData.frameMaterial === 'wpc_4in_f10' || formData.frameMaterial === 'wpc_adjust_x') && <span className="text-red-500">(Max 220)</span>}</label>
                                             <input type="number" value={formData.customHeight} onChange={(e) => handleInputChange('customHeight', e.target.value)} className="w-full p-2 border rounded"/>
                                         </div>
                                     </div>
@@ -1304,14 +1287,6 @@ export default function App() {
                             <div className="flex justify-between"><span className="text-slate-500">โครงสร้าง</span><span className="font-medium text-right">{formData.structure}</span></div>
                             <div className="flex justify-between"><span className="text-slate-500">ขนาด</span><span className="font-medium text-right">{formData.sizeType === 'custom' ? `${formData.customWidth}x${formData.customHeight} cm` : formData.sizeType}</span></div>
                             <div className="flex justify-between"><span className="text-slate-500">สี/ผิว</span><span className="font-medium text-right">{formData.surfaceType}</span></div>
-
-                            {/* --- แสดงส่วนเพิ่มบานเรียบ TOA --- */}
-                            {formData.surfaceType === 'TOA' && formData.grooving === 'none' && formData.molding === 'none' && formData.glass === 'none' && formData.louver === 'none' && (prices.door_surface?.['TOA_plain_extra'] || 0) > 0 && (
-                                <div className="flex justify-between">
-                                    <span className="text-slate-500">ส่วนเพิ่มบานเรียบ (TOA)</span>
-                                    <span className="font-medium text-right">+ {prices.door_surface['TOA_plain_extra']}</span>
-                                </div>
-                            )}
 
                             {/* Conditional Renders */}
                             {formData.grooving !== 'none' && <div className="flex justify-between"><span className="text-slate-500">เซาะร่อง</span><span className="font-medium text-right">{LABEL_MAP[formData.grooving]}</span></div>}
