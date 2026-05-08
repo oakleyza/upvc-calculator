@@ -352,11 +352,12 @@ const calculateDoorPrice = (form: DoorFormData, prices: PricingStructure): Price
   const surfacePrice = prices.door_surface?.[surfaceKey] || prices.surface?.[surfaceKey] || 0;
   price += surfacePrice;
 
-  const isPlainDoor = form.grooving === 'none' && form.molding === 'none' && form.glass === 'none' && form.louver === 'none';
-  if (form.surfaceType === 'TOA' && isPlainDoor) {
+  // +300 บวกเมื่อ TOA และไม่ติดคิ้ว (ทุกรูปแบบที่ไม่มีคิ้ว)
+  const hasNoMolding = form.molding === 'none';
+  if (form.surfaceType === 'TOA' && hasNoMolding) {
     const extraP = prices.door_surface?.['TOA_plain_extra'] || 0;
     price += extraP;
-    if (extraP) surcharges.push(`บานเรียบพ่นสี TOA เพิ่ม (+฿${extraP.toLocaleString()})`);
+    if (extraP) surcharges.push(`TOA ไม่ติดคิ้ว (+฿${extraP.toLocaleString()})`);
   }
 
   price += prices.grooving?.[form.grooving] || 0;
@@ -983,12 +984,36 @@ export default function App() {
     }
   }, [frameForm.frameMaterial, activeTab]);
 
-  // Auto-switch: SVL + molding ไม่ได้
+  // Auto-switch: SVL → ติดคิ้วไม่ได้, เซาะร่องไม่ได้
   useEffect(() => {
-    if (doorForm.surfaceType === 'SVL' && doorForm.molding !== 'none') {
-      setDoorForm(prev => ({ ...prev, molding: 'none' }));
+    if (doorForm.surfaceType === 'SVL') {
+      setDoorForm(prev => ({
+        ...prev,
+        molding: 'none',
+        grooving: 'none',
+      }));
     }
   }, [doorForm.surfaceType]);
+
+  // Auto-switch: ติดคิ้ว → เซาะร่องไม่ได้
+  useEffect(() => {
+    if (doorForm.molding !== 'none' && doorForm.grooving !== 'none') {
+      setDoorForm(prev => ({ ...prev, grooving: 'none' }));
+    }
+  }, [doorForm.molding]);
+
+  // Auto-switch: ติดคิ้ว + กระจก + เกล็ด → เลือกได้แค่อันเดียว (clear เกล็ดออก)
+  useEffect(() => {
+    if (doorForm.molding !== 'none' && doorForm.glass !== 'none' && doorForm.louver !== 'none') {
+      setDoorForm(prev => ({ ...prev, louver: 'none' }));
+    }
+  }, [doorForm.glass]);
+
+  useEffect(() => {
+    if (doorForm.molding !== 'none' && doorForm.glass !== 'none' && doorForm.louver !== 'none') {
+      setDoorForm(prev => ({ ...prev, glass: 'none' }));
+    }
+  }, [doorForm.louver]);
 
   const handlePriceUpdate = async (newPrices: PricingStructure) => {
     if (!db) return;
@@ -1115,46 +1140,107 @@ export default function App() {
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
                   <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2"><Palette className="w-5 h-5 text-purple-600"/> สีและดีไซน์หน้าบาน</h3>
                   <div className="grid grid-cols-2 gap-6">
+                    {/* เลือกสี */}
                     <div className="col-span-2 grid grid-cols-2 gap-4">
                       {['TOA', 'SVL'].map(t => (
                         <div key={t} onClick={() => handleDoorInput('surfaceType', t)} className={`p-4 rounded-lg border-2 cursor-pointer ${doorForm.surfaceType === t ? 'border-purple-500 bg-purple-50' : 'border-slate-200'}`}>
-                          <label className="flex items-center gap-2 pointer-events-none"><div className={`w-4 h-4 rounded-full border-2 ${doorForm.surfaceType === t ? 'bg-purple-500 border-purple-500' : 'border-slate-300'}`}></div>{t === 'TOA' ? 'พ่นสี TOA' : 'ปิดผิว SVL'}</label>
+                          <label className="flex items-center gap-2 pointer-events-none">
+                            <div className={`w-4 h-4 rounded-full border-2 ${doorForm.surfaceType === t ? 'bg-purple-500 border-purple-500' : 'border-slate-300'}`}/>
+                            {t === 'TOA' ? 'พ่นสี TOA' : 'ปิดผิว SVL'}
+                          </label>
                         </div>
                       ))}
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-600 mb-1">การเซาะร่อง</label>
-                      <select value={doorForm.grooving} onChange={(e) => handleDoorInput('grooving', e.target.value)} className="w-full p-2.5 border rounded-lg">
-                        <option value="none">ไม่เซาะร่อง</option><option value="standard">เซาะร่องปกติ</option>
-                        <option value="black_line">เซาะร่องแปะเส้นดำ</option><option value="painted">เซาะร่องทำสี</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-600 mb-1">ติดคิ้วพ่นสี</label>
-                      <select value={doorForm.molding} onChange={(e) => handleDoorInput('molding', e.target.value)} disabled={doorForm.surfaceType === 'SVL'} className={`w-full p-2.5 border rounded-lg ${doorForm.surfaceType === 'SVL' ? 'bg-slate-100 text-slate-400' : ''}`}>
-                        <option value="none">ไม่ติดคิ้ว</option><option value="first_1">First Class 1 ช่อง</option>
-                        <option value="first_2">First Class 2 ช่อง</option><option value="roma_1">ROMA 1 ช่อง</option><option value="roma_2">ROMA 2 ช่อง</option>
-                      </select>
-                      {doorForm.surfaceType === 'SVL' && <p className="text-[10px] text-red-500 mt-1">* ปิดผิว SVL ไม่สามารถติดคิ้วได้</p>}
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-600 mb-1">กระจก</label>
-                      <select value={doorForm.glass} onChange={(e) => handleDoorInput('glass', e.target.value)} className="w-full p-2.5 border rounded-lg">
-                        <option value="none">ไม่ติดกระจก</option><option value="frosted">กระจกฝ้าเต็มบาน</option>
-                        <option value="frosted_half">กระจกฝ้าครึ่งบาน</option><option value="frosted_side">กระจกฝ้าข้าง</option>
-                        <option value="green_full">กระจกเขียวตัดแสงเต็มบาน</option><option value="green_half">กระจกเขียวตัดแสงครึ่งบาน</option>
-                        <option value="green_side">กระจกเขียวตัดแสงข้าง</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-600 mb-1">เกล็ดระบายอากาศ</label>
-                      <select value={doorForm.louver} onChange={(e) => handleDoorInput('louver', e.target.value)} className="w-full p-2.5 border rounded-lg">
-                        <option value="none">ไม่ใส่เกล็ด</option><option value="full">เกล็ดเต็มบาน</option>
-                        <option value="half">เกล็ดครึ่งบาน</option><option value="side">เกล็ดข้าง</option><option value="bottom">เกล็ดล่าง</option>
-                        <option value="full_painted">เกล็ดเต็มบาน พ่นสี</option><option value="half_painted">เกล็ดครึ่งบาน พ่นสี</option>
-                        <option value="side_painted">เกล็ดข้าง พ่นสี</option><option value="bottom_painted">เกล็ดล่าง พ่นสี</option>
-                      </select>
-                    </div>
+
+                    {/* เซาะร่อง — disabled เมื่อ SVL หรือ ติดคิ้ว */}
+                    {(() => {
+                      const groovingDisabled = doorForm.surfaceType === 'SVL' || doorForm.molding !== 'none';
+                      const groovingHint = doorForm.surfaceType === 'SVL'
+                        ? '* SVL ไม่สามารถเซาะร่องได้'
+                        : doorForm.molding !== 'none'
+                        ? '* ติดคิ้วแล้ว ไม่สามารถเซาะร่องได้'
+                        : null;
+                      return (
+                        <div>
+                          <label className={`block text-sm font-medium mb-1 ${groovingDisabled ? 'text-slate-400' : 'text-slate-600'}`}>การเซาะร่อง</label>
+                          <select value={doorForm.grooving} onChange={(e) => handleDoorInput('grooving', e.target.value)}
+                            disabled={groovingDisabled}
+                            className={`w-full p-2.5 border rounded-lg ${groovingDisabled ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : ''}`}>
+                            <option value="none">ไม่เซาะร่อง</option>
+                            <option value="standard">เซาะร่องปกติ</option>
+                            <option value="black_line">เซาะร่องแปะเส้นดำ</option>
+                            <option value="painted">เซาะร่องทำสี</option>
+                          </select>
+                          {groovingHint && <p className="text-[10px] text-red-500 mt-1">{groovingHint}</p>}
+                        </div>
+                      );
+                    })()}
+
+                    {/* ติดคิ้ว — disabled เมื่อ SVL */}
+                    {(() => {
+                      const moldingDisabled = doorForm.surfaceType === 'SVL';
+                      return (
+                        <div>
+                          <label className={`block text-sm font-medium mb-1 ${moldingDisabled ? 'text-slate-400' : 'text-slate-600'}`}>ติดคิ้วพ่นสี</label>
+                          <select value={doorForm.molding} onChange={(e) => handleDoorInput('molding', e.target.value)}
+                            disabled={moldingDisabled}
+                            className={`w-full p-2.5 border rounded-lg ${moldingDisabled ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : ''}`}>
+                            <option value="none">ไม่ติดคิ้ว</option>
+                            <option value="first_1">First Class 1 ช่อง</option>
+                            <option value="first_2">First Class 2 ช่อง</option>
+                            <option value="roma_1">ROMA 1 ช่อง</option>
+                            <option value="roma_2">ROMA 2 ช่อง</option>
+                          </select>
+                          {moldingDisabled && <p className="text-[10px] text-red-500 mt-1">* SVL ไม่สามารถติดคิ้วได้</p>}
+                        </div>
+                      );
+                    })()}
+
+                    {/* กระจก — ติดคิ้ว + มีเกล็ดแล้ว → disabled */}
+                    {(() => {
+                      const glassDisabled = doorForm.molding !== 'none' && doorForm.louver !== 'none';
+                      return (
+                        <div>
+                          <label className={`block text-sm font-medium mb-1 ${glassDisabled ? 'text-slate-400' : 'text-slate-600'}`}>กระจก</label>
+                          <select value={doorForm.glass} onChange={(e) => handleDoorInput('glass', e.target.value)}
+                            disabled={glassDisabled}
+                            className={`w-full p-2.5 border rounded-lg ${glassDisabled ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : ''}`}>
+                            <option value="none">ไม่ติดกระจก</option>
+                            <option value="frosted">กระจกฝ้าเต็มบาน</option>
+                            <option value="frosted_half">กระจกฝ้าครึ่งบาน</option>
+                            <option value="frosted_side">กระจกฝ้าข้าง</option>
+                            <option value="green_full">กระจกเขียวตัดแสงเต็มบาน</option>
+                            <option value="green_half">กระจกเขียวตัดแสงครึ่งบาน</option>
+                            <option value="green_side">กระจกเขียวตัดแสงข้าง</option>
+                          </select>
+                          {glassDisabled && <p className="text-[10px] text-red-500 mt-1">* ติดคิ้วและมีเกล็ดแล้ว เลือกได้แค่อันเดียว</p>}
+                        </div>
+                      );
+                    })()}
+
+                    {/* เกล็ด — ติดคิ้ว + มีกระจกแล้ว → disabled */}
+                    {(() => {
+                      const louverDisabled = doorForm.molding !== 'none' && doorForm.glass !== 'none';
+                      return (
+                        <div>
+                          <label className={`block text-sm font-medium mb-1 ${louverDisabled ? 'text-slate-400' : 'text-slate-600'}`}>เกล็ดระบายอากาศ</label>
+                          <select value={doorForm.louver} onChange={(e) => handleDoorInput('louver', e.target.value)}
+                            disabled={louverDisabled}
+                            className={`w-full p-2.5 border rounded-lg ${louverDisabled ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : ''}`}>
+                            <option value="none">ไม่ใส่เกล็ด</option>
+                            <option value="full">เกล็ดเต็มบาน</option>
+                            <option value="half">เกล็ดครึ่งบาน</option>
+                            <option value="side">เกล็ดข้าง</option>
+                            <option value="bottom">เกล็ดล่าง</option>
+                            <option value="full_painted">เกล็ดเต็มบาน พ่นสี</option>
+                            <option value="half_painted">เกล็ดครึ่งบาน พ่นสี</option>
+                            <option value="side_painted">เกล็ดข้าง พ่นสี</option>
+                            <option value="bottom_painted">เกล็ดล่าง พ่นสี</option>
+                          </select>
+                          {louverDisabled && <p className="text-[10px] text-red-500 mt-1">* ติดคิ้วและมีกระจกแล้ว เลือกได้แค่อันเดียว</p>}
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
 
