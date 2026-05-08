@@ -171,10 +171,79 @@ const LABEL_MAP: {[key: string]: string} = {
   'sliding': 'เสริมโครงบานเลื่อน', 'stopper': 'เสริมโครง Stopper',
   'peephole': 'เจาะตาแมว', 'rabbet': 'ทำบังใบ',
   'knob_plate_40': 'เสริมแป้นลูกบิด 40cm', 'wood_top_bottom': 'เสริมไม้ บน/ล่าง',
-  'wpc_4in_t2': 'วงกบไม้สังเคราะห์ 4" (T2)',
-  'wpc_4in_f10': 'วงกบไม้สังเคราะห์ 4" (F10)',
-  'wpc_adjust_x': 'วงกบ Adjust X (มีซับ)',
-  'wpc_adjust_eco': 'วงกบ Adjust Eco (มีซับ)',
+  // === วงกบ — ราคาตั้งต้น ===
+  'wpc_4in_t2': 'วงกบ T2 — ราคาเริ่มต้นชุดวงกบ',
+  'wpc_4in_f10': 'วงกบ F10 — ราคาเริ่มต้นชุดวงกบ',
+  'wpc_adjust_x': 'วงกบ Adjust X — ราคาเริ่มต้นชุดวงกบ',
+  'wpc_adjust_eco': 'วงกบ Adjust Eco — ราคาเริ่มต้นชุดวงกบ',
+
+  // === T2: ค่าเพิ่มตามขนาด ===
+  't2_std_70': 'T2 — ไซส์มาตรฐาน 70×200 (ไม่มีค่าเพิ่ม)',
+  't2_std_80': 'T2 — ไซส์มาตรฐาน 80×200 (ไม่มีค่าเพิ่ม)',
+  't2_std_90': 'T2 — ไซส์มาตรฐาน 90×200 (ไม่มีค่าเพิ่ม)',
+  't2_w_71_80': 'T2 — ค่าเพิ่มความกว้าง 71–80 cm',
+  't2_w_81_89': 'T2 — ค่าเพิ่มความกว้าง 81–89 cm',
+  't2_w_90': 'T2 — ค่าเพิ่มความกว้าง 90 cm',
+  't2_w_91_140': 'T2 — ค่าเพิ่มความกว้าง 91–140 cm',
+  't2_w_141_180': 'T2 — ค่าเพิ่มความกว้าง 141–180 cm',
+  't2_h_under_200': 'T2 — ค่าลดไซส์ ความสูงต่ำกว่า 200 cm',
+  't2_h_201_220': 'T2 — ค่าเพิ่มความสูง 201–220 cm',
+  't2_h_221_240': 'T2 — ค่าเพิ่มความสูง 221–240 cm',
+  't2_color_h200': 'T2 — ค่าทำสี (สูงไม่เกิน 200 cm)',
+  't2_color_h220': 'T2 — ค่าทำสี (สูง 201–220 cm)',
+  't2_color_h240': 'T2 — ค่าทำสี (สูง 221–240 cm)',
+
+  // === F10: ค่าเพิ่มตามขนาด ===
+  'f10_std_70': 'F10 — ไซส์มาตรฐาน 70×200 (ไม่มีค่าเพิ่ม)',
+  'f10_std_80': 'F10 — ไซส์มาตรฐาน 80×200 (ไม่มีค่าเพิ่ม)',
+  'f10_std_90': 'F10 — ไซส์มาตรฐาน 90×200 (ไม่มีค่าเพิ่ม)',
+  'f10_w_71_80': 'F10 — ค่าเพิ่มความกว้าง 71–80 cm',
+  'f10_w_81_90': 'F10 — ค่าเพิ่มความกว้าง 81–90 cm',
+  'f10_w_91_140': 'F10 — ค่าเพิ่มความกว้าง 91–140 cm',
+  'f10_w_141_180': 'F10 — ค่าเพิ่มความกว้าง 141–180 cm',
+  'f10_h_under_200': 'F10 — ค่าลดไซส์ ความสูงต่ำกว่า 200 cm',
+  'f10_h_201_220': 'F10 — ค่าเพิ่มความสูง 201–220 cm',
+  'f10_color_h200': 'F10 — ค่าทำสี (สูงไม่เกิน 200 cm)',
+  'f10_color_h220': 'F10 — ค่าทำสี (สูง 201–220 cm)',
+
+  // === Adjust X: ค่าเพิ่มตามขนาด ===
+  'x_std_70': 'Adjust X — ไซส์มาตรฐาน 70×200 (ไม่มีค่าเพิ่ม)',
+  'x_std_80': 'Adjust X — ไซส์มาตรฐาน 80×200 (ไม่มีค่าเพิ่ม)',
+  'x_std_90': 'Adjust X — ไซส์มาตรฐาน 90×200 (ไม่มีค่าเพิ่ม)',
+  'x_w_81_90': 'Adjust X — ค่าเพิ่มความกว้าง 81–90 cm',
+  'x_w_91_140': 'Adjust X — ค่าเพิ่มความกว้าง 91–140 cm',
+  'x_w_141_180': 'Adjust X — ค่าเพิ่มความกว้าง 141–180 cm',
+  'x_h_under_200': 'Adjust X — ค่าลดไซส์ ความสูงต่ำกว่า 200 cm',
+  'x_h_201_210': 'Adjust X — ค่าเพิ่มความสูง 201–210 cm',
+  'x_h_211_220': 'Adjust X — ค่าเพิ่มความสูง 211–220 cm',
+  'x_h_221_240': 'Adjust X — ค่าเพิ่มความสูง 221–240 cm',
+  'x_toa_h_200': 'Adjust X — ค่าพ่นสี TOA (สูงไม่เกิน 200 cm)',
+  'x_toa_h_201_210': 'Adjust X — ค่าพ่นสี TOA (สูง 201–210 cm)',
+  'x_toa_h_211_220': 'Adjust X — ค่าพ่นสี TOA (สูง 211–220 cm)',
+  'x_toa_h_221_240': 'Adjust X — ค่าพ่นสี TOA (สูง 221–240 cm)',
+  'x_svl_h_200': 'Adjust X — ค่าปิดผิว SVL (สูงไม่เกิน 200 cm)',
+  'x_svl_h_201_210': 'Adjust X — ค่าปิดผิว SVL (สูง 201–210 cm)',
+  'x_svl_h_211_220': 'Adjust X — ค่าปิดผิว SVL (สูง 211–220 cm)',
+  'x_svl_h_221_240': 'Adjust X — ค่าปิดผิว SVL (สูง 221–240 cm)',
+
+  // === Adjust Eco: ค่าเพิ่มตามขนาด ===
+  'eco_std_70': 'Adjust Eco — ไซส์มาตรฐาน 70×200 (ไม่มีค่าเพิ่ม)',
+  'eco_std_80': 'Adjust Eco — ไซส์มาตรฐาน 80×200 (ไม่มีค่าเพิ่ม)',
+  'eco_std_90': 'Adjust Eco — ไซส์มาตรฐาน 90×200 (ไม่มีค่าเพิ่ม)',
+  'eco_w_81_90': 'Adjust Eco — ค่าเพิ่มความกว้าง 81–90 cm',
+  'eco_w_91_140': 'Adjust Eco — ค่าเพิ่มความกว้าง 91–140 cm',
+  'eco_w_141_180': 'Adjust Eco — ค่าเพิ่มความกว้าง 141–180 cm',
+  'eco_h_under_200': 'Adjust Eco — ค่าลดไซส์ ความสูงต่ำกว่า 200 cm',
+  'eco_h_201_210': 'Adjust Eco — ค่าเพิ่มความสูง 201–210 cm',
+  'eco_h_211_220': 'Adjust Eco — ค่าเพิ่มความสูง 211–220 cm',
+  'eco_h_221_240': 'Adjust Eco — ค่าเพิ่มความสูง 221–240 cm',
+  'eco_toa_h_200_210': 'Adjust Eco — ค่าพ่นสี TOA (สูง 200–210 cm)',
+  'eco_toa_h_211_220': 'Adjust Eco — ค่าพ่นสี TOA (สูง 211–220 cm)',
+  'eco_toa_h_221_240': 'Adjust Eco — ค่าพ่นสี TOA (สูง 221–240 cm)',
+  'eco_svl_h_under_200': 'Adjust Eco — ค่าปิดผิว SVL (สูงต่ำกว่า 200 cm)',
+  'eco_svl_h_200_210': 'Adjust Eco — ค่าปิดผิว SVL (สูง 200–210 cm)',
+  'eco_svl_h_211_220': 'Adjust Eco — ค่าปิดผิว SVL (สูง 211–220 cm)',
+  'eco_svl_h_221_240': 'Adjust Eco — ค่าปิดผิว SVL (สูง 221–240 cm)',
 };
 
 // ------------------------------------------------------------------
@@ -221,7 +290,7 @@ const DEFAULT_PRICES: PricingStructure = {
     'f10_color_h200': 0, 'f10_color_h220': 0,
     'x_toa_h_200': 0, 'x_toa_h_201_210': 0, 'x_toa_h_211_220': 0, 'x_toa_h_221_240': 0,
     'x_svl_h_200': 0, 'x_svl_h_201_210': 0, 'x_svl_h_211_220': 0, 'x_svl_h_221_240': 0,
-    'eco_toa_h_under_200': 0, 'eco_toa_h_200_210': 600, 'eco_toa_h_211_220': 700, 'eco_toa_h_221_240': 800,
+    'eco_toa_h_200_210': 600, 'eco_toa_h_211_220': 700, 'eco_toa_h_221_240': 800,
     'eco_svl_h_under_200': 1200, 'eco_svl_h_200_210': 1200, 'eco_svl_h_211_220': 1500, 'eco_svl_h_221_240': 1700,
   },
   structure: {}, size: {}, surface: {},
@@ -275,9 +344,8 @@ const calculateDoorPrice = (form: DoorFormData, prices: PricingStructure): Price
     height = 200;
   }
 
-  let surfaceSuffix = '_h200';
-  if (height < 200) surfaceSuffix = '_h_under_200';  // ✅ ลดไซส์ต่ำกว่า 200
-  else if (height >= 221) surfaceSuffix = '_h240';
+  let surfaceSuffix = '_h200';  // h < 200 ใช้ราคาเดียวกับ h200 (ไม่บวกเพิ่ม)
+  if (height >= 221) surfaceSuffix = '_h240';
   else if (height >= 201) surfaceSuffix = '_h220';
 
   const surfaceKey = form.surfaceType + surfaceSuffix;
@@ -407,8 +475,7 @@ const calculateFramePrice = (form: FrameFormData, prices: PricingStructure): Pri
     }
     if (form.surfaceType === 'TOA') {
       // ✅ FIX #4: ใช้ h < 200 / h >= 201 ให้สม่ำเสมอ
-      if (height < 200) { const p = getSurf('eco_toa_h_under_200'); price += p; if(p) surcharges.push(`Eco: ทำสี TOA (สูง<200cm) (+฿${p.toLocaleString()})`); }
-      else if (height <= 210) { const p = getSurf('eco_toa_h_200_210'); price += p; if(p) surcharges.push(`Eco: ทำสี TOA (200-210cm) (+฿${p.toLocaleString()})`); }
+      if (height <= 210) { const p = getSurf('eco_toa_h_200_210'); price += p; if(p) surcharges.push(`Eco: ทำสี TOA (200-210cm) (+฿${p.toLocaleString()})`); }
       else if (height <= 220) { const p = getSurf('eco_toa_h_211_220'); price += p; if(p) surcharges.push(`Eco: ทำสี TOA (211-220cm) (+฿${p.toLocaleString()})`); }
       else { const p = getSurf('eco_toa_h_221_240'); price += p; if(p) surcharges.push(`Eco: ทำสี TOA (221-240cm) (+฿${p.toLocaleString()})`); }
     } else if (form.surfaceType === 'SVL') {
@@ -647,7 +714,7 @@ const LoginScreen = ({ onLogin, isFirebaseReady, permissionError }: {
         if (userData.passwordHash === hashed) {
           // ✅ FIX #11: เก็บเฉพาะข้อมูลที่จำเป็น ไม่เก็บ password/hash
           const session: SessionUser = { id: userData.id, username: userData.username, name: userData.name, role: userData.role };
-          sessionStorage.setItem('upvc_session', JSON.stringify(session));
+          localStorage.setItem('upvc_session', JSON.stringify(session));
           onLogin(session);
         } else {
           setError("Username หรือ Password ไม่ถูกต้อง");
@@ -833,7 +900,7 @@ export default function App() {
 
   // 1. Restore session — ✅ FIX #11: sessionStorage แทน localStorage
   useEffect(() => {
-    const saved = sessionStorage.getItem('upvc_session');
+    const saved = localStorage.getItem('upvc_session');
     if (saved) { try { setCurrentUser(JSON.parse(saved)); } catch { sessionStorage.removeItem('upvc_session'); } }
     if (!db) return;
     setIsFirebaseReady(true);
@@ -956,7 +1023,7 @@ export default function App() {
     if (tabId === 'frame') setFrameForm(DEFAULT_FRAME_FORM);
   };
 
-  const handleLogout = () => { sessionStorage.removeItem('upvc_session'); setCurrentUser(null); };
+  const handleLogout = () => { localStorage.removeItem('upvc_session'); setCurrentUser(null); };
 
   const getFrameDisplayLabel = (key: string) => ({
     'wpc_4in_t2': 'วงกบไม้สังเคราะห์ 4" เหลี่ยม (T2) — สูงสุด 240cm',
@@ -1248,21 +1315,6 @@ export default function App() {
                       </>
                     )}
 
-                    {/* ✅ FIX #5: แสดง Surcharges ทั้งในส่วนประตูและวงกบ */}
-                    {priceResult.surcharges.length > 0 && (
-                      <div className="pt-3 border-t border-orange-100 bg-orange-50 -mx-6 px-6 py-3 mt-3">
-                        <p className="text-xs font-bold text-orange-700 mb-2 flex items-center gap-1">
-                          <Calculator className="w-3 h-3"/> ค่าเพิ่มพิเศษ (Surcharges):
-                        </p>
-                        <ul className="space-y-1">
-                          {priceResult.surcharges.map((s, i) => (
-                            <li key={i} className="text-xs text-orange-800 flex items-start gap-1">
-                              <span className="text-orange-400 mt-0.5">•</span>{s}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
                   </div>
                 </div>
               )}
