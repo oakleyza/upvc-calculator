@@ -984,13 +984,12 @@ export default function App() {
     }
   }, [frameForm.frameMaterial, activeTab]);
 
-  // Auto-switch: SVL → ติดคิ้วไม่ได้, เซาะร่องไม่ได้
+  // Auto-switch: SVL → ติดคิ้วไม่ได้เท่านั้น (เซาะร่อง/กระจก/เกล็ดทำได้)
   useEffect(() => {
     if (doorForm.surfaceType === 'SVL') {
       setDoorForm(prev => ({
         ...prev,
         molding: 'none',
-        grooving: 'none',
       }));
     }
   }, [doorForm.surfaceType]);
@@ -1152,12 +1151,10 @@ export default function App() {
                       ))}
                     </div>
 
-                    {/* เซาะร่อง — disabled เมื่อ SVL หรือ ติดคิ้ว */}
+                    {/* เซาะร่อง — disabled เฉพาะเมื่อ ติดคิ้ว (SVL เซาะร่องได้) */}
                     {(() => {
-                      const groovingDisabled = doorForm.surfaceType === 'SVL' || doorForm.molding !== 'none';
-                      const groovingHint = doorForm.surfaceType === 'SVL'
-                        ? '* SVL ไม่สามารถเซาะร่องได้'
-                        : doorForm.molding !== 'none'
+                      const groovingDisabled = doorForm.molding !== 'none';
+                      const groovingHint = doorForm.molding !== 'none'
                         ? '* ติดคิ้วแล้ว ไม่สามารถเซาะร่องได้'
                         : null;
                       return (
