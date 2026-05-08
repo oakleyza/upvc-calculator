@@ -148,7 +148,7 @@ const LABEL_MAP: {[key: string]: string} = {
   'SVL_h200': 'ผิว SVL (สูงไม่เกิน 2.00m)',
   'SVL_h220': 'ผิว SVL (สูง 2.01-2.20m)',
   'SVL_h240': 'ผิว SVL (สูง 2.21-2.40m)',
-  'none': 'ไม่เลือก/ไม่ทำ',
+  'none': 'ไม่เลือก — ราคา 0',
   'standard': 'เซาะร่องมาตรฐาน',
   'black_line': 'เซาะร่องเส้นดำ',
   'painted': 'เซาะร่องทำสี',
@@ -534,8 +534,9 @@ const AdminPriceEditor = ({
   };
 
   const renderInput = (category: keyof PricingStructure, key: string) => {
-    // ซ่อน key ที่ไม่มีใน LABEL_MAP (อาจมาจาก Firestore เก่า) และ key 'custom', 'none'
-    if (key === 'custom' || key === 'none') return null;
+    // ซ่อน key 'custom' และ key ที่ไม่มีใน LABEL_MAP (Firestore เก่า)
+    // หมายเหตุ: 'none' ต้องแสดง เพราะคือ "ไม่เซาะร่อง/ไม่ติดคิ้ว/ไม่ใส่กระจก" ราคา = 0
+    if (key === 'custom') return null;
     if (!LABEL_MAP[key]) return null;  // key แปลกๆจาก Firestore เก่า ไม่แสดง
     const label = LABEL_MAP[key];
     const value = localPrices[category]?.[key] ?? 0;
