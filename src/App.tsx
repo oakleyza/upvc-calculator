@@ -474,8 +474,9 @@ const calculateFramePrice = (form: FrameFormData, prices: PricingStructure): Pri
       else if (width >= 141 && width <= 180) { const p = getSize('eco_w_141_180'); price += p; if(p) surcharges.push(`Eco: กว้าง 141-180cm (+฿${p.toLocaleString()})`); }
     }
     if (form.surfaceType === 'TOA') {
-      // ✅ FIX #4: ใช้ h < 200 / h >= 201 ให้สม่ำเสมอ
-      if (height <= 210) { const p = getSurf('eco_toa_h_200_210'); price += p; if(p) surcharges.push(`Eco: ทำสี TOA (200-210cm) (+฿${p.toLocaleString()})`); }
+      // h < 200: ไม่คิดค่าสี (ราคาเดียวกับ base)
+      if (height < 200) { /* ไม่บวกค่าสีเพิ่ม */ }
+      else if (height <= 210) { const p = getSurf('eco_toa_h_200_210'); price += p; if(p) surcharges.push(`Eco: ทำสี TOA (200-210cm) (+฿${p.toLocaleString()})`); }
       else if (height <= 220) { const p = getSurf('eco_toa_h_211_220'); price += p; if(p) surcharges.push(`Eco: ทำสี TOA (211-220cm) (+฿${p.toLocaleString()})`); }
       else { const p = getSurf('eco_toa_h_221_240'); price += p; if(p) surcharges.push(`Eco: ทำสี TOA (221-240cm) (+฿${p.toLocaleString()})`); }
     } else if (form.surfaceType === 'SVL') {
@@ -533,8 +534,10 @@ const AdminPriceEditor = ({
   };
 
   const renderInput = (category: keyof PricingStructure, key: string) => {
-    const label = LABEL_MAP[key] || key;
-    if (key === 'custom') return null;
+    // ซ่อน key ที่ไม่มีใน LABEL_MAP (อาจมาจาก Firestore เก่า) และ key 'custom', 'none'
+    if (key === 'custom' || key === 'none') return null;
+    if (!LABEL_MAP[key]) return null;  // key แปลกๆจาก Firestore เก่า ไม่แสดง
+    const label = LABEL_MAP[key];
     const value = localPrices[category]?.[key] ?? 0;
     const isNeg = value < 0;
     return (
