@@ -139,10 +139,12 @@ const LABEL_MAP: {[key: string]: string} = {
   'custom_h_201_210': 'ส่วนต่าง สูง 201-210cm',
   'custom_h_211_220': 'ส่วนต่าง สูง 211-220cm',
   'custom_h_221_240': 'ส่วนต่าง สูง 221-240cm',
+  'TOA_h_under_200': 'สี TOA (สูงต่ำกว่า 2.00m)',
   'TOA_h200': 'สี TOA (สูงไม่เกิน 2.00m)',
   'TOA_h220': 'สี TOA (สูง 2.01-2.20m)',
   'TOA_h240': 'สี TOA (สูง 2.21-2.40m)',
   'TOA_plain_extra': 'ส่วนเพิ่ม: บานเรียบพ่นสี TOA (ไม่มีลวดลาย/กระจก)',
+  'SVL_h_under_200': 'ผิว SVL (สูงต่ำกว่า 2.00m)',
   'SVL_h200': 'ผิว SVL (สูงไม่เกิน 2.00m)',
   'SVL_h220': 'ผิว SVL (สูง 2.01-2.20m)',
   'SVL_h240': 'ผิว SVL (สูง 2.21-2.40m)',
@@ -193,9 +195,9 @@ const DEFAULT_PRICES: PricingStructure = {
     'custom_h_under_200': 200, 'custom_h_201_210': 400, 'custom_h_211_220': 999, 'custom_h_221_240': 999,
   },
   door_surface: {
-    'TOA_h200': 999, 'TOA_h220': 999, 'TOA_h240': 999,
+    'TOA_h_under_200': 999, 'TOA_h200': 999, 'TOA_h220': 999, 'TOA_h240': 999,
     'TOA_plain_extra': 0,
-    'SVL_h200': 999, 'SVL_h220': 999, 'SVL_h240': 999
+    'SVL_h_under_200': 999, 'SVL_h200': 999, 'SVL_h220': 999, 'SVL_h240': 999
   },
   frame_base: { 'wpc_4in_t2': 900, 'wpc_4in_f10': 950, 'wpc_adjust_x': 1200, 'wpc_adjust_eco': 999 },
   frame_size: {
@@ -274,7 +276,8 @@ const calculateDoorPrice = (form: DoorFormData, prices: PricingStructure): Price
   }
 
   let surfaceSuffix = '_h200';
-  if (height >= 221) surfaceSuffix = '_h240';
+  if (height < 200) surfaceSuffix = '_h_under_200';  // ✅ ลดไซส์ต่ำกว่า 200
+  else if (height >= 221) surfaceSuffix = '_h240';
   else if (height >= 201) surfaceSuffix = '_h220';
 
   const surfaceKey = form.surfaceType + surfaceSuffix;
