@@ -1,0 +1,82 @@
+// ------------------------------------------------------------------
+// Types & Interfaces
+// ------------------------------------------------------------------
+
+export interface PriceCategory {
+  [key: string]: number;
+}
+
+export interface PricingStructure {
+  door_base: PriceCategory;
+  door_size: PriceCategory;
+  door_surface: PriceCategory;
+  frame_base: PriceCategory;
+  frame_size: PriceCategory;
+  frame_surface: PriceCategory;
+  grooving: PriceCategory;
+  molding: PriceCategory;
+  glass: PriceCategory;
+  louver: PriceCategory;
+  reinforce: PriceCategory;
+  drilling: PriceCategory;
+  options: PriceCategory;
+  // Legacy fallback fields (kept for Firestore backward compatibility)
+  structure?: PriceCategory;
+  size?: PriceCategory;
+  surface?: PriceCategory;
+}
+
+export interface DoorOptions {
+  [key: string]: boolean;
+}
+
+export interface DoorFormData {
+  structure: string;
+  sizeType: string;
+  customWidth: string;
+  customHeight: string;
+  surfaceType: string;
+  grooving: string;
+  molding: string;
+  glass: string;
+  louver: string;
+  reinforce: string;
+  drilling: string;
+  options: DoorOptions;
+}
+
+export interface FrameFormData {
+  frameMaterial: string;
+  sizeType: string;
+  customWidth: string;
+  customHeight: string;
+  surfaceType: string;
+}
+
+export interface UserAccount {
+  id: string;
+  username: string;
+  passwordHash: string;
+  passwordSalt?: string; // เพิ่มสำหรับ SHA-256 migration
+  name: string;
+  role: 'admin' | 'staff';
+}
+
+export interface SessionUser {
+  id: string;
+  username: string;
+  name: string;
+  role: 'admin' | 'staff';
+  loginAt: number; // timestamp สำหรับ session expiry
+}
+
+export interface PriceResult {
+  total: number;
+  surcharges: string[];
+}
+
+export interface TabInfo {
+  id: string;
+  label: string;
+  icon: React.ElementType;
+}
