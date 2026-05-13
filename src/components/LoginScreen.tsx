@@ -34,10 +34,11 @@ export const LoginScreen: React.FC<Props> = ({ onLogin, isFirebaseReady, permiss
     }
 
     if (!isFirebaseReady) { setError('ไม่สามารถเชื่อมต่อ Database ได้'); return; }
+    if (!db) { setError('Firebase ไม่ได้รับการตั้งค่า — กรุณาตรวจสอบไฟล์ .env'); return; }
     setLoading(true);
 
     try {
-      const usersRef = collection(db!, 'users');
+      const usersRef = collection(db, 'users');
       const q = query(usersRef, where('username', '==', username));
       const snapshot = await getDocs(q);
 

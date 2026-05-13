@@ -68,14 +68,14 @@ export const FrameCalculator: React.FC<Props> = ({ form, onInput }) => {
               <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 mt-4 flex gap-4">
                 <div className="flex-1">
                   <label className="text-xs text-slate-600">
-                    กว้าง <span className="text-red-500">(1–{maxW} cm)</span>
+                    กว้าง <span className="text-red-500">(สูงสุด {maxW} cm)</span>
                   </label>
                   <input type="number" value={form.customWidth} onChange={handleWidthChange}
                     min={1} max={maxW} className="w-full p-2 border rounded" />
                 </div>
                 <div className="flex-1">
                   <label className="text-xs text-slate-600">
-                    สูง <span className="text-red-500">(1–{maxH} cm)</span>
+                    สูง <span className="text-red-500">(สูงสุด {maxH} cm)</span>
                   </label>
                   <input type="number" value={form.customHeight} onChange={handleHeightChange}
                     min={1} max={maxH} className="w-full p-2 border rounded" />

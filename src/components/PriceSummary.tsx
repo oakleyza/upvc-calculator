@@ -154,19 +154,7 @@ export const PriceSummary: React.FC<Props> = ({
                 </>
               )}
 
-              {/* Surcharge breakdown */}
-              {priceResult.surcharges.length > 0 && (
-                <div className="pt-2 border-t border-slate-100">
-                  <span className="text-slate-500 font-medium block mb-1 text-xs">ค่าเพิ่มเติม:</span>
-                  <ul className="text-xs text-orange-700 space-y-0.5">
-                    {priceResult.surcharges.map((s, i) => (
-                      <li key={i} className="flex items-start gap-1">
-                        <span className="text-orange-400 mt-0.5">+</span>{s}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+              {/* ค่าเพิ่มเติมถูกรวมในราคาสุทธิแล้ว — ไม่แสดงรายละเอียด */}
             </div>
           </div>
         )}
