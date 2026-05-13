@@ -121,9 +121,9 @@ export const LoginScreen: React.FC<Props> = ({ onLogin, isFirebaseReady, permiss
           </div>
         )}
         {permissionError && (
-          <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 mb-4 text-xs rounded">
-            <p className="font-bold text-sm mb-1">🚨 ตรวจพบปัญหา: Permission Denied</p>
-            <p>กรุณาแก้ Firestore Rules ใน Firebase Console</p>
+          <div className="bg-orange-50 border-l-4 border-orange-400 text-orange-700 p-4 mb-4 text-xs rounded">
+            <p className="font-bold text-sm mb-1">⚠️ ข้อมูลราคาอาจโหลดไม่ครบ</p>
+            <p>กรุณาตรวจสอบ Firestore Rules ว่า allow read, write: if true แล้วกด Publish</p>
           </div>
         )}
         {error && (

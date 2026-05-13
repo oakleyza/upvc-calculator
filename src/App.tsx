@@ -48,7 +48,13 @@ export default function App() {
     const session = loadSession();
     if (session) setCurrentUser(session);
 
-    if (!isFirebaseConfigured()) return;
+    // FIX: ถ้า Firebase ไม่ configured ให้ set ready=true ทันทีพร้อม error
+    // (แทนที่จะ stuck ที่ "กำลังเชื่อมต่อ..." ตลอดไป)
+    if (!isFirebaseConfigured()) {
+      setIsFirebaseReady(true);
+      setPermissionError(true);
+      return;
+    }
 
     // B-5 FIX: seed users ก่อน แล้วค่อย setIsFirebaseReady(true)
     const initSystem = async () => {
@@ -72,6 +78,8 @@ export default function App() {
       } catch (err: unknown) {
         const fe = err as { code?: string };
         if (fe.code === 'permission-denied') setPermissionError(true);
+        // FIX: log error อื่นๆ ด้วย เพื่อช่วย debug
+        else console.error('[initSystem] unexpected error:', err);
       } finally {
         // B-5 FIX: ตั้ง ready หลัง seed เสร็จ (ไม่ใช่ก่อน)
         setIsFirebaseReady(true);

@@ -1,7 +1,8 @@
 // ------------------------------------------------------------------
 // Firebase initialization — ใช้ env vars แทน hardcode (S-6)
+// FIX: ใช้ getApps() ป้องกัน "already exists" error จาก Vite HMR
 // ------------------------------------------------------------------
-import { initializeApp, type FirebaseApp } from 'firebase/app';
+import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
 import { getFirestore, type Firestore } from 'firebase/firestore';
 
 const firebaseConfig = {
@@ -18,7 +19,8 @@ let db: Firestore | null = null;
 
 try {
   if (firebaseConfig.apiKey) {
-    app = initializeApp(firebaseConfig);
+    // ป้องกัน "Firebase App named '[DEFAULT]' already exists" จาก Vite HMR
+    app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
     db = getFirestore(app);
   } else {
     console.warn('Firebase config missing — check .env file');
