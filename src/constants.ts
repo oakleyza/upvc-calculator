@@ -249,6 +249,6 @@ export const DEFAULT_USERS_SEED = [
 // ------------------------------------------------------------------
 // Session expiry
 // ------------------------------------------------------------------
-export const SESSION_EXPIRY_MS = 8 * 60 * 60 * 1000; // 8 ชั่วโมง
+export const SESSION_EXPIRY_MS = 30 * 24 * 60 * 60 * 1000; // 30 วัน
 export const LOGIN_MAX_ATTEMPTS = 5;
 export const LOGIN_LOCKOUT_MS   = 30 * 1000; // 30 วินาที
