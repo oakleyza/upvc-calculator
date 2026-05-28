@@ -147,14 +147,13 @@ export const calculateFramePrice = (form: FrameFormData, prices: PricingStructur
     else if (form.sizeType === '80x200cm') price += getSize('x_std_80');
     else if (form.sizeType === '90x200cm') price += getSize('x_std_90');
     else if (form.sizeType === 'custom') {
+      // Adjust X: กว้างสูงสุด 90cm — ไม่มี bracket เกิน 90
       if      (height < 200)                 { const p = getSize('x_h_under_200'); price += p; if (p) surcharges.push(`X: ค่าลดไซส์ < 200cm (+฿${p.toLocaleString()})`); }
       else if (height >= 201 && height <= 210){ const p = getSize('x_h_201_210');  price += p; if (p) surcharges.push(`X: สูง 201-210cm (+฿${p.toLocaleString()})`); }
       else if (height >= 211 && height <= 220){ const p = getSize('x_h_211_220');  price += p; if (p) surcharges.push(`X: สูง 211-220cm (+฿${p.toLocaleString()})`); }
       else if (height >= 221 && height <= 240){ const p = getSize('x_h_221_240');  price += p; if (p) surcharges.push(`X: สูง 221-240cm (+฿${p.toLocaleString()})`); }
 
-      if      (width >= 81 && width <= 90)   { const p = getSize('x_w_81_90');   price += p; if (p) surcharges.push(`X: กว้าง 81-90cm (+฿${p.toLocaleString()})`); }
-      else if (width >= 91 && width <= 140)  { const p = getSize('x_w_91_140');  price += p; if (p) surcharges.push(`X: กว้าง 91-140cm (+฿${p.toLocaleString()})`); }
-      else if (width >= 141 && width <= 180) { const p = getSize('x_w_141_180'); price += p; if (p) surcharges.push(`X: กว้าง 141-180cm (+฿${p.toLocaleString()})`); }
+      if (width >= 81 && width <= 90) { const p = getSize('x_w_81_90'); price += p; if (p) surcharges.push(`X: กว้าง 81-90cm (+฿${p.toLocaleString()})`); }
     }
     if (form.surfaceType === 'TOA') {
       if      (height <= 200) { const p = getSurf('x_toa_h_200');     price += p; if (p) surcharges.push(`X: TOA ≤200cm (+฿${p.toLocaleString()})`); }
