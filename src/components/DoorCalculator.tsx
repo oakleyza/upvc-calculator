@@ -9,7 +9,6 @@ interface Props {
 }
 
 export const DoorCalculator: React.FC<Props> = ({ form, onInput, onOptionToggle }) => {
-  // B-4 FIX: เพิ่ม min validation (ค่าต่ำสุด 1 cm)
   const handleWidthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const v = e.target.value;
     if (v === '') { onInput('customWidth', ''); return; }
@@ -22,7 +21,7 @@ export const DoorCalculator: React.FC<Props> = ({ form, onInput, onOptionToggle 
     const v = e.target.value;
     if (v === '') { onInput('customHeight', ''); return; }
     const n = Number(v);
-    if (n < 1 || n > 240) return;
+    if (n < 150 || n > 240) return;
     onInput('customHeight', v);
   };
 
@@ -68,9 +67,9 @@ export const DoorCalculator: React.FC<Props> = ({ form, onInput, onOptionToggle 
                       min={1} max={110} className="w-full p-2 border rounded" />
                   </div>
                   <div>
-                    <label className="text-xs text-slate-600">สูง <span className="text-red-500">(สูงสุด 240 cm)</span></label>
+                    <label className="text-xs text-slate-600">สูง <span className="text-red-500">(150–240 cm)</span></label>
                     <input type="number" value={form.customHeight} onChange={handleHeightChange}
-                      min={1} max={240} className="w-full p-2 border rounded" />
+                      min={150} max={240} className="w-full p-2 border rounded" />
                   </div>
                 </div>
               </div>

@@ -9,7 +9,6 @@ interface Props {
 }
 
 export const FrameCalculator: React.FC<Props> = ({ form, onInput }) => {
-  // B-4 FIX: ตรวจ min ด้วย (ค่าต่ำสุด 1 cm) พร้อม max ตาม model
   const handleWidthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const v = e.target.value;
     if (v === '') { onInput('customWidth', ''); return; }
@@ -24,7 +23,7 @@ export const FrameCalculator: React.FC<Props> = ({ form, onInput }) => {
     if (v === '') { onInput('customHeight', ''); return; }
     const n = Number(v);
     const maxH = (form.frameMaterial === FRAME_MATERIALS.F10 || form.frameMaterial === FRAME_MATERIALS.ADJUST_X) ? 220 : 240;
-    if (n < 1 || n > maxH) return;
+    if (n < 150 || n > maxH) return;
     onInput('customHeight', v);
   };
 
@@ -75,10 +74,10 @@ export const FrameCalculator: React.FC<Props> = ({ form, onInput }) => {
                 </div>
                 <div className="flex-1">
                   <label className="text-xs text-slate-600">
-                    สูง <span className="text-red-500">(สูงสุด {maxH} cm)</span>
+                    สูง <span className="text-red-500">(150–{maxH} cm)</span>
                   </label>
                   <input type="number" value={form.customHeight} onChange={handleHeightChange}
-                    min={1} max={maxH} className="w-full p-2 border rounded" />
+                    min={150} max={maxH} className="w-full p-2 border rounded" />
                 </div>
               </div>
             )}
