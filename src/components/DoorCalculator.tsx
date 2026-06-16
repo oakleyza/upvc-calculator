@@ -44,7 +44,8 @@ export const DoorCalculator: React.FC<Props> = ({ form, onInput, onOptionToggle 
         <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
           <Settings className="w-5 h-5 text-blue-600" /> ข้อมูลโครงสร้างและขนาด (ประตู)
         </h3>
-        <div className="grid grid-cols-2 gap-6">
+        <div className="space-y-4">
+          {/* แถว 1: โครงสร้างวัสดุ */}
           <div>
             <label className="block text-sm font-medium text-slate-600 mb-1">โครงสร้างวัสดุ</label>
             <select value={form.structure} onChange={e => onInput('structure', e.target.value)}
@@ -54,18 +55,19 @@ export const DoorCalculator: React.FC<Props> = ({ form, onInput, onOptionToggle 
               <option value="WPC MAX">ประตู WPC MAX</option>
             </select>
           </div>
+          {/* แถว 2: ขนาดประตู — เต็มความกว้าง 4 ปุ่มเรียง */}
           <div>
             <label className="block text-sm font-medium text-slate-600 mb-2">ขนาดประตู</label>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-4 gap-2">
               {[{id:'70x200cm',l:'70×200'},{id:'80x200cm',l:'80×200'},{id:'90x200cm',l:'90×200'},{id:'custom',l:'Custom'}].map(s => (
                 <div key={s.id} onClick={() => onInput('sizeType', s.id)}
-                  className={`cursor-pointer border-2 rounded-lg p-3 text-center transition-all ${
+                  className={`cursor-pointer border-2 rounded-lg p-3 text-center text-sm transition-all ${
                     form.sizeType === s.id ? 'border-blue-500 bg-blue-50 text-blue-700 font-bold' : 'border-slate-200'
                   }`}>{s.l}</div>
               ))}
             </div>
             {form.sizeType === 'custom' && (
-              <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 mt-4">
+              <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 mt-3">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-xs text-slate-600">กว้าง <span className="text-red-500">(สูงสุด 110 cm)</span></label>
