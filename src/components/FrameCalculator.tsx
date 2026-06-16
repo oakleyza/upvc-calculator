@@ -23,8 +23,14 @@ export const FrameCalculator: React.FC<Props> = ({ form, onInput }) => {
     if (v === '') { onInput('customHeight', ''); return; }
     const n = Number(v);
     const maxH = (form.frameMaterial === FRAME_MATERIALS.F10 || form.frameMaterial === FRAME_MATERIALS.ADJUST_X) ? 220 : 240;
-    if (n < 150 || n > maxH) return;
+    if (n < 1 || n > maxH) return; // ไม่บล็อกระหว่างพิมพ์
     onInput('customHeight', v);
+  };
+
+  // clamp ต่ำสุด 150 ตอนออกจากช่อง (ไม่บล็อกขณะพิมพ์)
+  const handleHeightBlur = () => {
+    const n = Number(form.customHeight);
+    if (n > 0 && n < 150) onInput('customHeight', '150');
   };
 
   const canSVL = isFrameWithSub(form.frameMaterial);
@@ -76,7 +82,7 @@ export const FrameCalculator: React.FC<Props> = ({ form, onInput }) => {
                   <label className="text-xs text-slate-600">
                     สูง <span className="text-red-500">(150–{maxH} cm)</span>
                   </label>
-                  <input type="number" value={form.customHeight} onChange={handleHeightChange}
+                  <input type="number" value={form.customHeight} onChange={handleHeightChange} onBlur={handleHeightBlur}
                     min={150} max={maxH} className="w-full p-2 border rounded" />
                 </div>
               </div>
