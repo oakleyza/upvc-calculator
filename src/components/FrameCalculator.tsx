@@ -63,7 +63,7 @@ export const FrameCalculator: React.FC<Props> = ({ form, onInput }) => {
             <div className="grid grid-cols-4 gap-3">
               {[{id:'70x200cm',l:'70×200'},{id:'80x200cm',l:'80×200'},{id:'90x200cm',l:'90×200'},{id:'custom',l:'Custom'}].map(s => (
                 <div key={s.id} onClick={() => onInput('sizeType', s.id)}
-                  className={`cursor-pointer border-2 rounded-lg p-3 text-center transition-all ${
+                  className={`cursor-pointer border-2 rounded-lg p-3 text-center text-sm transition-all ${
                     form.sizeType === s.id ? 'border-blue-500 bg-blue-50 text-blue-700 font-bold' : 'border-slate-200'
                   }`}>{s.l}</div>
               ))}
