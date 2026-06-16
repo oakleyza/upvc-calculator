@@ -21,8 +21,14 @@ export const DoorCalculator: React.FC<Props> = ({ form, onInput, onOptionToggle 
     const v = e.target.value;
     if (v === '') { onInput('customHeight', ''); return; }
     const n = Number(v);
-    if (n < 150 || n > 240) return;
+    if (n < 1 || n > 240) return; // ไม่บล็อกระหว่างพิมพ์
     onInput('customHeight', v);
+  };
+
+  // clamp ต่ำสุด 150 ตอนออกจากช่อง (ไม่บล็อกขณะพิมพ์)
+  const handleHeightBlur = () => {
+    const n = Number(form.customHeight);
+    if (n > 0 && n < 150) onInput('customHeight', '150');
   };
 
   // C-2 FIX: Constraint flags เป็น computed variables ธรรมดา (ไม่ใช้ IIFE)
@@ -68,7 +74,7 @@ export const DoorCalculator: React.FC<Props> = ({ form, onInput, onOptionToggle 
                   </div>
                   <div>
                     <label className="text-xs text-slate-600">สูง <span className="text-red-500">(150–240 cm)</span></label>
-                    <input type="number" value={form.customHeight} onChange={handleHeightChange}
+                    <input type="number" value={form.customHeight} onChange={handleHeightChange} onBlur={handleHeightBlur}
                       min={150} max={240} className="w-full p-2 border rounded" />
                   </div>
                 </div>
