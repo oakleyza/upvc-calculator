@@ -13,7 +13,7 @@ export const DoorCalculator: React.FC<Props> = ({ form, onInput, onOptionToggle 
     const v = e.target.value;
     if (v === '') { onInput('customWidth', ''); return; }
     const n = Number(v);
-    if (n < 1 || n > 110) return;
+    if (n < 1 || n > 120) return;
     onInput('customWidth', v);
   };
 
@@ -70,9 +70,9 @@ export const DoorCalculator: React.FC<Props> = ({ form, onInput, onOptionToggle 
               <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 mt-3">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-xs text-slate-600">กว้าง <span className="text-red-500">(สูงสุด 110 cm)</span></label>
+                    <label className="text-xs text-slate-600">กว้าง <span className="text-red-500">(สูงสุด 120 cm)</span></label>
                     <input type="number" value={form.customWidth} onChange={handleWidthChange}
-                      min={1} max={110} className="w-full p-2 border rounded" />
+                      min={1} max={120} className="w-full p-2 border rounded" />
                   </div>
                   <div>
                     <label className="text-xs text-slate-600">สูง <span className="text-red-500">(150–240 cm)</span></label>

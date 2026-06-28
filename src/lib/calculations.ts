@@ -30,7 +30,7 @@ export const calculateDoorPrice = (form: DoorFormData, prices: PricingStructure)
     if (width >= 81 && width <= 89)     { const p = getSizeP('custom_w_81_89');   price += p; if (p) surcharges.push(`กว้าง 81-89cm (+฿${p.toLocaleString()})`); }
     else if (width === 90)              { const p = getSizeP('custom_w_90');       price += p; if (p) surcharges.push(`กว้าง 90cm (+฿${p.toLocaleString()})`); }
     else if (width >= 91 && width <= 100) { const p = getSizeP('custom_w_91_100');  price += p; if (p) surcharges.push(`กว้าง 91-100cm (+฿${p.toLocaleString()})`); }
-    else if (width >= 101 && width <= 110){ const p = getSizeP('custom_w_101_110'); price += p; if (p) surcharges.push(`กว้าง 101-110cm (+฿${p.toLocaleString()})`); }
+    else if (width >= 101 && width <= 120){ const p = getSizeP('custom_w_101_110'); price += p; if (p) surcharges.push(`กว้าง 101-120cm (+฿${p.toLocaleString()})`); }
 
     // Surcharge ความสูง
     if (h < 200)                        { const p = getSizeP('custom_h_under_200'); price += p; if (p) surcharges.push(`ลดความสูง < 200cm (+฿${p.toLocaleString()})`); }
