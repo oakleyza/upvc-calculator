@@ -13,8 +13,14 @@ export const DoorCalculator: React.FC<Props> = ({ form, onInput, onOptionToggle 
     const v = e.target.value;
     if (v === '') { onInput('customWidth', ''); return; }
     const n = Number(v);
-    if (n < 1 || n > 120) return;
+    if (n < 1 || n > 120) return; // ไม่บล็อกระหว่างพิมพ์
     onInput('customWidth', v);
+  };
+
+  // clamp ต่ำสุด 45 ตอนออกจากช่อง (ไม่บล็อกขณะพิมพ์)
+  const handleWidthBlur = () => {
+    const n = Number(form.customWidth);
+    if (n > 0 && n < 45) onInput('customWidth', '45');
   };
 
   const handleHeightChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -70,9 +76,9 @@ export const DoorCalculator: React.FC<Props> = ({ form, onInput, onOptionToggle 
               <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 mt-3">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-xs text-slate-600">กว้าง <span className="text-red-500">(สูงสุด 120 cm)</span></label>
-                    <input type="number" value={form.customWidth} onChange={handleWidthChange}
-                      min={1} max={120} className="w-full p-2 border rounded" />
+                    <label className="text-xs text-slate-600">กว้าง <span className="text-red-500">(45–120 cm)</span></label>
+                    <input type="number" value={form.customWidth} onChange={handleWidthChange} onBlur={handleWidthBlur}
+                      min={45} max={120} className="w-full p-2 border rounded" />
                   </div>
                   <div>
                     <label className="text-xs text-slate-600">สูง <span className="text-red-500">(150–240 cm)</span></label>
