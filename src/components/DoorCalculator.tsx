@@ -13,28 +13,40 @@ export const DoorCalculator: React.FC<Props> = ({ form, onInput, onOptionToggle 
     const v = e.target.value;
     if (v === '') { onInput('customWidth', ''); return; }
     const n = Number(v);
-    if (n < 1 || n > 120) return; // ไม่บล็อกระหว่างพิมพ์
+    if (n > 999) return; // บล็อกแค่ค่าไม่สมเหตุสมผล
     onInput('customWidth', v);
   };
 
-  // clamp ต่ำสุด 45 ตอนออกจากช่อง (ไม่บล็อกขณะพิมพ์)
   const handleWidthBlur = () => {
     const n = Number(form.customWidth);
-    if (n > 0 && n < 45) onInput('customWidth', '45');
+    if (!form.customWidth || n === 0) return;
+    if (n < 45) {
+      alert('ความกว้างต้องไม่น้อยกว่า 45 cm\nกรุณากรอกใหม่');
+      onInput('customWidth', '');
+    } else if (n > 120) {
+      alert('ความกว้างสูงสุดคือ 120 cm\nกรุณากรอกใหม่');
+      onInput('customWidth', '');
+    }
   };
 
   const handleHeightChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const v = e.target.value;
     if (v === '') { onInput('customHeight', ''); return; }
     const n = Number(v);
-    if (n < 1 || n > 240) return; // ไม่บล็อกระหว่างพิมพ์
+    if (n > 999) return; // บล็อกแค่ค่าไม่สมเหตุสมผล
     onInput('customHeight', v);
   };
 
-  // clamp ต่ำสุด 150 ตอนออกจากช่อง (ไม่บล็อกขณะพิมพ์)
   const handleHeightBlur = () => {
     const n = Number(form.customHeight);
-    if (n > 0 && n < 150) onInput('customHeight', '150');
+    if (!form.customHeight || n === 0) return;
+    if (n < 150) {
+      alert('ความสูงต้องไม่น้อยกว่า 150 cm\nกรุณากรอกใหม่');
+      onInput('customHeight', '');
+    } else if (n > 240) {
+      alert('ความสูงสูงสุดคือ 240 cm\nกรุณากรอกใหม่');
+      onInput('customHeight', '');
+    }
   };
 
   // C-2 FIX: Constraint flags เป็น computed variables ธรรมดา (ไม่ใช้ IIFE)

@@ -13,24 +13,40 @@ export const FrameCalculator: React.FC<Props> = ({ form, onInput }) => {
     const v = e.target.value;
     if (v === '') { onInput('customWidth', ''); return; }
     const n = Number(v);
-    const maxW = form.frameMaterial === FRAME_MATERIALS.ADJUST_X ? 90 : 180;
-    if (n < 1 || n > maxW) return;
+    if (n > 999) return; // บล็อกแค่ค่าไม่สมเหตุสมผล
     onInput('customWidth', v);
+  };
+
+  const handleWidthBlur = () => {
+    const n = Number(form.customWidth);
+    if (!form.customWidth || n === 0) return;
+    if (n < 45) {
+      alert('ความกว้างต้องไม่น้อยกว่า 45 cm\nกรุณากรอกใหม่');
+      onInput('customWidth', '');
+    } else if (n > maxW) {
+      alert(`ความกว้างสูงสุดคือ ${maxW} cm\nกรุณากรอกใหม่`);
+      onInput('customWidth', '');
+    }
   };
 
   const handleHeightChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const v = e.target.value;
     if (v === '') { onInput('customHeight', ''); return; }
     const n = Number(v);
-    const maxH = (form.frameMaterial === FRAME_MATERIALS.F10 || form.frameMaterial === FRAME_MATERIALS.ADJUST_X) ? 220 : 240;
-    if (n < 1 || n > maxH) return; // ไม่บล็อกระหว่างพิมพ์
+    if (n > 999) return; // บล็อกแค่ค่าไม่สมเหตุสมผล
     onInput('customHeight', v);
   };
 
-  // clamp ต่ำสุด 150 ตอนออกจากช่อง (ไม่บล็อกขณะพิมพ์)
   const handleHeightBlur = () => {
     const n = Number(form.customHeight);
-    if (n > 0 && n < 150) onInput('customHeight', '150');
+    if (!form.customHeight || n === 0) return;
+    if (n < 150) {
+      alert('ความสูงต้องไม่น้อยกว่า 150 cm\nกรุณากรอกใหม่');
+      onInput('customHeight', '');
+    } else if (n > maxH) {
+      alert(`ความสูงสูงสุดคือ ${maxH} cm\nกรุณากรอกใหม่`);
+      onInput('customHeight', '');
+    }
   };
 
   const canSVL = isFrameWithSub(form.frameMaterial);
@@ -73,10 +89,10 @@ export const FrameCalculator: React.FC<Props> = ({ form, onInput }) => {
               <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 mt-4 flex gap-4">
                 <div className="flex-1">
                   <label className="text-xs text-slate-600">
-                    กว้าง <span className="text-red-500">(สูงสุด {maxW} cm)</span>
+                    กว้าง <span className="text-red-500">(45–{maxW} cm)</span>
                   </label>
-                  <input type="number" value={form.customWidth} onChange={handleWidthChange}
-                    min={1} max={maxW} className="w-full p-2 border rounded" />
+                  <input type="number" value={form.customWidth} onChange={handleWidthChange} onBlur={handleWidthBlur}
+                    min={45} max={maxW} className="w-full p-2 border rounded" />
                 </div>
                 <div className="flex-1">
                   <label className="text-xs text-slate-600">
