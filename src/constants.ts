@@ -4,10 +4,11 @@ import type { PricingStructure, DoorFormData, FrameFormData } from './types';
 // Frame material constants (แทน magic strings ที่กระจายทั่ว codebase)
 // ------------------------------------------------------------------
 export const FRAME_MATERIALS = {
-  T2:        'wpc_4in_t2',
-  F10:       'wpc_4in_f10',
-  ADJUST_X:  'wpc_adjust_x',
-  ADJUST_ECO:'wpc_adjust_eco',
+  T2:             'wpc_4in_t2',
+  F10:            'wpc_4in_f10',
+  ADJUST_X:       'wpc_adjust_x',
+  ADJUST_ECO:     'wpc_adjust_eco',
+  ADJUST_BIG_SIX: 'wpc_adjust_bsx',
 } as const;
 
 export type FrameMaterialKey = typeof FRAME_MATERIALS[keyof typeof FRAME_MATERIALS];
@@ -135,6 +136,22 @@ export const LABEL_MAP: Record<string, string> = {
   'x_svl_h_201_210': 'Adjust X — ค่าปิดผิว SVL (สูง 201–210 cm)',
   'x_svl_h_211_220': 'Adjust X — ค่าปิดผิว SVL (สูง 211–220 cm)',
   'x_svl_h_221_240': 'Adjust X — ค่าปิดผิว SVL (สูง 221–240 cm)',
+  // === Adjust Big Six ===
+  'wpc_adjust_bsx': 'วงกบ Adjust Big Six — ราคาเริ่มต้นชุดวงกบ',
+  'bsx_std_70': 'Adjust Big Six — ไซส์มาตรฐาน 70×200 (ไม่มีค่าเพิ่ม)',
+  'bsx_std_80': 'Adjust Big Six — ไซส์มาตรฐาน 80×200 (ไม่มีค่าเพิ่ม)',
+  'bsx_std_90': 'Adjust Big Six — ไซส์มาตรฐาน 90×200 (ไม่มีค่าเพิ่ม)',
+  'bsx_w_81_90': 'Adjust Big Six — ค่าเพิ่มความกว้าง 81–90 cm',
+  'bsx_w_91_140': 'Adjust Big Six — ค่าเพิ่มความกว้าง 91–140 cm',
+  'bsx_w_141_180': 'Adjust Big Six — ค่าเพิ่มความกว้าง 141–180 cm',
+  'bsx_h_under_200': 'Adjust Big Six — ค่าลดไซส์ ความสูงต่ำกว่า 200 cm',
+  'bsx_h_201_210': 'Adjust Big Six — ค่าเพิ่มความสูง 201–210 cm',
+  'bsx_h_211_220': 'Adjust Big Six — ค่าเพิ่มความสูง 211–220 cm',
+  'bsx_h_221_240': 'Adjust Big Six — ค่าเพิ่มความสูง 221–240 cm',
+  'bsx_toa_h_200': 'Adjust Big Six — ค่าพ่นสี TOA (สูงไม่เกิน 200 cm)',
+  'bsx_toa_h_201_210': 'Adjust Big Six — ค่าพ่นสี TOA (สูง 201–210 cm)',
+  'bsx_toa_h_211_220': 'Adjust Big Six — ค่าพ่นสี TOA (สูง 211–220 cm)',
+  'bsx_toa_h_221_240': 'Adjust Big Six — ค่าพ่นสี TOA (สูง 221–240 cm)',
   // === Adjust Eco ===
   'eco_std_70': 'Adjust Eco — ไซส์มาตรฐาน 70×200 (ไม่มีค่าเพิ่ม)',
   'eco_std_80': 'Adjust Eco — ไซส์มาตรฐาน 80×200 (ไม่มีค่าเพิ่ม)',
@@ -175,6 +192,7 @@ export const DEFAULT_PRICES: PricingStructure = {
     [FRAME_MATERIALS.F10]: 950,
     [FRAME_MATERIALS.ADJUST_X]: 1200,
     [FRAME_MATERIALS.ADJUST_ECO]: 999,
+    [FRAME_MATERIALS.ADJUST_BIG_SIX]: 999,
   },
   frame_size: {
     '70x200cm': 0, '80x200cm': 0, '90x200cm': 0, 'custom': 0,
@@ -190,6 +208,9 @@ export const DEFAULT_PRICES: PricingStructure = {
     'eco_std_70': 0, 'eco_std_80': 0, 'eco_std_90': 0,
     'eco_w_81_90': 80, 'eco_w_91_140': 200, 'eco_w_141_180': 280,
     'eco_h_201_210': 200, 'eco_h_211_220': 400, 'eco_h_221_240': 600, 'eco_h_under_200': 200,
+    'bsx_std_70': 0, 'bsx_std_80': 0, 'bsx_std_90': 0,
+    'bsx_w_81_90': 0, 'bsx_w_91_140': 0, 'bsx_w_141_180': 0,
+    'bsx_h_under_200': 200, 'bsx_h_201_210': 0, 'bsx_h_211_220': 0, 'bsx_h_221_240': 0,
   },
   frame_surface: {
     'none': 0,
@@ -199,6 +220,7 @@ export const DEFAULT_PRICES: PricingStructure = {
     'x_svl_h_200': 0, 'x_svl_h_201_210': 0, 'x_svl_h_211_220': 0, 'x_svl_h_221_240': 0,
     'eco_toa_h_200_210': 600, 'eco_toa_h_211_220': 700, 'eco_toa_h_221_240': 800,
     'eco_svl_h_under_200': 1200, 'eco_svl_h_200_210': 1200, 'eco_svl_h_211_220': 1500, 'eco_svl_h_221_240': 1700,
+    'bsx_toa_h_200': 0, 'bsx_toa_h_201_210': 0, 'bsx_toa_h_211_220': 0, 'bsx_toa_h_221_240': 0,
   },
   structure: {}, size: {}, surface: {},
   grooving: { 'none': 0, 'standard': 999, 'black_line': 999, 'painted': 999 },

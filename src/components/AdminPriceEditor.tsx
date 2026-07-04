@@ -9,7 +9,7 @@ interface Props {
   onClose: () => void;
 }
 
-type ActiveCategory = 'door' | 'frame_t2' | 'frame_f10' | 'frame_x' | 'frame_eco';
+type ActiveCategory = 'door' | 'frame_t2' | 'frame_f10' | 'frame_x' | 'frame_eco' | 'frame_bsx';
 
 export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, onSave, onClose }) => {
   const [activeCategory, setActiveCategory] = useState<ActiveCategory>('door');
@@ -73,6 +73,7 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, onSave, onClo
     { id: 'frame_f10', label: '🔲 วงกบ F10' },
     { id: 'frame_x',   label: '✨ Adjust X' },
     { id: 'frame_eco', label: '✨ Adjust Eco' },
+    { id: 'frame_bsx', label: '⬡ Big Six' },
   ];
 
   return (
@@ -235,6 +236,33 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, onSave, onClo
                       {Object.keys(localPrices.frame_surface).filter(k => k.startsWith('x_svl_h_')).map(k => renderInput('frame_surface', k))}
                     </div>
                   </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeCategory === 'frame_bsx' && (
+            <div className="space-y-6">
+              <div className="bg-cyan-50 p-4 rounded-lg border border-cyan-200">
+                <h4 className="font-bold text-cyan-800 flex items-center gap-2"><LayoutDashboard className="w-5 h-5" /> Adjust Big Six (Max 180x240, ไม่มีซับ)</h4>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-white p-4 rounded-lg shadow-sm border">
+                  <h4 className="font-bold text-slate-800 mb-3 pb-2 border-b">ราคาตั้งต้น & มาตรฐาน</h4>
+                  {renderInput('frame_base', 'wpc_adjust_bsx')}
+                  {['bsx_std_70','bsx_std_80','bsx_std_90'].map(k => renderInput('frame_size', k))}
+                </div>
+                <div className="bg-white p-4 rounded-lg shadow-sm border">
+                  <h4 className="font-bold text-orange-600 mb-3 pb-2 border-b">Surcharge ความกว้าง</h4>
+                  {Object.keys(localPrices.frame_size).filter(k => k.startsWith('bsx_w_')).map(k => renderInput('frame_size', k))}
+                </div>
+                <div className="bg-white p-4 rounded-lg shadow-sm border">
+                  <h4 className="font-bold text-orange-600 mb-3 pb-2 border-b">Surcharge ความสูง</h4>
+                  {Object.keys(localPrices.frame_size).filter(k => k.startsWith('bsx_h_')).map(k => renderInput('frame_size', k))}
+                </div>
+                <div className="bg-white p-4 rounded-lg shadow-sm border">
+                  <h4 className="font-bold text-purple-600 mb-3 pb-2 border-b">ราคาพ่นสี TOA</h4>
+                  {Object.keys(localPrices.frame_surface).filter(k => k.startsWith('bsx_toa_h_')).map(k => renderInput('frame_surface', k))}
                 </div>
               </div>
             </div>
