@@ -17,6 +17,7 @@ export type FrameMaterialKey = typeof FRAME_MATERIALS[keyof typeof FRAME_MATERIA
 export const FRAME_WITH_SUB: FrameMaterialKey[] = [
   FRAME_MATERIALS.ADJUST_X,
   FRAME_MATERIALS.ADJUST_ECO,
+  FRAME_MATERIALS.ADJUST_BIG_SIX,
 ];
 
 export const isFrameWithSub = (material: string): boolean =>
@@ -152,6 +153,10 @@ export const LABEL_MAP: Record<string, string> = {
   'bsx_toa_h_201_210': 'Adjust Big Six — ค่าพ่นสี TOA (สูง 201–210 cm)',
   'bsx_toa_h_211_220': 'Adjust Big Six — ค่าพ่นสี TOA (สูง 211–220 cm)',
   'bsx_toa_h_221_240': 'Adjust Big Six — ค่าพ่นสี TOA (สูง 221–240 cm)',
+  'bsx_svl_h_200': 'Adjust Big Six — ค่าปิดผิว SVL (สูงไม่เกิน 200 cm)',
+  'bsx_svl_h_201_210': 'Adjust Big Six — ค่าปิดผิว SVL (สูง 201–210 cm)',
+  'bsx_svl_h_211_220': 'Adjust Big Six — ค่าปิดผิว SVL (สูง 211–220 cm)',
+  'bsx_svl_h_221_240': 'Adjust Big Six — ค่าปิดผิว SVL (สูง 221–240 cm)',
   // === Adjust Eco ===
   'eco_std_70': 'Adjust Eco — ไซส์มาตรฐาน 70×200 (ไม่มีค่าเพิ่ม)',
   'eco_std_80': 'Adjust Eco — ไซส์มาตรฐาน 80×200 (ไม่มีค่าเพิ่ม)',
@@ -221,6 +226,7 @@ export const DEFAULT_PRICES: PricingStructure = {
     'eco_toa_h_200_210': 600, 'eco_toa_h_211_220': 700, 'eco_toa_h_221_240': 800,
     'eco_svl_h_under_200': 1200, 'eco_svl_h_200_210': 1200, 'eco_svl_h_211_220': 1500, 'eco_svl_h_221_240': 1700,
     'bsx_toa_h_200': 0, 'bsx_toa_h_201_210': 0, 'bsx_toa_h_211_220': 0, 'bsx_toa_h_221_240': 0,
+    'bsx_svl_h_200': 0, 'bsx_svl_h_201_210': 0, 'bsx_svl_h_211_220': 0, 'bsx_svl_h_221_240': 0,
   },
   structure: {}, size: {}, surface: {},
   grooving: { 'none': 0, 'standard': 999, 'black_line': 999, 'painted': 999 },

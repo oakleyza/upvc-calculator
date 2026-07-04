@@ -260,9 +260,18 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, onSave, onClo
                   <h4 className="font-bold text-orange-600 mb-3 pb-2 border-b">Surcharge ความสูง</h4>
                   {Object.keys(localPrices.frame_size).filter(k => k.startsWith('bsx_h_')).map(k => renderInput('frame_size', k))}
                 </div>
-                <div className="bg-white p-4 rounded-lg shadow-sm border">
-                  <h4 className="font-bold text-purple-600 mb-3 pb-2 border-b">ราคาพ่นสี TOA</h4>
-                  {Object.keys(localPrices.frame_surface).filter(k => k.startsWith('bsx_toa_h_')).map(k => renderInput('frame_surface', k))}
+                <div className="bg-white p-4 rounded-lg shadow-sm border md:col-span-2">
+                  <h4 className="font-bold text-purple-600 mb-3 pb-2 border-b">ราคาทำสี/ผิว (Big Six)</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-orange-50 p-3 rounded">
+                      <h5 className="font-bold text-orange-800 text-sm mb-2">สี TOA</h5>
+                      {Object.keys(localPrices.frame_surface).filter(k => k.startsWith('bsx_toa_h_')).map(k => renderInput('frame_surface', k))}
+                    </div>
+                    <div className="bg-purple-50 p-3 rounded">
+                      <h5 className="font-bold text-purple-800 text-sm mb-2">ผิว SVL</h5>
+                      {Object.keys(localPrices.frame_surface).filter(k => k.startsWith('bsx_svl_h_')).map(k => renderInput('frame_surface', k))}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

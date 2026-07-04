@@ -188,6 +188,11 @@ export const calculateFramePrice = (form: FrameFormData, prices: PricingStructur
       else if (height <= 210) { const p = getSurf('bsx_toa_h_201_210'); price += p; if (p) surcharges.push(`Big Six: TOA 201-210cm (+฿${p.toLocaleString()})`); }
       else if (height <= 220) { const p = getSurf('bsx_toa_h_211_220'); price += p; if (p) surcharges.push(`Big Six: TOA 211-220cm (+฿${p.toLocaleString()})`); }
       else                    { const p = getSurf('bsx_toa_h_221_240'); price += p; if (p) surcharges.push(`Big Six: TOA 221-240cm (+฿${p.toLocaleString()})`); }
+    } else if (form.surfaceType === 'SVL') {
+      if      (height <= 200) { const p = getSurf('bsx_svl_h_200');     price += p; if (p) surcharges.push(`Big Six: SVL ≤200cm (+฿${p.toLocaleString()})`); }
+      else if (height <= 210) { const p = getSurf('bsx_svl_h_201_210'); price += p; if (p) surcharges.push(`Big Six: SVL 201-210cm (+฿${p.toLocaleString()})`); }
+      else if (height <= 220) { const p = getSurf('bsx_svl_h_211_220'); price += p; if (p) surcharges.push(`Big Six: SVL 211-220cm (+฿${p.toLocaleString()})`); }
+      else                    { const p = getSurf('bsx_svl_h_221_240'); price += p; if (p) surcharges.push(`Big Six: SVL 221-240cm (+฿${p.toLocaleString()})`); }
     }
   }
 
