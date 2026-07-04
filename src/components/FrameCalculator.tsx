@@ -22,9 +22,14 @@ export const FrameCalculator: React.FC<Props> = ({ form, onInput }) => {
     if (!form.customWidth || n === 0) return;
     if (n < 45) {
       alert('ความกว้างต้องไม่น้อยกว่า 45 cm\nกรุณากรอกใหม่');
-      onInput('customWidth', '');
-    } else if (n > maxW) {
+      onInput('customWidth', ''); return;
+    }
+    if (n > maxW) {
       alert(`ความกว้างสูงสุดคือ ${maxW} cm\nกรุณากรอกใหม่`);
+      onInput('customWidth', ''); return;
+    }
+    if (n % 5 !== 0) {
+      alert('ขนาดต้องลงท้ายด้วยเลข 0 หรือ 5 เท่านั้น\nกรุณากรอกใหม่');
       onInput('customWidth', '');
     }
   };
@@ -42,9 +47,14 @@ export const FrameCalculator: React.FC<Props> = ({ form, onInput }) => {
     if (!form.customHeight || n === 0) return;
     if (n < 150) {
       alert('ความสูงต้องไม่น้อยกว่า 150 cm\nกรุณากรอกใหม่');
-      onInput('customHeight', '');
-    } else if (n > maxH) {
+      onInput('customHeight', ''); return;
+    }
+    if (n > maxH) {
       alert(`ความสูงสูงสุดคือ ${maxH} cm\nกรุณากรอกใหม่`);
+      onInput('customHeight', ''); return;
+    }
+    if (n % 5 !== 0) {
+      alert('ขนาดต้องลงท้ายด้วยเลข 0 หรือ 5 เท่านั้น\nกรุณากรอกใหม่');
       onInput('customHeight', '');
     }
   };
