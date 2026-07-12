@@ -12,64 +12,49 @@ export const WoodDoorCalculator: React.FC<Props> = ({ form, onInput }) => {
   const handleWidthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const v = e.target.value;
     if (v === '') { onInput('customWidth', ''); return; }
-    const n = Number(v);
-    if (n > 999) return;
+    if (Number(v) > 999) return;
     onInput('customWidth', v);
   };
 
   const handleHeightChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const v = e.target.value;
     if (v === '') { onInput('customHeight', ''); return; }
-    const n = Number(v);
-    if (n > 999) return;
+    if (Number(v) > 999) return;
     onInput('customHeight', v);
   };
 
   return (
     <div className="space-y-8">
-      {/* ประเภทไม้ */}
+      {/* ชนิดไม้ + รุ่น (Dropdowns) */}
       <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
         <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
-          <TreePine className="w-5 h-5 text-green-600" /> ประเภทไม้
+          <TreePine className="w-5 h-5 text-green-600" /> ชนิดไม้ & รุ่นประตู
         </h3>
-        <div className="grid grid-cols-3 gap-3">
-          {Object.entries(WOOD_TYPE_NAMES).map(([key, label]) => (
-            <div
-              key={key}
-              onClick={() => onInput('woodType', key)}
-              className={`cursor-pointer border-2 rounded-lg p-4 text-center transition-all ${
-                form.woodType === key
-                  ? 'border-green-500 bg-green-50 text-green-800 font-bold'
-                  : 'border-slate-200 hover:border-slate-300'
-              }`}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-600 mb-2">ชนิดไม้</label>
+            <select
+              value={form.woodType}
+              onChange={e => onInput('woodType', e.target.value)}
+              className="w-full p-3 border rounded-lg bg-white focus:ring-2 focus:ring-green-400 outline-none"
             >
-              <TreePine className="w-6 h-6 mx-auto mb-1 opacity-70" />
-              <span className="text-sm">{label}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* รุ่น */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-        <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
-          <LayoutDashboardIcon /> รุ่นประตู
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {Object.entries(WOOD_MODEL_NAMES).map(([key, label]) => (
-            <div
-              key={key}
-              onClick={() => onInput('modelId', key)}
-              className={`cursor-pointer border-2 rounded-lg p-4 text-center transition-all ${
-                form.modelId === key
-                  ? 'border-amber-500 bg-amber-50 text-amber-800 font-bold'
-                  : 'border-slate-200 hover:border-slate-300'
-              }`}
+              {Object.entries(WOOD_TYPE_NAMES).map(([key, label]) => (
+                <option key={key} value={key}>{label}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-600 mb-2">รุ่นประตู</label>
+            <select
+              value={form.modelId}
+              onChange={e => onInput('modelId', e.target.value)}
+              className="w-full p-3 border rounded-lg bg-white focus:ring-2 focus:ring-amber-400 outline-none"
             >
-              <span className="text-sm font-medium">{label}</span>
-              <span className="block text-xs text-slate-500 mt-0.5">{key.toUpperCase()}</span>
-            </div>
-          ))}
+              {Object.entries(WOOD_MODEL_NAMES).map(([key, label]) => (
+                <option key={key} value={key}>{label}</option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
@@ -125,46 +110,34 @@ export const WoodDoorCalculator: React.FC<Props> = ({ form, onInput }) => {
         )}
       </div>
 
-      {/* ทำสี */}
+      {/* การทำสี */}
       <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
         <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
           <Palette className="w-5 h-5 text-purple-600" /> การทำสี
         </h3>
-        <div
-          onClick={() => onInput('painted', !form.painted)}
-          className={`cursor-pointer border-2 rounded-lg p-4 transition-all flex items-center gap-3 ${
-            form.painted
-              ? 'border-purple-500 bg-purple-50 text-purple-800'
-              : 'border-slate-200 bg-slate-50 text-slate-400'
-          }`}
-        >
-          <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors shrink-0 ${
-            form.painted ? 'bg-purple-500 border-purple-500' : 'border-slate-300 bg-white'
-          }`}>
-            {form.painted && <span className="text-white text-xs font-bold">✓</span>}
+        <div className="grid grid-cols-2 gap-3">
+          <div
+            onClick={() => onInput('painted', true)}
+            className={`cursor-pointer border-2 rounded-lg p-4 text-center transition-all ${
+              form.painted
+                ? 'border-purple-500 bg-purple-50 text-purple-800 font-bold'
+                : 'border-slate-200 text-slate-500 hover:border-slate-300'
+            }`}
+          >
+            ทำสี
           </div>
-          <div>
-            <span className="font-medium">
-              {form.painted ? 'ทำสี (ค่าเริ่มต้น)' : 'ไม่ทำสี'}
-            </span>
-            <p className={`text-xs mt-0.5 ${form.painted ? 'text-purple-600' : 'text-slate-400'}`}>
-              {form.painted
-                ? 'ค่าสีคำนวณตามช่วงขนาด — ติ๊กออกถ้าไม่ต้องการทำสี'
-                : 'ราคาไม่รวมค่าทำสี — ติ๊กกลับถ้าต้องการทำสี'}
-            </p>
+          <div
+            onClick={() => onInput('painted', false)}
+            className={`cursor-pointer border-2 rounded-lg p-4 text-center transition-all ${
+              !form.painted
+                ? 'border-slate-500 bg-slate-100 text-slate-800 font-bold'
+                : 'border-slate-200 text-slate-500 hover:border-slate-300'
+            }`}
+          >
+            ไม่ทำสี
           </div>
         </div>
       </div>
     </div>
   );
 };
-
-// Inline icon component (no extra import needed)
-const LayoutDashboardIcon = () => (
-  <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-    <rect x={3} y={3} width={7} height={7} rx={1} />
-    <rect x={14} y={3} width={7} height={7} rx={1} />
-    <rect x={3} y={14} width={7} height={7} rx={1} />
-    <rect x={14} y={14} width={7} height={7} rx={1} />
-  </svg>
-);

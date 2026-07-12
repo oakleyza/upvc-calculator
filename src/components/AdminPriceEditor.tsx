@@ -291,19 +291,26 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, onSave, onClo
               {/* ราคาตั้งต้น */}
               <div className="bg-white p-5 rounded-xl shadow-sm border">
                 <h4 className="font-bold text-slate-800 mb-4 pb-2 border-b">ราคาตั้งต้น (ตามชนิดไม้ × รุ่น)</h4>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div>
-                    <h5 className="text-sm font-bold text-slate-600 mb-2 bg-slate-100 p-2 rounded">ไม้สะเดา</h5>
-                    {['wd_base_sadao_m1','wd_base_sadao_m2'].map(k => renderInput('wood_door_price', k))}
-                  </div>
-                  <div>
-                    <h5 className="text-sm font-bold text-slate-600 mb-2 bg-slate-100 p-2 rounded">ไม้ตะแบก</h5>
-                    {['wd_base_tabak_m1','wd_base_tabak_m2'].map(k => renderInput('wood_door_price', k))}
-                  </div>
-                  <div>
-                    <h5 className="text-sm font-bold text-slate-600 mb-2 bg-slate-100 p-2 rounded">ไม้สัก</h5>
-                    {['wd_base_teak_m1','wd_base_teak_m2'].map(k => renderInput('wood_door_price', k))}
-                  </div>
+                <div className="space-y-5">
+                  {([
+                    { wood: 'sadao', label: 'ไม้สะเดา' },
+                    { wood: 'tabak', label: 'ไม้ตะแบก' },
+                    { wood: 'teak',  label: 'ไม้สัก' },
+                  ] as const).map(({ wood, label }) => (
+                    <div key={wood}>
+                      <h5 className="text-sm font-bold text-slate-700 mb-2 bg-slate-100 p-2 rounded">{label}</h5>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-xs font-semibold text-orange-700 mb-1 pl-1">ค่าไม้</p>
+                          {(['m1','m2'] as const).map(m => renderInput('wood_door_price', `wd_base_${wood}_${m}_wood`))}
+                        </div>
+                        <div>
+                          <p className="text-xs font-semibold text-purple-700 mb-1 pl-1">ค่าทำสี</p>
+                          {(['m1','m2'] as const).map(m => renderInput('wood_door_paint', `wd_base_${wood}_${m}_paint`))}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
 

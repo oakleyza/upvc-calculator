@@ -235,9 +235,15 @@ export const calculateWoodDoorPrice = (form: WoodDoorFormData, prices: PricingSt
   const getP     = (k: string) => prices.wood_door_price?.[k] ?? 0;
   const getPaint = (k: string) => prices.wood_door_paint?.[k]  ?? 0;
 
-  // ราคาเริ่มต้น ตามไม้ × รุ่น
-  const baseKey = `wd_base_${form.woodType}_${form.modelId}`;
-  let price = getP(baseKey);
+  // ค่าไม้ตั้งต้น (เสมอ) + ค่าทำสีตั้งต้น (เฉพาะเมื่อ painted)
+  const baseWoodKey  = `wd_base_${form.woodType}_${form.modelId}_wood`;
+  let price = getP(baseWoodKey);
+  if (form.painted) {
+    const basePaintKey = `wd_base_${form.woodType}_${form.modelId}_paint`;
+    const basePaint = getPaint(basePaintKey);
+    price += basePaint;
+    if (basePaint) surcharges.push(`ค่าทำสีพื้นฐาน (+฿${basePaint.toLocaleString()})`);
+  }
 
   // แปลง sizeType → ขนาดจริง (cm)
   const presetDim: Record<string, [number, number]> = {
