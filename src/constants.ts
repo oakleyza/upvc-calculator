@@ -1,4 +1,4 @@
-import type { PricingStructure, DoorFormData, FrameFormData } from './types';
+import type { PricingStructure, DoorFormData, FrameFormData, WoodDoorFormData } from './types';
 
 // ------------------------------------------------------------------
 // Frame material constants (แทน magic strings ที่กระจายทั่ว codebase)
@@ -22,6 +22,20 @@ export const FRAME_WITH_SUB: FrameMaterialKey[] = [
 
 export const isFrameWithSub = (material: string): boolean =>
   FRAME_WITH_SUB.includes(material as FrameMaterialKey);
+
+// ------------------------------------------------------------------
+// Wood door constants
+// ------------------------------------------------------------------
+export const WOOD_TYPE_NAMES: Record<string, string> = {
+  sadao: 'ไม้สะเดา',
+  tabak: 'ไม้ตะแบก',
+  teak:  'ไม้สัก',
+};
+
+export const WOOD_MODEL_NAMES: Record<string, string> = {
+  m1: 'ฟักสองลูก คิ้วเสริมสองชั้น',
+  m2: 'ฟักสองลูก คิ้วเสริมสองชั้น คิ้วใหญ่',
+};
 
 // ------------------------------------------------------------------
 // Label mapping (admin price editor + summary panel)
@@ -86,6 +100,21 @@ export const LABEL_MAP: Record<string, string> = {
   'rabbet': 'ทำบังใบ',
   'knob_plate_40': 'เสริมแป้นลูกบิด 40cm',
   'wood_top_bottom': 'เสริมไม้ บน/ล่าง',
+  // === ประตูไม้ ===
+  'wd_base_sadao_m1': 'ไม้สะเดา — ราคาตั้งต้น รุ่นฟักสองลูก คิ้วสองชั้น',
+  'wd_base_sadao_m2': 'ไม้สะเดา — ราคาตั้งต้น รุ่นฟักสองลูก คิ้วใหญ่',
+  'wd_base_tabak_m1': 'ไม้ตะแบก — ราคาตั้งต้น รุ่นฟักสองลูก คิ้วสองชั้น',
+  'wd_base_tabak_m2': 'ไม้ตะแบก — ราคาตั้งต้น รุ่นฟักสองลูก คิ้วใหญ่',
+  'wd_base_teak_m1':  'ไม้สัก — ราคาตั้งต้น รุ่นฟักสองลูก คิ้วสองชั้น',
+  'wd_base_teak_m2':  'ไม้สัก — ราคาตั้งต้น รุ่นฟักสองลูก คิ้วใหญ่',
+  'wd_sz_70':     'ประตูไม้ — Surcharge ขนาด 70×200 cm',
+  'wd_sz_80':     'ประตูไม้ — Surcharge ขนาด 80×200 cm',
+  'wd_sz_90':     'ประตูไม้ — Surcharge ขนาด 90×200 cm',
+  'wd_sz_custom': 'ประตูไม้ — Surcharge ขนาด Custom',
+  'wd_paint_70':     'ค่าทำสี — ขนาด 70×200 cm',
+  'wd_paint_80':     'ค่าทำสี — ขนาด 80×200 cm',
+  'wd_paint_90':     'ค่าทำสี — ขนาด 90×200 cm',
+  'wd_paint_custom': 'ค่าทำสี — ขนาด Custom',
   // === วงกบ — ราคาตั้งต้น ===
   'wpc_4in_t2': 'วงกบ T2 — ราคาเริ่มต้นชุดวงกบ',
   'wpc_4in_f10': 'วงกบ F10 — ราคาเริ่มต้นชุดวงกบ',
@@ -228,6 +257,15 @@ export const DEFAULT_PRICES: PricingStructure = {
     'bsx_toa_h_200': 0, 'bsx_toa_h_201_210': 0, 'bsx_toa_h_211_220': 0, 'bsx_toa_h_221_240': 0,
     'bsx_svl_h_200': 0, 'bsx_svl_h_201_210': 0, 'bsx_svl_h_211_220': 0, 'bsx_svl_h_221_240': 0,
   },
+  wood_door_price: {
+    'wd_base_sadao_m1': 999, 'wd_base_sadao_m2': 999,
+    'wd_base_tabak_m1': 999, 'wd_base_tabak_m2': 999,
+    'wd_base_teak_m1':  999, 'wd_base_teak_m2':  999,
+    'wd_sz_70': 0, 'wd_sz_80': 0, 'wd_sz_90': 0, 'wd_sz_custom': 0,
+  },
+  wood_door_paint: {
+    'wd_paint_70': 999, 'wd_paint_80': 999, 'wd_paint_90': 999, 'wd_paint_custom': 999,
+  },
   structure: {}, size: {}, surface: {},
   grooving: { 'none': 0, 'standard': 999, 'black_line': 999, 'painted': 999 },
   molding: { 'none': 0, 'first_1': 999, 'first_2': 999, 'roma_1': 999, 'roma_2': 999 },
@@ -265,6 +303,15 @@ export const DEFAULT_FRAME_FORM: FrameFormData = {
   customWidth: '',
   customHeight: '',
   surfaceType: 'TOA',
+};
+
+export const DEFAULT_WOOD_DOOR_FORM: WoodDoorFormData = {
+  woodType: 'sadao',
+  modelId: 'm1',
+  sizeType: '70x200cm',
+  customWidth: '',
+  customHeight: '',
+  painted: false,
 };
 
 // ------------------------------------------------------------------

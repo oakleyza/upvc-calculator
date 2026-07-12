@@ -20,10 +20,21 @@ export interface PricingStructure {
   reinforce: PriceCategory;
   drilling: PriceCategory;
   options: PriceCategory;
+  wood_door_price: PriceCategory;  // base(ไม้×รุ่น) + size surcharge
+  wood_door_paint: PriceCategory;  // ค่าทำสี ตามขนาด
   // Legacy fallback fields (kept for Firestore backward compatibility)
   structure?: PriceCategory;
   size?: PriceCategory;
   surface?: PriceCategory;
+}
+
+export interface WoodDoorFormData {
+  woodType: string;    // 'sadao' | 'tabak' | 'teak'
+  modelId: string;     // 'm1' | 'm2'
+  sizeType: string;    // '70x200cm' | '80x200cm' | '90x200cm' | 'custom'
+  customWidth: string;
+  customHeight: string;
+  painted: boolean;
 }
 
 export interface DoorOptions {
