@@ -69,13 +69,13 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, onSave, onClo
   };
 
   const tabs: { id: ActiveCategory; label: string }[] = [
-    { id: 'door',      label: '🚪 ราคาประตู' },
+    { id: 'wood',      label: '🪵 ประตูไม้' },
+    { id: 'door',      label: '🚪 ประตู uPVC' },
     { id: 'frame_t2',  label: '🔲 วงกบ T2' },
     { id: 'frame_f10', label: '🔲 วงกบ F10' },
     { id: 'frame_x',   label: '✨ Adjust X' },
     { id: 'frame_eco', label: '✨ Adjust Eco' },
     { id: 'frame_bsx', label: '⬡ Big Six' },
-    { id: 'wood',      label: '🪵 ประตูไม้' },
   ];
 
   return (
