@@ -283,7 +283,9 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, onSave, onClo
             <div className="space-y-6">
               <div className="bg-green-50 p-4 rounded-lg border border-green-200">
                 <h4 className="font-bold text-green-800 flex items-center gap-2">🪵 ตั้งราคาประตูไม้</h4>
-                <p className="text-sm text-green-700 mt-1">ราคาสุทธิ = ราคาตั้งต้น (ไม้×รุ่น) + Surcharge ขนาด + ค่าทำสี (ถ้ามี)</p>
+                <p className="text-sm text-green-700 mt-1">
+                  ราคาสุทธิ = ราคาตั้งต้น (ไม้×รุ่น) + ส่วนต่างกว้าง (งานไม้+งานสี) + ส่วนต่างสูง (งานไม้+งานสี)
+                </p>
               </div>
 
               {/* ราคาตั้งต้น */}
@@ -305,15 +307,33 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, onSave, onClo
                 </div>
               </div>
 
-              {/* Surcharge ขนาด + ค่าทำสี */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-white p-5 rounded-xl shadow-sm border">
-                  <h4 className="font-bold text-orange-600 mb-4 pb-2 border-b">Surcharge ขนาด</h4>
-                  {['wd_sz_70','wd_sz_80','wd_sz_90','wd_sz_custom'].map(k => renderInput('wood_door_price', k))}
+              {/* ส่วนต่างความกว้าง */}
+              <div className="bg-white p-5 rounded-xl shadow-sm border">
+                <h4 className="font-bold text-orange-600 mb-4 pb-2 border-b">ส่วนต่างตามความกว้าง</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h5 className="text-sm font-bold text-slate-500 mb-2 bg-orange-50 p-2 rounded">งานไม้ (ตามกว้าง)</h5>
+                    {Object.keys(localPrices.wood_door_price).filter(k => k.startsWith('wd_w_')).map(k => renderInput('wood_door_price', k))}
+                  </div>
+                  <div>
+                    <h5 className="text-sm font-bold text-slate-500 mb-2 bg-purple-50 p-2 rounded">งานทำสี (ตามกว้าง)</h5>
+                    {Object.keys(localPrices.wood_door_paint).filter(k => k.startsWith('wd_w_')).map(k => renderInput('wood_door_paint', k))}
+                  </div>
                 </div>
-                <div className="bg-white p-5 rounded-xl shadow-sm border">
-                  <h4 className="font-bold text-purple-600 mb-4 pb-2 border-b">ค่าทำสี (ตามขนาด)</h4>
-                  {['wd_paint_70','wd_paint_80','wd_paint_90','wd_paint_custom'].map(k => renderInput('wood_door_paint', k))}
+              </div>
+
+              {/* ส่วนต่างความสูง */}
+              <div className="bg-white p-5 rounded-xl shadow-sm border">
+                <h4 className="font-bold text-blue-600 mb-4 pb-2 border-b">ส่วนต่างตามความสูง</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h5 className="text-sm font-bold text-slate-500 mb-2 bg-orange-50 p-2 rounded">งานไม้ (ตามสูง)</h5>
+                    {Object.keys(localPrices.wood_door_price).filter(k => k.startsWith('wd_h_')).map(k => renderInput('wood_door_price', k))}
+                  </div>
+                  <div>
+                    <h5 className="text-sm font-bold text-slate-500 mb-2 bg-purple-50 p-2 rounded">งานทำสี (ตามสูง)</h5>
+                    {Object.keys(localPrices.wood_door_paint).filter(k => k.startsWith('wd_h_')).map(k => renderInput('wood_door_paint', k))}
+                  </div>
                 </div>
               </div>
             </div>

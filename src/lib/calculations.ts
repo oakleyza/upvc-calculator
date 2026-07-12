@@ -228,7 +228,7 @@ export const calculateFramePrice = (form: FrameFormData, prices: PricingStructur
 };
 
 // ------------------------------------------------------------------
-// calculateWoodDoorPrice
+// calculateWoodDoorPrice — ระบบ bracket ตามช่วงขนาด (กว้าง + สูง)
 // ------------------------------------------------------------------
 export const calculateWoodDoorPrice = (form: WoodDoorFormData, prices: PricingStructure): PriceResult => {
   const surcharges: string[] = [];
@@ -239,30 +239,62 @@ export const calculateWoodDoorPrice = (form: WoodDoorFormData, prices: PricingSt
   const baseKey = `wd_base_${form.woodType}_${form.modelId}`;
   let price = getP(baseKey);
 
-  // ส่วนต่างขนาด
-  const szMap: Record<string, string> = {
-    '70x200cm': 'wd_sz_70',
-    '80x200cm': 'wd_sz_80',
-    '90x200cm': 'wd_sz_90',
-    'custom':   'wd_sz_custom',
+  // แปลง sizeType → ขนาดจริง (cm)
+  const presetDim: Record<string, [number, number]> = {
+    '70x200cm': [70, 200],
+    '80x200cm': [80, 200],
+    '90x200cm': [90, 200],
   };
-  const szKey = szMap[form.sizeType] ?? 'wd_sz_custom';
-  const szP   = getP(szKey);
-  price += szP;
-  if (szP) surcharges.push(`Surcharge ขนาด (+฿${szP.toLocaleString()})`);
+  const [width, height] = form.sizeType === 'custom'
+    ? [Number(form.customWidth) || 0, Number(form.customHeight) || 0]
+    : (presetDim[form.sizeType] ?? [0, 0]);
 
-  // ค่าทำสี
-  if (form.painted) {
-    const paintMap: Record<string, string> = {
-      '70x200cm': 'wd_paint_70',
-      '80x200cm': 'wd_paint_80',
-      '90x200cm': 'wd_paint_90',
-      'custom':   'wd_paint_custom',
-    };
-    const paintKey = paintMap[form.sizeType] ?? 'wd_paint_custom';
-    const paintP   = getPaint(paintKey);
-    price += paintP;
-    if (paintP) surcharges.push(`ค่าทำสี (+฿${paintP.toLocaleString()})`);
+  if (width > 0 && height > 0) {
+    // ---- ส่วนต่างความกว้าง ----
+    const widthKey: string | null =
+      width <= 70  ? null
+      : width <= 80  ? 'wd_w_71_80'
+      : width <= 90  ? 'wd_w_81_90'
+      : width <= 100 ? 'wd_w_91_100'
+      : width <= 110 ? 'wd_w_101_110'
+      : width <= 120 ? 'wd_w_111_120'
+      :                'wd_w_121_plus';
+
+    if (widthKey) {
+      const wp = getP(widthKey);
+      price += wp;
+      if (wp) surcharges.push(`งานไม้ ส่วนต่างกว้าง (+฿${wp.toLocaleString()})`);
+      if (form.painted) {
+        const wpp = getPaint(widthKey);
+        price += wpp;
+        if (wpp) surcharges.push(`งานสี ส่วนต่างกว้าง (+฿${wpp.toLocaleString()})`);
+      }
+    }
+
+    // ---- ส่วนต่างความสูง ----
+    const heightKey: string | null =
+      height <= 200 ? null
+      : height <= 210 ? 'wd_h_201_210'
+      : height <= 220 ? 'wd_h_211_220'
+      : height <= 230 ? 'wd_h_221_230'
+      : height <= 240 ? 'wd_h_231_240'
+      : height <= 250 ? 'wd_h_241_250'
+      : height <= 260 ? 'wd_h_251_260'
+      : height <= 270 ? 'wd_h_261_270'
+      : height <= 280 ? 'wd_h_271_280'
+      : height <= 290 ? 'wd_h_281_290'
+      :                 'wd_h_291_plus';
+
+    if (heightKey) {
+      const hp = getP(heightKey);
+      price += hp;
+      if (hp) surcharges.push(`งานไม้ ส่วนต่างสูง (+฿${hp.toLocaleString()})`);
+      if (form.painted) {
+        const hpp = getPaint(heightKey);
+        price += hpp;
+        if (hpp) surcharges.push(`งานสี ส่วนต่างสูง (+฿${hpp.toLocaleString()})`);
+      }
+    }
   }
 
   return { total: price, surcharges };

@@ -128,24 +128,30 @@ export const WoodDoorCalculator: React.FC<Props> = ({ form, onInput }) => {
       {/* ทำสี */}
       <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
         <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
-          <Palette className="w-5 h-5 text-purple-600" /> ตัวเลือกเพิ่มเติม
+          <Palette className="w-5 h-5 text-purple-600" /> การทำสี
         </h3>
         <div
           onClick={() => onInput('painted', !form.painted)}
           className={`cursor-pointer border-2 rounded-lg p-4 transition-all flex items-center gap-3 ${
             form.painted
               ? 'border-purple-500 bg-purple-50 text-purple-800'
-              : 'border-slate-200 hover:border-slate-300'
+              : 'border-slate-200 bg-slate-50 text-slate-400'
           }`}
         >
-          <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
-            form.painted ? 'bg-purple-500 border-purple-500' : 'border-slate-300'
+          <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors shrink-0 ${
+            form.painted ? 'bg-purple-500 border-purple-500' : 'border-slate-300 bg-white'
           }`}>
             {form.painted && <span className="text-white text-xs font-bold">✓</span>}
           </div>
           <div>
-            <span className="font-medium">ทำสี (พ่นสีก่อนส่ง)</span>
-            <p className="text-xs text-slate-500 mt-0.5">ค่าทำสีจะคำนวณตามขนาดที่เลือก</p>
+            <span className="font-medium">
+              {form.painted ? 'ทำสี (ค่าเริ่มต้น)' : 'ไม่ทำสี'}
+            </span>
+            <p className={`text-xs mt-0.5 ${form.painted ? 'text-purple-600' : 'text-slate-400'}`}>
+              {form.painted
+                ? 'ค่าสีคำนวณตามช่วงขนาด — ติ๊กออกถ้าไม่ต้องการทำสี'
+                : 'ราคาไม่รวมค่าทำสี — ติ๊กกลับถ้าต้องการทำสี'}
+            </p>
           </div>
         </div>
       </div>
