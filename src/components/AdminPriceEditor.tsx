@@ -9,7 +9,7 @@ interface Props {
   onClose: () => void;
 }
 
-type ActiveCategory = 'door' | 'frame_t2' | 'frame_f10' | 'frame_x' | 'frame_eco' | 'frame_bsx';
+type ActiveCategory = 'door' | 'frame_t2' | 'frame_f10' | 'frame_x' | 'frame_eco' | 'frame_bsx' | 'wood';
 
 export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, onSave, onClose }) => {
   const [activeCategory, setActiveCategory] = useState<ActiveCategory>('door');
@@ -31,6 +31,7 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, onSave, onClo
     const cats: (keyof PricingStructure)[] = [
       'door_base','door_size','door_surface','frame_base','frame_size','frame_surface',
       'grooving','molding','glass','louver','reinforce','drilling','options',
+      'wood_door_price','wood_door_paint',
     ];
     cats.forEach(cat => {
       Object.entries(localPrices[cat] ?? {}).forEach(([key, val]) => {
@@ -74,6 +75,7 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, onSave, onClo
     { id: 'frame_x',   label: '✨ Adjust X' },
     { id: 'frame_eco', label: '✨ Adjust Eco' },
     { id: 'frame_bsx', label: '⬡ Big Six' },
+    { id: 'wood',      label: '🪵 ประตูไม้' },
   ];
 
   return (
@@ -272,6 +274,46 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, onSave, onClo
                       {Object.keys(localPrices.frame_surface).filter(k => k.startsWith('bsx_svl_h_')).map(k => renderInput('frame_surface', k))}
                     </div>
                   </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeCategory === 'wood' && (
+            <div className="space-y-6">
+              <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                <h4 className="font-bold text-green-800 flex items-center gap-2">🪵 ตั้งราคาประตูไม้</h4>
+                <p className="text-sm text-green-700 mt-1">ราคาสุทธิ = ราคาตั้งต้น (ไม้×รุ่น) + Surcharge ขนาด + ค่าทำสี (ถ้ามี)</p>
+              </div>
+
+              {/* ราคาตั้งต้น */}
+              <div className="bg-white p-5 rounded-xl shadow-sm border">
+                <h4 className="font-bold text-slate-800 mb-4 pb-2 border-b">ราคาตั้งต้น (ตามชนิดไม้ × รุ่น)</h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div>
+                    <h5 className="text-sm font-bold text-slate-600 mb-2 bg-slate-100 p-2 rounded">ไม้สะเดา</h5>
+                    {['wd_base_sadao_m1','wd_base_sadao_m2'].map(k => renderInput('wood_door_price', k))}
+                  </div>
+                  <div>
+                    <h5 className="text-sm font-bold text-slate-600 mb-2 bg-slate-100 p-2 rounded">ไม้ตะแบก</h5>
+                    {['wd_base_tabak_m1','wd_base_tabak_m2'].map(k => renderInput('wood_door_price', k))}
+                  </div>
+                  <div>
+                    <h5 className="text-sm font-bold text-slate-600 mb-2 bg-slate-100 p-2 rounded">ไม้สัก</h5>
+                    {['wd_base_teak_m1','wd_base_teak_m2'].map(k => renderInput('wood_door_price', k))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Surcharge ขนาด + ค่าทำสี */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-white p-5 rounded-xl shadow-sm border">
+                  <h4 className="font-bold text-orange-600 mb-4 pb-2 border-b">Surcharge ขนาด</h4>
+                  {['wd_sz_70','wd_sz_80','wd_sz_90','wd_sz_custom'].map(k => renderInput('wood_door_price', k))}
+                </div>
+                <div className="bg-white p-5 rounded-xl shadow-sm border">
+                  <h4 className="font-bold text-purple-600 mb-4 pb-2 border-b">ค่าทำสี (ตามขนาด)</h4>
+                  {['wd_paint_70','wd_paint_80','wd_paint_90','wd_paint_custom'].map(k => renderInput('wood_door_paint', k))}
                 </div>
               </div>
             </div>

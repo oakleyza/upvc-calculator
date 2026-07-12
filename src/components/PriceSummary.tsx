@@ -1,27 +1,31 @@
 import React from 'react';
 import { FileText, Check, Loader2 } from 'lucide-react';
-import type { DoorFormData, FrameFormData, PriceResult } from '../types';
-import { LABEL_MAP } from '../constants';
+import type { DoorFormData, FrameFormData, WoodDoorFormData, PriceResult } from '../types';
+import { LABEL_MAP, WOOD_TYPE_NAMES, WOOD_MODEL_NAMES } from '../constants';
 
 const FRAME_DISPLAY: Record<string, string> = {
   'wpc_4in_t2':    'วงกบไม้สังเคราะห์ 4" เหลี่ยม (T2) — สูงสุด 240cm',
   'wpc_4in_f10':   'วงกบไม้สังเคราะห์ 4" เหลี่ยม (F10) — สูงสุด 220cm',
   'wpc_adjust_eco':'วงกบไม้สังเคราะห์ มีซับ รุ่น Adjust Eco — สูงสุด 240cm',
   'wpc_adjust_x':  'วงกบไม้สังเคราะห์ มีซับ รุ่น Adjust X — สูงสุด 220cm',
+  'wpc_adjust_bsx':'วงกบไม้สังเคราะห์ รุ่น Adjust Big Six (ไม่มีซับ) — สูงสุด 240cm',
 };
 
 interface Props {
   activeTab: string;
   doorForm: DoorFormData;
   frameForm: FrameFormData;
+  woodForm: WoodDoorFormData;
   priceResult: PriceResult;
   isPricesLoading: boolean;
 }
 
 export const PriceSummary: React.FC<Props> = ({
-  activeTab, doorForm, frameForm, priceResult, isPricesLoading,
+  activeTab, doorForm, frameForm, woodForm, priceResult, isPricesLoading,
 }) => {
-  const isDoor = activeTab === 'exclusive';
+  const isDoor  = activeTab === 'exclusive';
+  const isWood  = activeTab === 'wood';
+  const isFrame = activeTab === 'frame';
 
   return (
     <div className="lg:w-96 shrink-0">
@@ -29,7 +33,7 @@ export const PriceSummary: React.FC<Props> = ({
         <div className="bg-slate-800 p-4 text-white flex items-center justify-between">
           <h2 className="font-semibold flex items-center gap-2">
             <FileText className="w-5 h-5" />
-            สรุปรายการ ({isDoor ? 'ประตู' : 'วงกบ'})
+            สรุปรายการ ({isDoor ? 'ประตู uPVC' : isWood ? 'ประตูไม้' : 'วงกบ'})
           </h2>
         </div>
 
@@ -55,7 +59,7 @@ export const PriceSummary: React.FC<Props> = ({
 
             {/* รายละเอียด */}
             <div className="space-y-3 text-sm">
-              {isDoor ? (
+              {isDoor && (
                 <>
                   <div className="flex justify-between border-b pb-2">
                     <span className="text-slate-900 font-bold">รายการที่เลือก</span>
@@ -126,7 +130,39 @@ export const PriceSummary: React.FC<Props> = ({
                     </div>
                   )}
                 </>
-              ) : (
+              )}
+
+              {isWood && (
+                <>
+                  <div className="flex justify-between border-b pb-2">
+                    <span className="text-slate-900 font-bold">รายการที่เลือก</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">ประเภทไม้</span>
+                    <span className="font-medium">{WOOD_TYPE_NAMES[woodForm.woodType] ?? woodForm.woodType}</span>
+                  </div>
+                  <div className="flex justify-between items-start">
+                    <span className="text-slate-500 shrink-0">รุ่น</span>
+                    <span className="font-medium text-right ml-2">{WOOD_MODEL_NAMES[woodForm.modelId] ?? woodForm.modelId}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">ขนาด</span>
+                    <span className="font-medium">
+                      {woodForm.sizeType === 'custom'
+                        ? `${woodForm.customWidth}×${woodForm.customHeight} cm`
+                        : woodForm.sizeType}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">ทำสี</span>
+                    <span className={`font-medium ${woodForm.painted ? 'text-purple-700' : 'text-slate-400'}`}>
+                      {woodForm.painted ? 'ใช่ (มีค่าทำสี)' : 'ไม่ทำสี'}
+                    </span>
+                  </div>
+                </>
+              )}
+
+              {isFrame && (
                 <>
                   <div className="flex justify-between border-b pb-2">
                     <span className="text-slate-900 font-bold">รายการที่เลือก</span>

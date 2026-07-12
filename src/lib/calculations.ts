@@ -3,7 +3,7 @@
 // B-2 FIX: TOA_h_under_200 / SVL_h_under_200 ถูกใช้จริงแล้ว
 // ------------------------------------------------------------------
 
-import type { DoorFormData, FrameFormData, PricingStructure, PriceResult } from '../types';
+import type { DoorFormData, FrameFormData, WoodDoorFormData, PricingStructure, PriceResult } from '../types';
 import { FRAME_MATERIALS } from '../constants';
 
 // ------------------------------------------------------------------
@@ -222,6 +222,47 @@ export const calculateFramePrice = (form: FrameFormData, prices: PricingStructur
       else if (height <= 220) { const p = getSurf('eco_svl_h_211_220');   price += p; if (p) surcharges.push(`Eco: SVL 211-220cm (+฿${p.toLocaleString()})`); }
       else                    { const p = getSurf('eco_svl_h_221_240');   price += p; if (p) surcharges.push(`Eco: SVL 221-240cm (+฿${p.toLocaleString()})`); }
     }
+  }
+
+  return { total: price, surcharges };
+};
+
+// ------------------------------------------------------------------
+// calculateWoodDoorPrice
+// ------------------------------------------------------------------
+export const calculateWoodDoorPrice = (form: WoodDoorFormData, prices: PricingStructure): PriceResult => {
+  const surcharges: string[] = [];
+  const getP     = (k: string) => prices.wood_door_price?.[k] ?? 0;
+  const getPaint = (k: string) => prices.wood_door_paint?.[k]  ?? 0;
+
+  // ราคาเริ่มต้น ตามไม้ × รุ่น
+  const baseKey = `wd_base_${form.woodType}_${form.modelId}`;
+  let price = getP(baseKey);
+
+  // ส่วนต่างขนาด
+  const szMap: Record<string, string> = {
+    '70x200cm': 'wd_sz_70',
+    '80x200cm': 'wd_sz_80',
+    '90x200cm': 'wd_sz_90',
+    'custom':   'wd_sz_custom',
+  };
+  const szKey = szMap[form.sizeType] ?? 'wd_sz_custom';
+  const szP   = getP(szKey);
+  price += szP;
+  if (szP) surcharges.push(`Surcharge ขนาด (+฿${szP.toLocaleString()})`);
+
+  // ค่าทำสี
+  if (form.painted) {
+    const paintMap: Record<string, string> = {
+      '70x200cm': 'wd_paint_70',
+      '80x200cm': 'wd_paint_80',
+      '90x200cm': 'wd_paint_90',
+      'custom':   'wd_paint_custom',
+    };
+    const paintKey = paintMap[form.sizeType] ?? 'wd_paint_custom';
+    const paintP   = getPaint(paintKey);
+    price += paintP;
+    if (paintP) surcharges.push(`ค่าทำสี (+฿${paintP.toLocaleString()})`);
   }
 
   return { total: price, surcharges };
