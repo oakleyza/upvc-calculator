@@ -24,14 +24,16 @@ const WoodSummarySection: React.FC<{ woodForm: WoodDoorFormData }> = ({ woodForm
 
       {/* รูปประตูที่เลือก — แสดงเหนือชื่อ */}
       {imgSrc && imgOk ? (
-        <img
-          key={woodForm.modelId}
-          src={imgSrc}
-          alt={modelName}
-          className="w-full rounded-lg border border-slate-200 object-cover"
-          style={{ maxHeight: '160px' }}
-          onError={() => setImgOk(false)}
-        />
+        <div className="rounded-lg border border-slate-200 bg-slate-50 overflow-hidden">
+          <img
+            key={woodForm.modelId}
+            src={imgSrc}
+            alt={modelName}
+            className="w-full object-contain"
+            style={{ maxHeight: '220px' }}
+            onError={() => setImgOk(false)}
+          />
+        </div>
       ) : (
         <div className="w-full rounded-lg border-2 border-dashed border-slate-200 bg-slate-50 flex items-center justify-center text-slate-400 text-sm" style={{ minHeight: '80px' }}>
           ยังไม่มีรูป

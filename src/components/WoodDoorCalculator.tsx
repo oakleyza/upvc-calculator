@@ -86,8 +86,8 @@ export const WoodDoorCalculator: React.FC<Props> = ({ form, onInput }) => {
                 onClick={() => setModelOpen(o => !o)}
                 className="w-full flex items-center gap-3 p-2 border-2 rounded-lg bg-white hover:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400 transition-colors"
               >
-                {/* thumbnail รูป */}
-                <ModelThumb modelId={form.modelId} size="sm" />
+                {/* thumbnail รูป — key บังคับ remount ทุกครั้งที่เปลี่ยนรุ่น */}
+                <ModelThumb key={form.modelId} modelId={form.modelId} size="sm" />
                 <span className="flex-1 text-left text-sm font-medium text-slate-800 truncate">
                   {selectedIdx >= 0 ? `${selectedIdx + 1}. ` : ''}{selectedLabel}
                 </span>
