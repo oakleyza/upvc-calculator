@@ -33,16 +33,34 @@ export const WOOD_TYPE_NAMES: Record<string, string> = {
 };
 
 export const WOOD_MODEL_NAMES: Record<string, string> = {
-  m1:  'ประตูฟักสองลูก',
-  m2:  'ประตูฟักสองลูกคิ้วเสริมหนึ่งชั้น',
-  m3:  'ประตูฟักหนึ่งลูก',
-  m4:  'ประตูฟักหนึ่งลูกคิ้วเสริมหนึ่งชั้น',
-  m5:  'ประตูฟักหนึ่งลูกคิ้วเสริมสองชั้น',
-  m6:  'ประตูโมเดิร์นนอน',
-  m7:  'ประตูโมเดิร์นนอนมุมโค้ง',
-  m8:  'ประตูโมเดิร์นตั้งไม่มีขอบ',
-  m9:  'ประตูซี่ระแนง',
-  m10: 'ประตูฟักสามลูก คิ้วเสริมหนึ่งชั้น',
+  m1:  'ประตูฟักหนึ่งลูก',
+  m2:  'ประตูฟักหนึ่งลูกคิ้วเสริมหนึ่งชั้น',
+  m3:  'ประตูฟักหนึ่งลูกคิ้วเสริมสองชั้น',
+  m4:  'ประตูฟักสองลูก',
+  m5:  'ประตูฟักสองลูกคิ้วเสริมหนึ่งชั้น',
+  m6:  'ประตูฟักสองลูก คิ้วเสริมสองชั้น',
+  m7:  'ประตูฟักสองลูก คิ้วเสริมสองชั้น คิ้วใหญ่',
+  m8:  'ประตูฟักสามลูก คิ้วเสริมหนึ่งชั้น',
+  m9:  'ประตูโมเดิร์นนอน',
+  m10: 'ประตูโมเดิร์นนอนมุมโค้ง',
+  m11: 'ประตูโมเดิร์นตั้งไม่มีขอบ',
+  m12: 'ประตูซี่ระแนง',
+};
+
+// ภาพประจำแต่ละรุ่น — วางไฟล์ที่ public/wood-models/m1.jpg ... m12.jpg
+export const WOOD_MODEL_IMAGES: Record<string, string> = {
+  m1:  '/wood-models/m1.jpg',
+  m2:  '/wood-models/m2.jpg',
+  m3:  '/wood-models/m3.jpg',
+  m4:  '/wood-models/m4.jpg',
+  m5:  '/wood-models/m5.jpg',
+  m6:  '/wood-models/m6.jpg',
+  m7:  '/wood-models/m7.jpg',
+  m8:  '/wood-models/m8.jpg',
+  m9:  '/wood-models/m9.jpg',
+  m10: '/wood-models/m10.jpg',
+  m11: '/wood-models/m11.jpg',
+  m12: '/wood-models/m12.jpg',
 };
 
 // ------------------------------------------------------------------
@@ -275,17 +293,17 @@ export const DEFAULT_PRICES: PricingStructure = {
     'wd_base_sadao_m1_wood': 999, 'wd_base_sadao_m2_wood': 999, 'wd_base_sadao_m3_wood': 999,
     'wd_base_sadao_m4_wood': 999, 'wd_base_sadao_m5_wood': 999, 'wd_base_sadao_m6_wood': 999,
     'wd_base_sadao_m7_wood': 999, 'wd_base_sadao_m8_wood': 999, 'wd_base_sadao_m9_wood': 999,
-    'wd_base_sadao_m10_wood': 999,
+    'wd_base_sadao_m10_wood': 999, 'wd_base_sadao_m11_wood': 999, 'wd_base_sadao_m12_wood': 999,
     // ค่าไม้ตั้งต้น (tabak)
     'wd_base_tabak_m1_wood': 999, 'wd_base_tabak_m2_wood': 999, 'wd_base_tabak_m3_wood': 999,
     'wd_base_tabak_m4_wood': 999, 'wd_base_tabak_m5_wood': 999, 'wd_base_tabak_m6_wood': 999,
     'wd_base_tabak_m7_wood': 999, 'wd_base_tabak_m8_wood': 999, 'wd_base_tabak_m9_wood': 999,
-    'wd_base_tabak_m10_wood': 999,
+    'wd_base_tabak_m10_wood': 999, 'wd_base_tabak_m11_wood': 999, 'wd_base_tabak_m12_wood': 999,
     // ค่าไม้ตั้งต้น (teak)
     'wd_base_teak_m1_wood': 999, 'wd_base_teak_m2_wood': 999, 'wd_base_teak_m3_wood': 999,
     'wd_base_teak_m4_wood': 999, 'wd_base_teak_m5_wood': 999, 'wd_base_teak_m6_wood': 999,
     'wd_base_teak_m7_wood': 999, 'wd_base_teak_m8_wood': 999, 'wd_base_teak_m9_wood': 999,
-    'wd_base_teak_m10_wood': 999,
+    'wd_base_teak_m10_wood': 999, 'wd_base_teak_m11_wood': 999, 'wd_base_teak_m12_wood': 999,
     // งานไม้ — ส่วนต่างความกว้าง
     'wd_w_71_80': 0, 'wd_w_81_90': 500, 'wd_w_91_100': 1000,
     'wd_w_101_110': 1500, 'wd_w_111_120': 2000, 'wd_w_121_plus': 2500,
@@ -300,17 +318,17 @@ export const DEFAULT_PRICES: PricingStructure = {
     'wd_base_sadao_m1_paint': 999, 'wd_base_sadao_m2_paint': 999, 'wd_base_sadao_m3_paint': 999,
     'wd_base_sadao_m4_paint': 999, 'wd_base_sadao_m5_paint': 999, 'wd_base_sadao_m6_paint': 999,
     'wd_base_sadao_m7_paint': 999, 'wd_base_sadao_m8_paint': 999, 'wd_base_sadao_m9_paint': 999,
-    'wd_base_sadao_m10_paint': 999,
+    'wd_base_sadao_m10_paint': 999, 'wd_base_sadao_m11_paint': 999, 'wd_base_sadao_m12_paint': 999,
     // ค่าทำสีตั้งต้น (tabak)
     'wd_base_tabak_m1_paint': 999, 'wd_base_tabak_m2_paint': 999, 'wd_base_tabak_m3_paint': 999,
     'wd_base_tabak_m4_paint': 999, 'wd_base_tabak_m5_paint': 999, 'wd_base_tabak_m6_paint': 999,
     'wd_base_tabak_m7_paint': 999, 'wd_base_tabak_m8_paint': 999, 'wd_base_tabak_m9_paint': 999,
-    'wd_base_tabak_m10_paint': 999,
+    'wd_base_tabak_m10_paint': 999, 'wd_base_tabak_m11_paint': 999, 'wd_base_tabak_m12_paint': 999,
     // ค่าทำสีตั้งต้น (teak)
     'wd_base_teak_m1_paint': 999, 'wd_base_teak_m2_paint': 999, 'wd_base_teak_m3_paint': 999,
     'wd_base_teak_m4_paint': 999, 'wd_base_teak_m5_paint': 999, 'wd_base_teak_m6_paint': 999,
     'wd_base_teak_m7_paint': 999, 'wd_base_teak_m8_paint': 999, 'wd_base_teak_m9_paint': 999,
-    'wd_base_teak_m10_paint': 999,
+    'wd_base_teak_m10_paint': 999, 'wd_base_teak_m11_paint': 999, 'wd_base_teak_m12_paint': 999,
     // งานทำสี — ส่วนต่างความกว้าง
     'wd_w_71_80': 0, 'wd_w_81_90': 0, 'wd_w_91_100': 0,
     'wd_w_101_110': 500, 'wd_w_111_120': 500, 'wd_w_121_plus': 1000,

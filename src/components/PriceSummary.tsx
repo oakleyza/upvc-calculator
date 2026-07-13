@@ -1,8 +1,71 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { FileText, Check, Loader2 } from 'lucide-react';
 import type { DoorFormData, FrameFormData, WoodDoorFormData, PriceResult } from '../types';
-import { LABEL_MAP, WOOD_TYPE_NAMES, WOOD_MODEL_NAMES } from '../constants';
+import { LABEL_MAP, WOOD_TYPE_NAMES, WOOD_MODEL_NAMES, WOOD_MODEL_IMAGES } from '../constants';
 
+// ─── Wood section with model image ──────────────────────────────────────────
+const WoodSummarySection: React.FC<{ woodForm: WoodDoorFormData }> = ({ woodForm }) => {
+  const [imgOk, setImgOk] = useState(true);
+  const modelEntries = Object.entries(WOOD_MODEL_NAMES);
+  const modelIdx = modelEntries.findIndex(([k]) => k === woodForm.modelId);
+  const modelName = WOOD_MODEL_NAMES[woodForm.modelId] ?? woodForm.modelId;
+  const imgSrc = WOOD_MODEL_IMAGES[woodForm.modelId];
+
+  return (
+    <>
+      <div className="flex justify-between border-b pb-2">
+        <span className="text-slate-900 font-bold">รายการที่เลือก</span>
+      </div>
+
+      {/* รูปประตูที่เลือก */}
+      {imgSrc && imgOk ? (
+        <div className="rounded-lg overflow-hidden border border-slate-200 bg-slate-50">
+          <img
+            src={imgSrc}
+            alt={modelName}
+            className="w-full h-36 object-cover"
+            onError={() => setImgOk(false)}
+          />
+          <p className="text-xs text-center text-slate-500 py-1 px-2 truncate">
+            {modelIdx >= 0 ? `${modelIdx + 1}. ` : ''}{modelName}
+          </p>
+        </div>
+      ) : (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 flex items-center gap-2 text-xs text-amber-700">
+          <span className="text-2xl">🚪</span>
+          <span>{modelIdx >= 0 ? `${modelIdx + 1}. ` : ''}{modelName}</span>
+        </div>
+      )}
+
+      <div className="flex justify-between">
+        <span className="text-slate-500">ประเภทไม้</span>
+        <span className="font-medium">{WOOD_TYPE_NAMES[woodForm.woodType] ?? woodForm.woodType}</span>
+      </div>
+      <div className="flex justify-between items-start">
+        <span className="text-slate-500 shrink-0">รุ่น</span>
+        <span className="font-medium text-right ml-2">
+          {modelIdx >= 0 ? `${modelIdx + 1}. ` : ''}{modelName}
+        </span>
+      </div>
+      <div className="flex justify-between">
+        <span className="text-slate-500">ขนาด</span>
+        <span className="font-medium">
+          {woodForm.sizeType === 'custom'
+            ? `${woodForm.customWidth}×${woodForm.customHeight} cm`
+            : woodForm.sizeType}
+        </span>
+      </div>
+      <div className="flex justify-between">
+        <span className="text-slate-500">ทำสี</span>
+        <span className={`font-medium ${woodForm.painted ? 'text-purple-700' : 'text-slate-400'}`}>
+          {woodForm.painted ? 'ใช่ (มีค่าทำสี)' : 'ไม่ทำสี'}
+        </span>
+      </div>
+    </>
+  );
+};
+
+// ─── Frame display map ───────────────────────────────────────────────────────
 const FRAME_DISPLAY: Record<string, string> = {
   'wpc_4in_t2':    'วงกบไม้สังเคราะห์ 4" เหลี่ยม (T2) — สูงสุด 240cm',
   'wpc_4in_f10':   'วงกบไม้สังเคราะห์ 4" เหลี่ยม (F10) — สูงสุด 220cm',
@@ -133,33 +196,7 @@ export const PriceSummary: React.FC<Props> = ({
               )}
 
               {isWood && (
-                <>
-                  <div className="flex justify-between border-b pb-2">
-                    <span className="text-slate-900 font-bold">รายการที่เลือก</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">ประเภทไม้</span>
-                    <span className="font-medium">{WOOD_TYPE_NAMES[woodForm.woodType] ?? woodForm.woodType}</span>
-                  </div>
-                  <div className="flex justify-between items-start">
-                    <span className="text-slate-500 shrink-0">รุ่น</span>
-                    <span className="font-medium text-right ml-2">{WOOD_MODEL_NAMES[woodForm.modelId] ?? woodForm.modelId}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">ขนาด</span>
-                    <span className="font-medium">
-                      {woodForm.sizeType === 'custom'
-                        ? `${woodForm.customWidth}×${woodForm.customHeight} cm`
-                        : woodForm.sizeType}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">ทำสี</span>
-                    <span className={`font-medium ${woodForm.painted ? 'text-purple-700' : 'text-slate-400'}`}>
-                      {woodForm.painted ? 'ใช่ (มีค่าทำสี)' : 'ไม่ทำสี'}
-                    </span>
-                  </div>
-                </>
+                <WoodSummarySection woodForm={woodForm} />
               )}
 
               {isFrame && (
