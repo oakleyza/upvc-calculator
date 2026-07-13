@@ -12,7 +12,7 @@ interface Props {
 type ActiveCategory = 'door' | 'frame_t2' | 'frame_f10' | 'frame_x' | 'frame_eco' | 'frame_bsx' | 'wood';
 
 export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, onSave, onClose }) => {
-  const [activeCategory, setActiveCategory] = useState<ActiveCategory>('door');
+  const [activeCategory, setActiveCategory] = useState<ActiveCategory>('wood');
   const [localPrices, setLocalPrices] = useState<PricingStructure>(
     JSON.parse(JSON.stringify(currentPrices))
   );

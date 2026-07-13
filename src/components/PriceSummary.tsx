@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FileText, Check, Loader2 } from 'lucide-react';
 import type { DoorFormData, FrameFormData, WoodDoorFormData, PriceResult } from '../types';
 import { LABEL_MAP, WOOD_TYPE_NAMES, WOOD_MODEL_NAMES, WOOD_MODEL_IMAGES } from '../constants';
@@ -6,10 +6,15 @@ import { LABEL_MAP, WOOD_TYPE_NAMES, WOOD_MODEL_NAMES, WOOD_MODEL_IMAGES } from 
 // ─── Wood section with model image ──────────────────────────────────────────
 const WoodSummarySection: React.FC<{ woodForm: WoodDoorFormData }> = ({ woodForm }) => {
   const [imgOk, setImgOk] = useState(true);
+
+  // รีเซ็ต imgOk ทุกครั้งที่เปลี่ยนรุ่น เพื่อให้โหลดรูปใหม่
+  useEffect(() => { setImgOk(true); }, [woodForm.modelId]);
+
   const modelEntries = Object.entries(WOOD_MODEL_NAMES);
   const modelIdx = modelEntries.findIndex(([k]) => k === woodForm.modelId);
   const modelName = WOOD_MODEL_NAMES[woodForm.modelId] ?? woodForm.modelId;
   const imgSrc = WOOD_MODEL_IMAGES[woodForm.modelId];
+  const numPrefix = modelIdx >= 0 ? `${modelIdx + 1}. ` : '';
 
   return (
     <>
@@ -17,23 +22,19 @@ const WoodSummarySection: React.FC<{ woodForm: WoodDoorFormData }> = ({ woodForm
         <span className="text-slate-900 font-bold">รายการที่เลือก</span>
       </div>
 
-      {/* รูปประตูที่เลือก */}
+      {/* รูปประตูที่เลือก — แสดงเหนือชื่อ */}
       {imgSrc && imgOk ? (
-        <div className="rounded-lg overflow-hidden border border-slate-200 bg-slate-50">
-          <img
-            src={imgSrc}
-            alt={modelName}
-            className="w-full h-36 object-cover"
-            onError={() => setImgOk(false)}
-          />
-          <p className="text-xs text-center text-slate-500 py-1 px-2 truncate">
-            {modelIdx >= 0 ? `${modelIdx + 1}. ` : ''}{modelName}
-          </p>
-        </div>
+        <img
+          key={woodForm.modelId}
+          src={imgSrc}
+          alt={modelName}
+          className="w-full rounded-lg border border-slate-200 object-cover"
+          style={{ maxHeight: '160px' }}
+          onError={() => setImgOk(false)}
+        />
       ) : (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 flex items-center gap-2 text-xs text-amber-700">
-          <span className="text-2xl">🚪</span>
-          <span>{modelIdx >= 0 ? `${modelIdx + 1}. ` : ''}{modelName}</span>
+        <div className="w-full rounded-lg border-2 border-dashed border-slate-200 bg-slate-50 flex items-center justify-center text-slate-400 text-sm" style={{ minHeight: '80px' }}>
+          ยังไม่มีรูป
         </div>
       )}
 
@@ -43,9 +44,7 @@ const WoodSummarySection: React.FC<{ woodForm: WoodDoorFormData }> = ({ woodForm
       </div>
       <div className="flex justify-between items-start">
         <span className="text-slate-500 shrink-0">รุ่น</span>
-        <span className="font-medium text-right ml-2">
-          {modelIdx >= 0 ? `${modelIdx + 1}. ` : ''}{modelName}
-        </span>
+        <span className="font-medium text-right ml-2">{numPrefix}{modelName}</span>
       </div>
       <div className="flex justify-between">
         <span className="text-slate-500">ขนาด</span>

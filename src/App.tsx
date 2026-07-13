@@ -30,7 +30,7 @@ const TABS: TabInfo[] = [
 // ------------------------------------------------------------------
 export default function App() {
   const [currentUser,    setCurrentUser]    = useState<SessionUser | null>(null);
-  const [activeTab,      setActiveTab]      = useState<string>('exclusive');
+  const [activeTab,      setActiveTab]      = useState<string>('wood');
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [showUserPanel,  setShowUserPanel]  = useState(false);
   const [prices,         setPrices]         = useState<PricingStructure>(DEFAULT_PRICES);
@@ -44,7 +44,7 @@ export default function App() {
   const [woodForm,    setWoodForm]    = useState<WoodDoorFormData>(DEFAULT_WOOD_DOOR_FORM);
   const [priceResult, setPriceResult] = useState<PriceResult>({ total: 0, surcharges: [] });
 
-  useEffect(() => { document.title = 'ระบบคำนวณราคา - กลางซอยค้าไม้'; }, []);
+  useEffect(() => { document.title = 'ระบบคำนวนราคา -กลางซอยค้าไม้-'; }, []);
 
   // 1. Restore session (S-4: expiry ตรวจภายใน loadSession)
   useEffect(() => {
@@ -240,7 +240,7 @@ export default function App() {
               {/* C-6 FIX: ใช้ local file แทน external URL */}
               <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
             </div>
-            <h1 className="text-3xl font-bold text-slate-800">ระบบคำนวณราคาประตู uPVC</h1>
+            <h1 className="text-3xl font-bold text-slate-800">ระบบคำนวนราคา -กลางซอยค้าไม้-</h1>
           </div>
           <div className="flex gap-2 items-center">
             <div className="flex flex-col items-end mr-2">
