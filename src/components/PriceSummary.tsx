@@ -87,9 +87,10 @@ interface Props {
 export const PriceSummary: React.FC<Props> = ({
   activeTab, doorForm, frameForm, woodForm, priceResult, isPricesLoading,
 }) => {
-  const isDoor  = activeTab === 'exclusive';
-  const isWood  = activeTab === 'wood';
-  const isFrame = activeTab === 'frame';
+  const isDoor      = activeTab === 'exclusive';
+  const isWood      = activeTab === 'wood';
+  const isWoodFrame = activeTab === 'wood_frame';
+  const isFrame     = activeTab === 'frame';
 
   return (
     <div className="lg:w-96 shrink-0">
@@ -97,7 +98,7 @@ export const PriceSummary: React.FC<Props> = ({
         <div className="bg-slate-800 p-4 text-white flex items-center justify-between">
           <h2 className="font-semibold flex items-center gap-2">
             <FileText className="w-5 h-5" />
-            สรุปรายการ ({isDoor ? 'ประตู uPVC' : isWood ? 'ประตูไม้' : 'วงกบ'})
+            สรุปรายการ ({isDoor ? 'ประตู uPVC' : isWood ? 'ประตูไม้' : isWoodFrame ? 'วงกบไม้' : 'วงกบ WPC'})
           </h2>
         </div>
 

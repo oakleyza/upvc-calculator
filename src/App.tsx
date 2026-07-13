@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { DoorOpen, Maximize, Settings, User, LogOut, Users, TreePine } from 'lucide-react';
+import { DoorOpen, Maximize, Settings, User, LogOut, Users, TreePine, Layers } from 'lucide-react';
 import { doc, setDoc, getDoc, onSnapshot } from 'firebase/firestore';
 
 import { db, isFirebaseConfigured } from './lib/firebase';
@@ -22,9 +22,10 @@ import { PriceSummary }          from './components/PriceSummary';
 
 // ------------------------------------------------------------------
 const TABS: TabInfo[] = [
-  { id: 'wood',      label: 'ประตูไม้ (ทดลองใช้)', icon: TreePine },
-  { id: 'exclusive', label: 'ประตู uPVC',           icon: DoorOpen },
-  { id: 'frame',     label: 'วงกบ (Frame)',          icon: Maximize },
+  { id: 'wood',       label: 'ประตูไม้ (ทดลองใช้)', icon: TreePine },
+  { id: 'wood_frame', label: 'วงกบไม้',              icon: Layers   },
+  { id: 'exclusive',  label: 'ประตู uPVC',           icon: DoorOpen },
+  { id: 'frame',      label: 'วงกบ WPC',             icon: Maximize },
 ];
 
 // ------------------------------------------------------------------
@@ -136,6 +137,8 @@ export default function App() {
       setPriceResult(calculateFramePrice(frameForm, prices));
     } else if (activeTab === 'wood') {
       setPriceResult(calculateWoodDoorPrice(woodForm, prices));
+    } else if (activeTab === 'wood_frame') {
+      setPriceResult({ total: 0, surcharges: [] });
     }
   }, [doorForm, frameForm, woodForm, prices, activeTab]);
 
@@ -294,6 +297,13 @@ export default function App() {
 
             {activeTab === 'wood' && (
               <WoodDoorCalculator form={woodForm} onInput={handleWoodInput} />
+            )}
+            {activeTab === 'wood_frame' && (
+              <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-16 flex flex-col items-center justify-center text-center gap-3">
+                <Layers className="w-14 h-14 text-slate-200" />
+                <p className="text-lg font-semibold text-slate-400">วงกบไม้</p>
+                <p className="text-sm text-slate-300">กำลังพัฒนา</p>
+              </div>
             )}
             {activeTab === 'exclusive' && (
               <DoorCalculator
