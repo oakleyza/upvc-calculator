@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, Save, Database, Tag, Maximize, Palette, LayoutDashboard, Hammer, ShieldAlert } from 'lucide-react';
 import type { PricingStructure } from '../types';
-import { LABEL_MAP } from '../constants';
+import { LABEL_MAP, WOOD_MODEL_NAMES } from '../constants';
 
 interface Props {
   currentPrices: PricingStructure;
@@ -291,7 +291,7 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, onSave, onClo
               {/* ราคาตั้งต้น */}
               <div className="bg-white p-5 rounded-xl shadow-sm border">
                 <h4 className="font-bold text-slate-800 mb-4 pb-2 border-b">ราคาตั้งต้น (ตามชนิดไม้ × รุ่น)</h4>
-                <div className="space-y-5">
+                <div className="space-y-6">
                   {([
                     { wood: 'sadao', label: 'ไม้สะเดา' },
                     { wood: 'tabak', label: 'ไม้ตะแบก' },
@@ -299,16 +299,29 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, onSave, onClo
                   ] as const).map(({ wood, label }) => (
                     <div key={wood}>
                       <h5 className="text-sm font-bold text-slate-700 mb-2 bg-slate-100 p-2 rounded">{label}</h5>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <p className="text-xs font-semibold text-orange-700 mb-1 pl-1">ค่าไม้</p>
-                          {(['m1','m2'] as const).map(m => renderInput('wood_door_price', `wd_base_${wood}_${m}_wood`))}
-                        </div>
-                        <div>
-                          <p className="text-xs font-semibold text-purple-700 mb-1 pl-1">ค่าทำสี</p>
-                          {(['m1','m2'] as const).map(m => renderInput('wood_door_paint', `wd_base_${wood}_${m}_paint`))}
-                        </div>
+                      {/* header row */}
+                      <div className="flex items-center gap-2 px-2.5 mb-1">
+                        <span className="flex-1 text-xs font-semibold text-slate-400">รุ่น</span>
+                        <span className="w-24 text-xs font-semibold text-orange-600 text-right">ค่าไม้ ฿</span>
+                        <span className="w-24 text-xs font-semibold text-purple-600 text-right">ค่าทำสี ฿</span>
                       </div>
+                      {Object.entries(WOOD_MODEL_NAMES).map(([modelId, modelLabel]) => (
+                        <div key={modelId} className="flex items-center gap-2 p-2.5 border-b last:border-0 hover:bg-slate-50 transition-colors">
+                          <span className="flex-1 text-sm font-medium text-slate-700">{modelLabel}</span>
+                          <input
+                            type="number" min={0}
+                            value={localPrices.wood_door_price?.[`wd_base_${wood}_${modelId}_wood`] ?? 0}
+                            onChange={e => handlePriceChange('wood_door_price', `wd_base_${wood}_${modelId}_wood`, e.target.value)}
+                            className="w-24 p-1.5 text-right border rounded text-sm font-semibold focus:ring-2 focus:ring-orange-400 outline-none bg-white"
+                          />
+                          <input
+                            type="number" min={0}
+                            value={localPrices.wood_door_paint?.[`wd_base_${wood}_${modelId}_paint`] ?? 0}
+                            onChange={e => handlePriceChange('wood_door_paint', `wd_base_${wood}_${modelId}_paint`, e.target.value)}
+                            className="w-24 p-1.5 text-right border rounded text-sm font-semibold focus:ring-2 focus:ring-purple-400 outline-none bg-white"
+                          />
+                        </div>
+                      ))}
                     </div>
                   ))}
                 </div>
