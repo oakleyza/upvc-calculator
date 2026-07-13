@@ -80,9 +80,9 @@ export default function App() {
         if (!priceDoc.exists()) await setDoc(priceRef, DEFAULT_PRICES);
       } catch (err: unknown) {
         const fe = err as { code?: string };
-        if (fe.code === 'permission-denied') setPermissionError(true);
-        // FIX: log error อื่นๆ ด้วย เพื่อช่วย debug
-        else console.error('[initSystem] unexpected error:', err);
+        // แจ้ง warning ทุกกรณี เพื่อให้ admin รู้ว่ามีปัญหาการเชื่อมต่อ
+        setPermissionError(true);
+        console.error('[initSystem] error:', fe.code ?? err);
       } finally {
         // B-5 FIX: ตั้ง ready หลัง seed เสร็จ (ไม่ใช่ก่อน)
         setIsFirebaseReady(true);
