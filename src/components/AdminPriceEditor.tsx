@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, Save, Database, Tag, Maximize, Palette, LayoutDashboard, Hammer, ShieldAlert } from 'lucide-react';
 import type { PricingStructure } from '../types';
-import { LABEL_MAP, WOOD_MODEL_NAMES } from '../constants';
+import { LABEL_MAP, WOOD_MODEL_NAMES, WOOD_GLASS_NAMES, WOOD_CURVE_MODEL_IDS } from '../constants';
 
 interface Props {
   currentPrices: PricingStructure;
@@ -31,7 +31,7 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, onSave, onClo
     const cats: (keyof PricingStructure)[] = [
       'door_base','door_size','door_surface','frame_base','frame_size','frame_surface',
       'grooving','molding','glass','louver','reinforce','drilling','options',
-      'wood_door_price','wood_door_paint',
+      'wood_door_price','wood_door_paint','wood_door_glass',
     ];
     cats.forEach(cat => {
       Object.entries(localPrices[cat] ?? {}).forEach(([key, val]) => {
@@ -353,6 +353,95 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, onSave, onClo
                   <div>
                     <h5 className="text-sm font-bold text-slate-500 mb-2 bg-purple-50 p-2 rounded">งานทำสี (ตามสูง)</h5>
                     {Object.keys(localPrices.wood_door_paint).filter(k => k.startsWith('wd_h_')).map(k => renderInput('wood_door_paint', k))}
+                  </div>
+                </div>
+              </div>
+
+              {/* ส่วนต่างประตูโค้ง — กว้าง */}
+              <div className="bg-white p-5 rounded-xl shadow-sm border border-amber-200">
+                <h4 className="font-bold text-amber-700 mb-2 pb-2 border-b flex items-center gap-2">
+                  🌙 ส่วนต่างประตูโค้ง — ตามความกว้าง
+                </h4>
+                <p className="text-xs text-amber-600 mb-4">
+                  ใช้กับรุ่น: {[...WOOD_CURVE_MODEL_IDS].join(', ')} — แยกจากส่วนต่างประตูปกติ
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h5 className="text-sm font-bold text-slate-500 mb-2 bg-orange-50 p-2 rounded">งานไม้ (โค้ง ตามกว้าง)</h5>
+                    {Object.keys(localPrices.wood_door_price).filter(k => k.startsWith('wd_curve_w_')).map(k => renderInput('wood_door_price', k))}
+                  </div>
+                  <div>
+                    <h5 className="text-sm font-bold text-slate-500 mb-2 bg-purple-50 p-2 rounded">งานทำสี (โค้ง ตามกว้าง)</h5>
+                    {Object.keys(localPrices.wood_door_paint).filter(k => k.startsWith('wd_curve_w_')).map(k => renderInput('wood_door_paint', k))}
+                  </div>
+                </div>
+              </div>
+
+              {/* ส่วนต่างประตูโค้ง — สูง */}
+              <div className="bg-white p-5 rounded-xl shadow-sm border border-amber-200">
+                <h4 className="font-bold text-amber-700 mb-4 pb-2 border-b flex items-center gap-2">
+                  🌙 ส่วนต่างประตูโค้ง — ตามความสูง
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h5 className="text-sm font-bold text-slate-500 mb-2 bg-orange-50 p-2 rounded">งานไม้ (โค้ง ตามสูง)</h5>
+                    {Object.keys(localPrices.wood_door_price).filter(k => k.startsWith('wd_curve_h_')).map(k => renderInput('wood_door_price', k))}
+                  </div>
+                  <div>
+                    <h5 className="text-sm font-bold text-slate-500 mb-2 bg-purple-50 p-2 rounded">งานทำสี (โค้ง ตามสูง)</h5>
+                    {Object.keys(localPrices.wood_door_paint).filter(k => k.startsWith('wd_curve_h_')).map(k => renderInput('wood_door_paint', k))}
+                  </div>
+                </div>
+              </div>
+
+              {/* ราคากระจก */}
+              <div className="bg-white p-5 rounded-xl shadow-sm border border-cyan-200">
+                <h4 className="font-bold text-cyan-700 mb-2 pb-2 border-b flex items-center gap-2">
+                  💎 ราคากระจก
+                </h4>
+                <p className="text-xs text-cyan-600 mb-4">
+                  ราคาตั้งต้นกระจก (ต่อรุ่น) + ส่วนต่างตามขนาด — บวกทับราคาไม้และสี
+                </p>
+
+                {/* ราคาตั้งต้นกระจก ตามรุ่น */}
+                <div className="bg-white border rounded-lg p-4 mb-4">
+                  <h5 className="text-sm font-bold text-slate-700 mb-3 bg-cyan-50 p-2 rounded">ราคาตั้งต้นกระจก (ตามรุ่น)</h5>
+                  {Object.entries(WOOD_GLASS_NAMES).map(([glassKey, glassLabel]) => (
+                    <div key={glassKey} className="mb-4">
+                      <h6 className="text-xs font-bold text-cyan-700 mb-2">{glassLabel}</h6>
+                      <div className="flex items-center gap-2 px-2.5 mb-1">
+                        <span className="flex-1 text-xs font-semibold text-slate-400">รุ่น</span>
+                        <span className="w-24 text-xs font-semibold text-cyan-600 text-right">ราคา ฿</span>
+                      </div>
+                      {Object.entries(WOOD_MODEL_NAMES)
+                        .filter(([modelId, modelName]) => modelName.includes('กระจก') && localPrices.wood_door_glass?.[`wd_glass_${glassKey}_${modelId}`] !== undefined)
+                        .map(([modelId, modelName]) => {
+                          const key = `wd_glass_${glassKey}_${modelId}`;
+                          const val = localPrices.wood_door_glass?.[key] ?? 0;
+                          return (
+                            <div key={modelId} className="flex items-center gap-2 p-2.5 border-b last:border-0 hover:bg-slate-50 transition-colors">
+                              <span className="flex-1 text-sm font-medium text-slate-700">{modelName}</span>
+                              <input
+                                type="number" min={0} value={val}
+                                onChange={e => handlePriceChange('wood_door_glass', key, e.target.value)}
+                                className="w-24 p-1.5 text-right border rounded text-sm font-semibold focus:ring-2 focus:ring-cyan-400 outline-none bg-white"
+                              />
+                            </div>
+                          );
+                        })}
+                    </div>
+                  ))}
+                </div>
+
+                {/* ส่วนต่างขนาดกระจก */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h5 className="text-sm font-bold text-slate-500 mb-2 bg-cyan-50 p-2 rounded">กระจก: ส่วนต่างความกว้าง</h5>
+                    {Object.keys(localPrices.wood_door_glass ?? {}).filter(k => k.startsWith('wd_glass_w_')).map(k => renderInput('wood_door_glass', k))}
+                  </div>
+                  <div>
+                    <h5 className="text-sm font-bold text-slate-500 mb-2 bg-cyan-50 p-2 rounded">กระจก: ส่วนต่างความสูง</h5>
+                    {Object.keys(localPrices.wood_door_glass ?? {}).filter(k => k.startsWith('wd_glass_h_')).map(k => renderInput('wood_door_glass', k))}
                   </div>
                 </div>
               </div>

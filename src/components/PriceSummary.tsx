@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FileText, Check, Loader2 } from 'lucide-react';
 import type { DoorFormData, FrameFormData, WoodDoorFormData, PriceResult } from '../types';
-import { LABEL_MAP, WOOD_TYPE_NAMES, WOOD_MODEL_NAMES, WOOD_MODEL_IMAGES } from '../constants';
+import { LABEL_MAP, WOOD_TYPE_NAMES, WOOD_MODEL_NAMES, WOOD_MODEL_IMAGES, WOOD_GLASS_NAMES } from '../constants';
 
 // ─── Wood section with model image ──────────────────────────────────────────
 const WoodSummarySection: React.FC<{ woodForm: WoodDoorFormData }> = ({ woodForm }) => {
@@ -62,6 +62,14 @@ const WoodSummarySection: React.FC<{ woodForm: WoodDoorFormData }> = ({ woodForm
           {woodForm.painted ? 'ใช่ (มีค่าทำสี)' : 'ไม่ทำสี'}
         </span>
       </div>
+      {woodForm.glassType && woodForm.glassType !== 'none' && (
+        <div className="flex justify-between">
+          <span className="text-slate-500">กระจก</span>
+          <span className="font-medium text-cyan-700">
+            {WOOD_GLASS_NAMES[woodForm.glassType] ?? woodForm.glassType}
+          </span>
+        </div>
+      )}
     </>
   );
 };

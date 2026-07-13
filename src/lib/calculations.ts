@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------
 
 import type { DoorFormData, FrameFormData, WoodDoorFormData, PricingStructure, PriceResult } from '../types';
-import { FRAME_MATERIALS } from '../constants';
+import { FRAME_MATERIALS, WOOD_CURVE_MODEL_IDS, WOOD_MODEL_NAMES } from '../constants';
 
 // ------------------------------------------------------------------
 // Door price calculation
@@ -229,14 +229,20 @@ export const calculateFramePrice = (form: FrameFormData, prices: PricingStructur
 
 // ------------------------------------------------------------------
 // calculateWoodDoorPrice — ระบบ bracket ตามช่วงขนาด (กว้าง + สูง)
+// รองรับ: ประตูทั่วไป / ประตูโค้ง (surcharge แยก) / ประตูกระจก (ราคากระจกแยก)
 // ------------------------------------------------------------------
 export const calculateWoodDoorPrice = (form: WoodDoorFormData, prices: PricingStructure): PriceResult => {
   const surcharges: string[] = [];
-  const getP     = (k: string) => prices.wood_door_price?.[k] ?? 0;
-  const getPaint = (k: string) => prices.wood_door_paint?.[k]  ?? 0;
+  const getP      = (k: string) => prices.wood_door_price?.[k] ?? 0;
+  const getPaint  = (k: string) => prices.wood_door_paint?.[k]  ?? 0;
+  const getGlass  = (k: string) => prices.wood_door_glass?.[k]  ?? 0;
+
+  const isCurve = WOOD_CURVE_MODEL_IDS.has(form.modelId);
+  const modelName = WOOD_MODEL_NAMES[form.modelId] ?? '';
+  const hasGlass = modelName.includes('กระจก');
 
   // ค่าไม้ตั้งต้น (เสมอ) + ค่าทำสีตั้งต้น (เฉพาะเมื่อ painted)
-  const baseWoodKey  = `wd_base_${form.woodType}_${form.modelId}_wood`;
+  const baseWoodKey = `wd_base_${form.woodType}_${form.modelId}_wood`;
   let price = getP(baseWoodKey);
   if (form.painted) {
     const basePaintKey = `wd_base_${form.woodType}_${form.modelId}_paint`;
@@ -256,49 +262,76 @@ export const calculateWoodDoorPrice = (form: WoodDoorFormData, prices: PricingSt
     : (presetDim[form.sizeType] ?? [0, 0]);
 
   if (width > 0 && height > 0) {
-    // ---- ส่วนต่างความกว้าง ----
-    const widthKey: string | null =
-      width <= 70  ? null
-      : width <= 80  ? 'wd_w_71_80'
-      : width <= 90  ? 'wd_w_81_90'
-      : width <= 100 ? 'wd_w_91_100'
-      : width <= 110 ? 'wd_w_101_110'
-      : width <= 120 ? 'wd_w_111_120'
-      :                'wd_w_121_plus';
+    // prefix สำหรับ surcharge — โค้งใช้ wd_curve_w_* / wd_curve_h_*
+    const wPrefix = isCurve ? 'wd_curve_w_' : 'wd_w_';
+    const hPrefix = isCurve ? 'wd_curve_h_' : 'wd_h_';
+    const wLabel  = isCurve ? 'โค้ง ' : '';
 
-    if (widthKey) {
+    // ---- ส่วนต่างความกว้าง ----
+    const widthSuffix: string | null =
+      width <= 70  ? null
+      : width <= 80  ? '71_80'
+      : width <= 90  ? '81_90'
+      : width <= 100 ? '91_100'
+      : width <= 110 ? '101_110'
+      : width <= 120 ? '111_120'
+      :                '121_plus';
+
+    if (widthSuffix) {
+      const widthKey = wPrefix + widthSuffix;
       const wp = getP(widthKey);
       price += wp;
-      if (wp) surcharges.push(`งานไม้ ส่วนต่างกว้าง (+฿${wp.toLocaleString()})`);
+      if (wp) surcharges.push(`${wLabel}งานไม้ ส่วนต่างกว้าง (+฿${wp.toLocaleString()})`);
       if (form.painted) {
         const wpp = getPaint(widthKey);
         price += wpp;
-        if (wpp) surcharges.push(`งานสี ส่วนต่างกว้าง (+฿${wpp.toLocaleString()})`);
+        if (wpp) surcharges.push(`${wLabel}งานสี ส่วนต่างกว้าง (+฿${wpp.toLocaleString()})`);
       }
     }
 
     // ---- ส่วนต่างความสูง ----
-    const heightKey: string | null =
+    const heightSuffix: string | null =
       height <= 200 ? null
-      : height <= 210 ? 'wd_h_201_210'
-      : height <= 220 ? 'wd_h_211_220'
-      : height <= 230 ? 'wd_h_221_230'
-      : height <= 240 ? 'wd_h_231_240'
-      : height <= 250 ? 'wd_h_241_250'
-      : height <= 260 ? 'wd_h_251_260'
-      : height <= 270 ? 'wd_h_261_270'
-      : height <= 280 ? 'wd_h_271_280'
-      : height <= 290 ? 'wd_h_281_290'
-      :                 'wd_h_291_plus';
+      : height <= 210 ? '201_210'
+      : height <= 220 ? '211_220'
+      : height <= 230 ? '221_230'
+      : height <= 240 ? '231_240'
+      : height <= 250 ? '241_250'
+      : height <= 260 ? '251_260'
+      : height <= 270 ? '261_270'
+      : height <= 280 ? '271_280'
+      : height <= 290 ? '281_290'
+      :                 '291_plus';
 
-    if (heightKey) {
+    if (heightSuffix) {
+      const heightKey = hPrefix + heightSuffix;
       const hp = getP(heightKey);
       price += hp;
-      if (hp) surcharges.push(`งานไม้ ส่วนต่างสูง (+฿${hp.toLocaleString()})`);
+      if (hp) surcharges.push(`${wLabel}งานไม้ ส่วนต่างสูง (+฿${hp.toLocaleString()})`);
       if (form.painted) {
         const hpp = getPaint(heightKey);
         price += hpp;
-        if (hpp) surcharges.push(`งานสี ส่วนต่างสูง (+฿${hpp.toLocaleString()})`);
+        if (hpp) surcharges.push(`${wLabel}งานสี ส่วนต่างสูง (+฿${hpp.toLocaleString()})`);
+      }
+    }
+
+    // ---- ราคากระจก (เฉพาะรุ่นที่มีกระจก และ glassType ไม่ใช่ 'none') ----
+    if (hasGlass && form.glassType && form.glassType !== 'none') {
+      const glassBaseKey = `wd_glass_${form.glassType}_${form.modelId}`;
+      const glassBase = getGlass(glassBaseKey);
+      price += glassBase;
+      if (glassBase) surcharges.push(`ราคากระจก (+฿${glassBase.toLocaleString()})`);
+
+      // ส่วนต่างขนาดกระจก
+      if (widthSuffix) {
+        const gw = getGlass(`wd_glass_w_${widthSuffix}`);
+        price += gw;
+        if (gw) surcharges.push(`กระจก ส่วนต่างกว้าง (+฿${gw.toLocaleString()})`);
+      }
+      if (heightSuffix) {
+        const gh = getGlass(`wd_glass_h_${heightSuffix}`);
+        price += gh;
+        if (gh) surcharges.push(`กระจก ส่วนต่างสูง (+฿${gh.toLocaleString()})`);
       }
     }
   }

@@ -115,6 +115,7 @@ export default function App() {
           options:          { ...DEFAULT_PRICES.options,          ...(firestoreData.options          ?? {}) },
           wood_door_price:  { ...DEFAULT_PRICES.wood_door_price,  ...(firestoreData.wood_door_price  ?? {}) },
           wood_door_paint:  { ...DEFAULT_PRICES.wood_door_paint,  ...(firestoreData.wood_door_paint  ?? {}) },
+          wood_door_glass:  { ...DEFAULT_PRICES.wood_door_glass,  ...(firestoreData.wood_door_glass  ?? {}) },
         };
         setPrices(merged);
       } else {

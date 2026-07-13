@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { TreePine, Maximize, Palette, ChevronDown } from 'lucide-react';
+import { TreePine, Maximize, Palette, ChevronDown, Gem } from 'lucide-react';
 import type { WoodDoorFormData } from '../types';
-import { WOOD_TYPE_NAMES, WOOD_MODEL_NAMES, WOOD_MODEL_IMAGES } from '../constants';
+import { WOOD_TYPE_NAMES, WOOD_MODEL_NAMES, WOOD_MODEL_IMAGES, WOOD_GLASS_NAMES } from '../constants';
 
 interface Props {
   form: WoodDoorFormData;
@@ -39,6 +39,20 @@ export const WoodDoorCalculator: React.FC<Props> = ({ form, onInput }) => {
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, [modelOpen]);
+
+  // Auto-reset glassType เมื่อเปลี่ยนรุ่น:
+  //   รุ่นที่มี "กระจก" ในชื่อ → เซ็ต plain อัตโนมัติ
+  //   รุ่นที่ไม่มีกระจก         → เซ็ตกลับเป็น none
+  useEffect(() => {
+    const name = WOOD_MODEL_NAMES[form.modelId] ?? '';
+    const hasGlass = name.includes('กระจก');
+    if (hasGlass && form.glassType === 'none') {
+      onInput('glassType', 'plain');
+    } else if (!hasGlass && form.glassType !== 'none') {
+      onInput('glassType', 'none');
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.modelId]);
 
   const handleWidthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const v = e.target.value;
@@ -204,6 +218,33 @@ export const WoodDoorCalculator: React.FC<Props> = ({ form, onInput }) => {
           </div>
         </div>
       </div>
+
+      {/* กระจก — แสดงเฉพาะรุ่นที่มี "กระจก" ในชื่อ */}
+      {(WOOD_MODEL_NAMES[form.modelId] ?? '').includes('กระจก') && (
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-cyan-100">
+          <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
+            <Gem className="w-5 h-5 text-cyan-600" /> ประเภทกระจก
+          </h3>
+          <div className={`grid gap-3 ${Object.keys(WOOD_GLASS_NAMES).length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
+            {Object.entries(WOOD_GLASS_NAMES).map(([key, label]) => (
+              <div
+                key={key}
+                onClick={() => onInput('glassType', key)}
+                className={`cursor-pointer border-2 rounded-lg p-4 text-center transition-all ${
+                  form.glassType === key
+                    ? 'border-cyan-500 bg-cyan-50 text-cyan-800 font-bold'
+                    : 'border-slate-200 text-slate-500 hover:border-slate-300'
+                }`}
+              >
+                {label}
+              </div>
+            ))}
+          </div>
+          <p className="mt-3 text-xs text-slate-400">
+            ราคากระจกจะคำนวณรวมอยู่ในราคาสุทธิโดยอัตโนมัติ
+          </p>
+        </div>
+      )}
     </div>
   );
 };
