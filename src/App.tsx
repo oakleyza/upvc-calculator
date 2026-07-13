@@ -4,11 +4,11 @@ import { doc, setDoc, getDoc, onSnapshot } from 'firebase/firestore';
 
 import { db, isFirebaseConfigured } from './lib/firebase';
 import { loadSession, clearSession, secureHash, generateSalt } from './lib/auth';
-import { calculateDoorPrice, calculateFramePrice, calculateWoodDoorPrice } from './lib/calculations';
+import { calculateDoorPrice, calculateFramePrice, calculateWoodDoorPrice, calculateWoodFramePrice } from './lib/calculations';
 
-import type { SessionUser, PricingStructure, DoorFormData, FrameFormData, WoodDoorFormData, PriceResult, TabInfo } from './types';
+import type { SessionUser, PricingStructure, DoorFormData, FrameFormData, WoodDoorFormData, WoodFrameFormData, PriceResult, TabInfo } from './types';
 import {
-  DEFAULT_PRICES, DEFAULT_DOOR_FORM, DEFAULT_FRAME_FORM, DEFAULT_WOOD_DOOR_FORM,
+  DEFAULT_PRICES, DEFAULT_DOOR_FORM, DEFAULT_FRAME_FORM, DEFAULT_WOOD_DOOR_FORM, DEFAULT_WOOD_FRAME_FORM,
   DEFAULT_USERS_SEED, isFrameWithSub,
 } from './constants';
 
@@ -18,6 +18,7 @@ import { UserManagementPanel }   from './components/UserManagementPanel';
 import { DoorCalculator }        from './components/DoorCalculator';
 import { FrameCalculator }       from './components/FrameCalculator';
 import { WoodDoorCalculator }    from './components/WoodDoorCalculator';
+import { WoodFrameCalculator }   from './components/WoodFrameCalculator';
 import { PriceSummary }          from './components/PriceSummary';
 
 // ------------------------------------------------------------------
@@ -40,10 +41,11 @@ export default function App() {
   const [permissionError,setPermissionError]= useState(false);
 
   // C-3 FIX: ลบ dead fields ออก (toaCode, svlCode, wallThickness, door type)
-  const [doorForm,    setDoorForm]    = useState<DoorFormData>(DEFAULT_DOOR_FORM);
-  const [frameForm,   setFrameForm]   = useState<FrameFormData>(DEFAULT_FRAME_FORM);
-  const [woodForm,    setWoodForm]    = useState<WoodDoorFormData>(DEFAULT_WOOD_DOOR_FORM);
-  const [priceResult, setPriceResult] = useState<PriceResult>({ total: 0, surcharges: [] });
+  const [doorForm,       setDoorForm]       = useState<DoorFormData>(DEFAULT_DOOR_FORM);
+  const [frameForm,      setFrameForm]      = useState<FrameFormData>(DEFAULT_FRAME_FORM);
+  const [woodForm,       setWoodForm]       = useState<WoodDoorFormData>(DEFAULT_WOOD_DOOR_FORM);
+  const [woodFrameForm,  setWoodFrameForm]  = useState<WoodFrameFormData>(DEFAULT_WOOD_FRAME_FORM);
+  const [priceResult,    setPriceResult]    = useState<PriceResult>({ total: 0, surcharges: [] });
 
   useEffect(() => { document.title = 'ระบบคำนวนราคา -กลางซอยค้าไม้-'; }, []);
 
@@ -116,6 +118,7 @@ export default function App() {
           wood_door_price:  { ...DEFAULT_PRICES.wood_door_price,  ...(firestoreData.wood_door_price  ?? {}) },
           wood_door_paint:  { ...DEFAULT_PRICES.wood_door_paint,  ...(firestoreData.wood_door_paint  ?? {}) },
           wood_door_glass:  { ...DEFAULT_PRICES.wood_door_glass,  ...(firestoreData.wood_door_glass  ?? {}) },
+          wood_frame_price: { ...DEFAULT_PRICES.wood_frame_price, ...(firestoreData.wood_frame_price ?? {}) },
         };
         setPrices(merged);
       } else {
@@ -139,9 +142,9 @@ export default function App() {
     } else if (activeTab === 'wood') {
       setPriceResult(calculateWoodDoorPrice(woodForm, prices));
     } else if (activeTab === 'wood_frame') {
-      setPriceResult({ total: 0, surcharges: [] });
+      setPriceResult(calculateWoodFramePrice(woodFrameForm, prices));
     }
-  }, [doorForm, frameForm, woodForm, prices, activeTab]);
+  }, [doorForm, frameForm, woodForm, woodFrameForm, prices, activeTab]);
 
   // Auto-switch: วงกบที่ไม่มีซับ → SVL ไม่ได้
   useEffect(() => {
@@ -204,6 +207,10 @@ export default function App() {
     setWoodForm(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleWoodFrameInput = (field: keyof WoodFrameFormData, value: string | boolean) => {
+    setWoodFrameForm(prev => ({ ...prev, [field]: value }));
+  };
+
   const handleOptionToggle = (optionKey: string) =>
     setDoorForm(prev => ({
       ...prev,
@@ -214,9 +221,10 @@ export default function App() {
   const handleTabChange = (tabId: string) => {
     if (tabId === activeTab) return;
     setActiveTab(tabId);
-    if (tabId === 'exclusive') setDoorForm(DEFAULT_DOOR_FORM);
-    if (tabId === 'frame')     setFrameForm(DEFAULT_FRAME_FORM);
-    if (tabId === 'wood')      setWoodForm(DEFAULT_WOOD_DOOR_FORM);
+    if (tabId === 'exclusive')  setDoorForm(DEFAULT_DOOR_FORM);
+    if (tabId === 'frame')      setFrameForm(DEFAULT_FRAME_FORM);
+    if (tabId === 'wood')       setWoodForm(DEFAULT_WOOD_DOOR_FORM);
+    if (tabId === 'wood_frame') setWoodFrameForm(DEFAULT_WOOD_FRAME_FORM);
   };
 
   const handleLogout = () => { clearSession(); setCurrentUser(null); };
@@ -300,11 +308,7 @@ export default function App() {
               <WoodDoorCalculator form={woodForm} onInput={handleWoodInput} />
             )}
             {activeTab === 'wood_frame' && (
-              <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-16 flex flex-col items-center justify-center text-center gap-3">
-                <Layers className="w-14 h-14 text-slate-200" />
-                <p className="text-lg font-semibold text-slate-400">วงกบไม้</p>
-                <p className="text-sm text-slate-300">กำลังพัฒนา</p>
-              </div>
+              <WoodFrameCalculator form={woodFrameForm} onInput={handleWoodFrameInput} />
             )}
             {activeTab === 'exclusive' && (
               <DoorCalculator
@@ -324,6 +328,7 @@ export default function App() {
             doorForm={doorForm}
             frameForm={frameForm}
             woodForm={woodForm}
+            woodFrameForm={woodFrameForm}
             priceResult={priceResult}
             isPricesLoading={isPricesLoading}
           />

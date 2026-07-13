@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FileText, Check, Loader2 } from 'lucide-react';
-import type { DoorFormData, FrameFormData, WoodDoorFormData, PriceResult } from '../types';
-import { LABEL_MAP, WOOD_TYPE_NAMES, WOOD_MODEL_NAMES, WOOD_MODEL_IMAGES, WOOD_GLASS_NAMES } from '../constants';
+import type { DoorFormData, FrameFormData, WoodDoorFormData, WoodFrameFormData, PriceResult } from '../types';
+import { LABEL_MAP, WOOD_TYPE_NAMES, WOOD_MODEL_NAMES, WOOD_MODEL_IMAGES, WOOD_GLASS_NAMES, WOOD_FRAME_TYPE_NAMES } from '../constants';
 
 // ─── Wood section with model image ──────────────────────────────────────────
 const WoodSummarySection: React.FC<{ woodForm: WoodDoorFormData }> = ({ woodForm }) => {
@@ -88,12 +88,13 @@ interface Props {
   doorForm: DoorFormData;
   frameForm: FrameFormData;
   woodForm: WoodDoorFormData;
+  woodFrameForm: WoodFrameFormData;
   priceResult: PriceResult;
   isPricesLoading: boolean;
 }
 
 export const PriceSummary: React.FC<Props> = ({
-  activeTab, doorForm, frameForm, woodForm, priceResult, isPricesLoading,
+  activeTab, doorForm, frameForm, woodForm, woodFrameForm, priceResult, isPricesLoading,
 }) => {
   const isDoor      = activeTab === 'exclusive';
   const isWood      = activeTab === 'wood';
@@ -207,6 +208,37 @@ export const PriceSummary: React.FC<Props> = ({
 
               {isWood && (
                 <WoodSummarySection woodForm={woodForm} />
+              )}
+
+              {isWoodFrame && (
+                <>
+                  <div className="flex justify-between border-b pb-2">
+                    <span className="text-slate-900 font-bold">รายการที่เลือก</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">ชนิดวงกบ</span>
+                    <span className="font-medium">{WOOD_FRAME_TYPE_NAMES[woodFrameForm.frameType] ?? woodFrameForm.frameType}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">ขนาด</span>
+                    <span className="font-medium">
+                      {woodFrameForm.sizeType === 'custom'
+                        ? `${woodFrameForm.customWidth}×${woodFrameForm.customHeight} cm`
+                        : woodFrameForm.sizeType}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">ทำสี</span>
+                    <span className={`font-medium ${woodFrameForm.painted ? 'text-purple-700' : 'text-slate-400'}`}>
+                      {woodFrameForm.painted ? 'ทำสี' : 'ไม่ทำสี (งานดิบ)'}
+                    </span>
+                  </div>
+                  {woodFrameForm.sizeType === 'custom' && (
+                    <div className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded px-2 py-1">
+                      ขนาด Custom — กรุณาสอบถามราคาเพิ่มเติม
+                    </div>
+                  )}
+                </>
               )}
 
               {isFrame && (

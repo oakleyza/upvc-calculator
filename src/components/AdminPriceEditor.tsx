@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, Save, Database, Tag, Maximize, Palette, LayoutDashboard, Hammer, ShieldAlert } from 'lucide-react';
 import type { PricingStructure } from '../types';
-import { LABEL_MAP, WOOD_MODEL_NAMES, WOOD_GLASS_NAMES, WOOD_CURVE_MODEL_IDS } from '../constants';
+import { LABEL_MAP, WOOD_MODEL_NAMES, WOOD_GLASS_NAMES, WOOD_CURVE_MODEL_IDS, WOOD_FRAME_TYPE_NAMES } from '../constants';
 
 interface Props {
   currentPrices: PricingStructure;
@@ -9,7 +9,7 @@ interface Props {
   onClose: () => void;
 }
 
-type ActiveCategory = 'door' | 'frame_t2' | 'frame_f10' | 'frame_x' | 'frame_eco' | 'frame_bsx' | 'wood';
+type ActiveCategory = 'door' | 'frame_t2' | 'frame_f10' | 'frame_x' | 'frame_eco' | 'frame_bsx' | 'wood' | 'wood_frame';
 
 export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, onSave, onClose }) => {
   const [activeCategory, setActiveCategory] = useState<ActiveCategory>('wood');
@@ -31,7 +31,7 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, onSave, onClo
     const cats: (keyof PricingStructure)[] = [
       'door_base','door_size','door_surface','frame_base','frame_size','frame_surface',
       'grooving','molding','glass','louver','reinforce','drilling','options',
-      'wood_door_price','wood_door_paint','wood_door_glass',
+      'wood_door_price','wood_door_paint','wood_door_glass','wood_frame_price',
     ];
     cats.forEach(cat => {
       Object.entries(localPrices[cat] ?? {}).forEach(([key, val]) => {
@@ -69,8 +69,9 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, onSave, onClo
   };
 
   const tabs: { id: ActiveCategory; label: string }[] = [
-    { id: 'wood',      label: '🪵 ประตูไม้' },
-    { id: 'door',      label: '🚪 ประตู uPVC' },
+    { id: 'wood',       label: '🪵 ประตูไม้' },
+    { id: 'wood_frame', label: '🔶 วงกบไม้' },
+    { id: 'door',       label: '🚪 ประตู uPVC' },
     { id: 'frame_t2',  label: '🔲 วงกบ T2' },
     { id: 'frame_f10', label: '🔲 วงกบ F10' },
     { id: 'frame_x',   label: '✨ Adjust X' },
@@ -445,6 +446,50 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, onSave, onClo
                   </div>
                 </div>
               </div>
+            </div>
+          )}
+
+          {activeCategory === 'wood_frame' && (
+            <div className="space-y-6">
+              <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
+                <h4 className="font-bold text-amber-800 flex items-center gap-2">🔶 ตั้งราคาวงกบไม้</h4>
+                <p className="text-sm text-amber-700 mt-1">
+                  กรอกราคารวมทั้งชุดต่อขนาด แยกระหว่าง "ไม่ทำสี" และ "ทำสี"
+                </p>
+              </div>
+
+              {Object.entries(WOOD_FRAME_TYPE_NAMES).map(([frameType, frameLabel]) => (
+                <div key={frameType} className="bg-white p-5 rounded-xl shadow-sm border">
+                  <h4 className="font-bold text-slate-800 mb-4 pb-2 border-b">{frameLabel}</h4>
+                  {/* header */}
+                  <div className="flex items-center gap-2 px-2.5 mb-1">
+                    <span className="flex-1 text-xs font-semibold text-slate-400">ขนาด</span>
+                    <span className="w-28 text-xs font-semibold text-slate-600 text-right">ไม่ทำสี ฿</span>
+                    <span className="w-28 text-xs font-semibold text-purple-600 text-right">ทำสี ฿</span>
+                  </div>
+                  {(['70x200cm', '80x200cm', '90x200cm'] as const).map(size => {
+                    const keyNoP  = `wf_${frameType}_${size}`;
+                    const keyPaint = `wf_${frameType}_${size}_paint`;
+                    const valNoP  = localPrices.wood_frame_price?.[keyNoP]   ?? 0;
+                    const valPaint = localPrices.wood_frame_price?.[keyPaint] ?? 0;
+                    return (
+                      <div key={size} className="flex items-center gap-2 p-2.5 border-b last:border-0 hover:bg-slate-50 transition-colors">
+                        <span className="flex-1 text-sm font-medium text-slate-700">{size}</span>
+                        <input
+                          type="number" min={0} value={valNoP}
+                          onChange={e => handlePriceChange('wood_frame_price', keyNoP, e.target.value)}
+                          className="w-28 p-1.5 text-right border rounded text-sm font-semibold focus:ring-2 focus:ring-slate-400 outline-none bg-white"
+                        />
+                        <input
+                          type="number" min={0} value={valPaint}
+                          onChange={e => handlePriceChange('wood_frame_price', keyPaint, e.target.value)}
+                          className="w-28 p-1.5 text-right border rounded text-sm font-semibold focus:ring-2 focus:ring-purple-400 outline-none bg-white"
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
             </div>
           )}
 

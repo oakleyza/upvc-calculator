@@ -1,4 +1,4 @@
-import type { PricingStructure, DoorFormData, FrameFormData, WoodDoorFormData } from './types';
+import type { PricingStructure, DoorFormData, FrameFormData, WoodDoorFormData, WoodFrameFormData } from './types';
 
 // ------------------------------------------------------------------
 // Frame material constants (แทน magic strings ที่กระจายทั่ว codebase)
@@ -123,6 +123,16 @@ export const WOOD_GLASS_NAMES: Record<string, string> = {
 
 // รุ่นประตูโค้ง — ใช้ wd_curve_w_* / wd_curve_h_* สำหรับส่วนต่างขนาด (แทน wd_w_* / wd_h_*)
 export const WOOD_CURVE_MODEL_IDS = new Set(['m32', 'm33', 'm34', 'm35', 'm36', 'm37']);
+
+// ------------------------------------------------------------------
+// Wood frame constants (วงกบไม้)
+// ------------------------------------------------------------------
+export const WOOD_FRAME_TYPE_NAMES: Record<string, string> = {
+  pluang:       'วงกบไม้พลวง',
+  teng:         'วงกบไม้เต็ง',
+  daeng:        'วงกบไม้แดง',
+  curve_pluang: 'วงกบโค้งไม้พลวง',
+};
 
 // ------------------------------------------------------------------
 // Label mapping (admin price editor + summary panel)
@@ -314,6 +324,31 @@ export const LABEL_MAP: Record<string, string> = {
   'bsx_svl_h_201_210': 'Adjust Big Six — ค่าปิดผิว SVL (สูง 201–210 cm)',
   'bsx_svl_h_211_220': 'Adjust Big Six — ค่าปิดผิว SVL (สูง 211–220 cm)',
   'bsx_svl_h_221_240': 'Adjust Big Six — ค่าปิดผิว SVL (สูง 221–240 cm)',
+  // === วงกบไม้ ===
+  'wf_pluang_70x200cm':       'วงกบไม้พลวง 70×200 (ไม่ทำสี)',
+  'wf_pluang_80x200cm':       'วงกบไม้พลวง 80×200 (ไม่ทำสี)',
+  'wf_pluang_90x200cm':       'วงกบไม้พลวง 90×200 (ไม่ทำสี)',
+  'wf_pluang_70x200cm_paint': 'วงกบไม้พลวง 70×200 (ทำสี)',
+  'wf_pluang_80x200cm_paint': 'วงกบไม้พลวง 80×200 (ทำสี)',
+  'wf_pluang_90x200cm_paint': 'วงกบไม้พลวง 90×200 (ทำสี)',
+  'wf_teng_70x200cm':         'วงกบไม้เต็ง 70×200 (ไม่ทำสี)',
+  'wf_teng_80x200cm':         'วงกบไม้เต็ง 80×200 (ไม่ทำสี)',
+  'wf_teng_90x200cm':         'วงกบไม้เต็ง 90×200 (ไม่ทำสี)',
+  'wf_teng_70x200cm_paint':   'วงกบไม้เต็ง 70×200 (ทำสี)',
+  'wf_teng_80x200cm_paint':   'วงกบไม้เต็ง 80×200 (ทำสี)',
+  'wf_teng_90x200cm_paint':   'วงกบไม้เต็ง 90×200 (ทำสี)',
+  'wf_daeng_70x200cm':        'วงกบไม้แดง 70×200 (ไม่ทำสี)',
+  'wf_daeng_80x200cm':        'วงกบไม้แดง 80×200 (ไม่ทำสี)',
+  'wf_daeng_90x200cm':        'วงกบไม้แดง 90×200 (ไม่ทำสี)',
+  'wf_daeng_70x200cm_paint':  'วงกบไม้แดง 70×200 (ทำสี)',
+  'wf_daeng_80x200cm_paint':  'วงกบไม้แดง 80×200 (ทำสี)',
+  'wf_daeng_90x200cm_paint':  'วงกบไม้แดง 90×200 (ทำสี)',
+  'wf_curve_pluang_70x200cm':       'วงกบโค้งไม้พลวง 70×200 (ไม่ทำสี)',
+  'wf_curve_pluang_80x200cm':       'วงกบโค้งไม้พลวง 80×200 (ไม่ทำสี)',
+  'wf_curve_pluang_90x200cm':       'วงกบโค้งไม้พลวง 90×200 (ไม่ทำสี)',
+  'wf_curve_pluang_70x200cm_paint': 'วงกบโค้งไม้พลวง 70×200 (ทำสี)',
+  'wf_curve_pluang_80x200cm_paint': 'วงกบโค้งไม้พลวง 80×200 (ทำสี)',
+  'wf_curve_pluang_90x200cm_paint': 'วงกบโค้งไม้พลวง 90×200 (ทำสี)',
   // === Adjust Eco ===
   'eco_std_70': 'Adjust Eco — ไซส์มาตรฐาน 70×200 (ไม่มีค่าเพิ่ม)',
   'eco_std_80': 'Adjust Eco — ไซส์มาตรฐาน 80×200 (ไม่มีค่าเพิ่ม)',
@@ -523,6 +558,18 @@ export const DEFAULT_PRICES: PricingStructure = {
     'wd_glass_h_261_270': 0,  'wd_glass_h_271_280': 0,  'wd_glass_h_281_290': 0,
     'wd_glass_h_291_plus': 0,
   },
+  wood_frame_price: {
+    // ราคารวมทั้งชุดวงกบไม้ ตาม type × size (ไม่ทำสี)
+    'wf_pluang_70x200cm': 0, 'wf_pluang_80x200cm': 0, 'wf_pluang_90x200cm': 0,
+    'wf_teng_70x200cm':   0, 'wf_teng_80x200cm':   0, 'wf_teng_90x200cm':   0,
+    'wf_daeng_70x200cm':  0, 'wf_daeng_80x200cm':  0, 'wf_daeng_90x200cm':  0,
+    'wf_curve_pluang_70x200cm': 0, 'wf_curve_pluang_80x200cm': 0, 'wf_curve_pluang_90x200cm': 0,
+    // ราคารวมทั้งชุดวงกบไม้ ตาม type × size (ทำสี — ราคารวมทั้งหมด ไม่ใช่ส่วนต่าง)
+    'wf_pluang_70x200cm_paint': 0, 'wf_pluang_80x200cm_paint': 0, 'wf_pluang_90x200cm_paint': 0,
+    'wf_teng_70x200cm_paint':   0, 'wf_teng_80x200cm_paint':   0, 'wf_teng_90x200cm_paint':   0,
+    'wf_daeng_70x200cm_paint':  0, 'wf_daeng_80x200cm_paint':  0, 'wf_daeng_90x200cm_paint':  0,
+    'wf_curve_pluang_70x200cm_paint': 0, 'wf_curve_pluang_80x200cm_paint': 0, 'wf_curve_pluang_90x200cm_paint': 0,
+  },
   structure: {}, size: {}, surface: {},
   grooving: { 'none': 0, 'standard': 999, 'black_line': 999, 'painted': 999 },
   molding: { 'none': 0, 'first_1': 999, 'first_2': 999, 'roma_1': 999, 'roma_2': 999 },
@@ -570,6 +617,14 @@ export const DEFAULT_WOOD_DOOR_FORM: WoodDoorFormData = {
   customHeight: '',
   painted: true,    // ค่าเริ่มต้น: มีการทำสี (ติ๊กออกถ้าไม่ทำสี)
   glassType: 'none', // 'none' | 'plain' — auto-set เมื่อเลือกรุ่นที่มีกระจก
+};
+
+export const DEFAULT_WOOD_FRAME_FORM: WoodFrameFormData = {
+  frameType:    'pluang',
+  sizeType:     '70x200cm',
+  customWidth:  '',
+  customHeight: '',
+  painted:      false,
 };
 
 // ------------------------------------------------------------------

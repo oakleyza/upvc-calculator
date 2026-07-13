@@ -20,9 +20,10 @@ export interface PricingStructure {
   reinforce: PriceCategory;
   drilling: PriceCategory;
   options: PriceCategory;
-  wood_door_price: PriceCategory;  // base(ไม้×รุ่น) + size surcharge + curve surcharge
-  wood_door_paint: PriceCategory;  // ค่าทำสี ตามขนาด + curve surcharge
-  wood_door_glass: PriceCategory;  // ค่ากระจก ตามรุ่น + ขนาด
+  wood_door_price: PriceCategory;   // base(ไม้×รุ่น) + size surcharge + curve surcharge
+  wood_door_paint: PriceCategory;   // ค่าทำสี ตามขนาด + curve surcharge
+  wood_door_glass: PriceCategory;   // ค่ากระจก ตามรุ่น + ขนาด
+  wood_frame_price: PriceCategory;  // ราคาวงกบไม้ ตาม type × size × painted
   // Legacy fallback fields (kept for Firestore backward compatibility)
   structure?: PriceCategory;
   size?: PriceCategory;
@@ -64,6 +65,14 @@ export interface FrameFormData {
   customWidth: string;
   customHeight: string;
   surfaceType: string;
+}
+
+export interface WoodFrameFormData {
+  frameType: string;    // 'pluang' | 'teng' | 'daeng' | 'curve_pluang'
+  sizeType: string;     // '70x200cm' | '80x200cm' | '90x200cm' | 'custom'
+  customWidth: string;
+  customHeight: string;
+  painted: boolean;
 }
 
 export interface UserAccount {

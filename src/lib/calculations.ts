@@ -3,7 +3,7 @@
 // B-2 FIX: TOA_h_under_200 / SVL_h_under_200 ถูกใช้จริงแล้ว
 // ------------------------------------------------------------------
 
-import type { DoorFormData, FrameFormData, WoodDoorFormData, PricingStructure, PriceResult } from '../types';
+import type { DoorFormData, FrameFormData, WoodDoorFormData, WoodFrameFormData, PricingStructure, PriceResult } from '../types';
 import { FRAME_MATERIALS, WOOD_CURVE_MODEL_IDS, WOOD_MODEL_NAMES } from '../constants';
 
 // ------------------------------------------------------------------
@@ -337,4 +337,22 @@ export const calculateWoodDoorPrice = (form: WoodDoorFormData, prices: PricingSt
   }
 
   return { total: price, surcharges };
+};
+
+// ------------------------------------------------------------------
+// calculateWoodFramePrice — วงกบไม้ (ราคารวมตรง — ไม่ใช่ bracket surcharge)
+// admin กรอกราคารวมทั้งชุดแยกตาม type × size × painted
+// custom size: ยังไม่มี logic (รอ user อธิบาย) → คืน 0
+// ------------------------------------------------------------------
+export const calculateWoodFramePrice = (form: WoodFrameFormData, prices: PricingStructure): PriceResult => {
+  if (form.sizeType === 'custom') {
+    return { total: 0, surcharges: ['ขนาด Custom: กรุณาสอบถามราคาเพิ่มเติม'] };
+  }
+
+  const priceKey = form.painted
+    ? `wf_${form.frameType}_${form.sizeType}_paint`
+    : `wf_${form.frameType}_${form.sizeType}`;
+
+  const total = prices.wood_frame_price?.[priceKey] ?? 0;
+  return { total, surcharges: [] };
 };
