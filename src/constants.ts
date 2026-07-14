@@ -624,7 +624,7 @@ export const DEFAULT_WOOD_FRAME_FORM: WoodFrameFormData = {
   sizeType:     '70x200cm',
   customWidth:  '',
   customHeight: '',
-  painted:      false,
+  painted:      true,
 };
 
 // ------------------------------------------------------------------
