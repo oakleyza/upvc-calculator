@@ -66,7 +66,7 @@ export const WoodFrameCalculator: React.FC<Props> = ({ form, onInput }) => {
                   : 'border-slate-200 hover:border-blue-300 text-slate-700'
               }`}
             >
-              <span className="font-medium text-sm">{size}</span>
+              <span className="font-medium text-sm">{size.replace('cm', '')}</span>
             </div>
           ))}
           <div
@@ -121,16 +121,6 @@ export const WoodFrameCalculator: React.FC<Props> = ({ form, onInput }) => {
         </h3>
         <div className="grid grid-cols-2 gap-3">
           <div
-            onClick={() => onInput('painted', false)}
-            className={`p-4 rounded-lg border-2 cursor-pointer text-center transition-all ${
-              !form.painted
-                ? 'border-slate-500 bg-slate-50 text-slate-800'
-                : 'border-slate-200 hover:border-slate-300 text-slate-600'
-            }`}
-          >
-            <span className="font-medium text-sm">ไม่ทำสี (งานดิบ)</span>
-          </div>
-          <div
             onClick={() => onInput('painted', true)}
             className={`p-4 rounded-lg border-2 cursor-pointer text-center transition-all ${
               form.painted
@@ -139,6 +129,16 @@ export const WoodFrameCalculator: React.FC<Props> = ({ form, onInput }) => {
             }`}
           >
             <span className="font-medium text-sm">ทำสี</span>
+          </div>
+          <div
+            onClick={() => onInput('painted', false)}
+            className={`p-4 rounded-lg border-2 cursor-pointer text-center transition-all ${
+              !form.painted
+                ? 'border-slate-500 bg-slate-50 text-slate-800'
+                : 'border-slate-200 hover:border-slate-300 text-slate-600'
+            }`}
+          >
+            <span className="font-medium text-sm">ไม่ทำสี (งานดิบ)</span>
           </div>
         </div>
       </div>
