@@ -53,11 +53,11 @@ export const calculateDoorPrice = (form: DoorFormData, prices: PricingStructure)
   const surfacePrice = prices.door_surface?.[surfaceKey] ?? prices.surface?.[surfaceKey] ?? 0;
   price += surfacePrice;
 
-  // TOA ไม่ติดคิ้ว → บวก extra
-  if (form.surfaceType === 'TOA' && form.molding === 'none') {
+  // บานทึบเรียบ (ไม่ติดคิ้ว) → บวก extra ทั้ง TOA และ ไม่ทำสี (ค่าดำเนินการบานเรียบ)
+  if ((form.surfaceType === 'TOA' || form.surfaceType === 'none') && form.molding === 'none') {
     const extraP = prices.door_surface?.['TOA_plain_extra'] ?? 0;
     price += extraP;
-    if (extraP) surcharges.push(`TOA ไม่ติดคิ้ว (+฿${extraP.toLocaleString()})`);
+    if (extraP) surcharges.push(`บานทึบเรียบ (+฿${extraP.toLocaleString()})`);
   }
 
   price += prices.grooving?.[form.grooving]   ?? 0;
