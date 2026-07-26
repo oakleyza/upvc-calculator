@@ -152,7 +152,11 @@ export const PriceSummary: React.FC<Props> = ({
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-500">สี/ผิว</span>
-                    <span className="font-medium">{doorForm.surfaceType}</span>
+                    <span className="font-medium">
+                      {doorForm.surfaceType === 'TOA' ? 'พ่นสี TOA'
+                        : doorForm.surfaceType === 'SVL' ? 'ปิดผิว SVL'
+                        : 'ไม่ทำสี (งานดิบ)'}
+                    </span>
                   </div>
                   {doorForm.grooving !== 'none' && (
                     <div className="flex justify-between">

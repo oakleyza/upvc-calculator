@@ -121,13 +121,17 @@ export const DoorCalculator: React.FC<Props> = ({ form, onInput, onOptionToggle 
         </h3>
         <div className="grid grid-cols-2 gap-6">
           {/* เลือกสี */}
-          <div className="col-span-2 grid grid-cols-2 gap-4">
-            {(['TOA', 'SVL'] as const).map(t => (
-              <div key={t} onClick={() => onInput('surfaceType', t)}
-                className={`p-4 rounded-lg border-2 cursor-pointer ${form.surfaceType === t ? 'border-purple-500 bg-purple-50' : 'border-slate-200'}`}>
+          <div className="col-span-2 grid grid-cols-3 gap-3">
+            {([
+              { id: 'TOA',  label: 'พ่นสี TOA' },
+              { id: 'SVL',  label: 'ปิดผิว SVL' },
+              { id: 'none', label: 'ไม่ทำสี (งานดิบ)' },
+            ] as const).map(t => (
+              <div key={t.id} onClick={() => onInput('surfaceType', t.id)}
+                className={`p-4 rounded-lg border-2 cursor-pointer ${form.surfaceType === t.id ? 'border-purple-500 bg-purple-50' : 'border-slate-200'}`}>
                 <label className="flex items-center gap-2 pointer-events-none">
-                  <div className={`w-4 h-4 rounded-full border-2 ${form.surfaceType === t ? 'bg-purple-500 border-purple-500' : 'border-slate-300'}`} />
-                  {t === 'TOA' ? 'พ่นสี TOA' : 'ปิดผิว SVL'}
+                  <div className={`w-4 h-4 rounded-full border-2 shrink-0 ${form.surfaceType === t.id ? 'bg-purple-500 border-purple-500' : 'border-slate-300'}`} />
+                  <span className="text-sm">{t.label}</span>
                 </label>
               </div>
             ))}
