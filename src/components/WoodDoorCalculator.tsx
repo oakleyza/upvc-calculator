@@ -255,9 +255,10 @@ interface ThumbProps { modelId: string; size: 'sm' | 'md'; }
 const ModelThumb: React.FC<ThumbProps> = ({ modelId, size }) => {
   const [imgOk, setImgOk] = useState(true);
   const src = WOOD_MODEL_IMAGES[modelId];
+  // container แนวตั้งให้รูปประตูเต็มภาพ — sm สำหรับปุ่ม, md สำหรับ dropdown
   const cls = size === 'sm'
-    ? 'w-10 h-10 rounded flex-shrink-0'
-    : 'w-12 h-12 rounded flex-shrink-0';
+    ? 'w-9 h-16 rounded flex-shrink-0'
+    : 'w-12 h-20 rounded flex-shrink-0';
 
   if (!src || !imgOk) {
     return <DoorPlaceholder className={cls} />;
@@ -266,7 +267,7 @@ const ModelThumb: React.FC<ThumbProps> = ({ modelId, size }) => {
     <img
       src={src}
       alt={modelId}
-      className={`${cls} object-cover border border-slate-200`}
+      className={`${cls} object-contain bg-amber-50 border border-slate-200`}
       onError={() => setImgOk(false)}
     />
   );

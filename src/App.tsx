@@ -23,7 +23,7 @@ import { PriceSummary }          from './components/PriceSummary';
 
 // ------------------------------------------------------------------
 const TABS: TabInfo[] = [
-  { id: 'wood',       label: 'ประตูไม้ (ทดลองใช้)', icon: TreePine },
+  { id: 'wood',       label: 'ประตูไม้',              icon: TreePine },
   { id: 'wood_frame', label: 'วงกบไม้',              icon: Layers   },
   { id: 'exclusive',  label: 'ประตู uPVC',           icon: DoorOpen },
   { id: 'frame',      label: 'วงกบ WPC',             icon: Maximize },
