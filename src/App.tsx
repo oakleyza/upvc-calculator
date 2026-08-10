@@ -160,6 +160,32 @@ export default function App() {
     }
   }, [doorForm.surfaceType]);
 
+  // Auto-switch: width > 95 → ติดคิ้วไม่ได้
+  useEffect(() => {
+    const w = doorForm.sizeType === 'custom' ? parseInt(doorForm.customWidth) || 0 : parseInt(doorForm.sizeType);
+    if (w > 95) {
+      setDoorForm(prev => prev.molding !== 'none' ? { ...prev, molding: 'none' } : prev);
+    }
+  }, [doorForm.sizeType, doorForm.customWidth]);
+
+  // Auto-switch: width > 90 หรือ height > 220 → กระจกไม่ได้
+  useEffect(() => {
+    const w = doorForm.sizeType === 'custom' ? parseInt(doorForm.customWidth)  || 0 : parseInt(doorForm.sizeType);
+    const h = doorForm.sizeType === 'custom' ? parseInt(doorForm.customHeight) || 0 : 200;
+    if ((w > 90 || h > 220) && doorForm.glass !== 'none') {
+      setDoorForm(prev => ({ ...prev, glass: 'none' }));
+    }
+  }, [doorForm.sizeType, doorForm.customWidth, doorForm.customHeight]);
+
+  // Auto-switch: width > 95 + TOA/ไม่ทำสี → บังคับเซาะร่อง (default: painted)
+  useEffect(() => {
+    const w = doorForm.sizeType === 'custom' ? parseInt(doorForm.customWidth) || 0 : parseInt(doorForm.sizeType);
+    const needsGrooving = w > 95 && (doorForm.surfaceType === 'TOA' || doorForm.surfaceType === 'none');
+    if (needsGrooving && doorForm.grooving === 'none') {
+      setDoorForm(prev => ({ ...prev, grooving: 'painted' }));
+    }
+  }, [doorForm.sizeType, doorForm.customWidth, doorForm.surfaceType]);
+
   // Auto-switch: ติดคิ้ว → เซาะร่องไม่ได้
   useEffect(() => {
     if (doorForm.molding !== 'none' && doorForm.grooving !== 'none') {

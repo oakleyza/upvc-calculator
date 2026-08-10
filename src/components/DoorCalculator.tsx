@@ -59,11 +59,16 @@ export const DoorCalculator: React.FC<Props> = ({ form, onInput, onOptionToggle 
     }
   };
 
-  // C-2 FIX: Constraint flags เป็น computed variables ธรรมดา (ไม่ใช้ IIFE)
-  const groovingDisabled = form.molding !== 'none';
-  const moldingDisabled  = form.surfaceType === 'SVL';
-  const glassDisabled    = form.molding !== 'none' && form.louver !== 'none';
-  const louverDisabled   = form.molding !== 'none' && form.glass  !== 'none';
+  // ขนาดจริงที่ใช้ตรวจเงื่อนไข
+  const effectiveWidth  = form.sizeType === 'custom' ? parseInt(form.customWidth)  || 0 : parseInt(form.sizeType);
+  const effectiveHeight = form.sizeType === 'custom' ? parseInt(form.customHeight) || 0 : 200;
+
+  // Constraint flags
+  const groovingDisabled  = form.molding !== 'none';
+  const groovingRequired  = effectiveWidth > 95 && (form.surfaceType === 'TOA' || form.surfaceType === 'none');
+  const moldingDisabled   = form.surfaceType === 'SVL' || effectiveWidth > 95;
+  const glassDisabled     = (form.molding !== 'none' && form.louver !== 'none') || effectiveWidth > 90 || effectiveHeight > 220;
+  const louverDisabled    = form.molding !== 'none' && form.glass  !== 'none';
 
   return (
     <div className="space-y-8">
@@ -143,12 +148,13 @@ export const DoorCalculator: React.FC<Props> = ({ form, onInput, onOptionToggle 
             <select value={form.grooving} onChange={e => onInput('grooving', e.target.value)}
               disabled={groovingDisabled}
               className={`w-full p-2.5 border rounded-lg ${groovingDisabled ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : ''}`}>
-              <option value="none">ไม่เซาะร่อง</option>
+              {!groovingRequired && <option value="none">ไม่เซาะร่อง</option>}
               <option value="standard">เซาะร่องปกติ</option>
               <option value="black_line">เซาะร่องแปะเส้นดำ</option>
               <option value="painted">เซาะร่องทำสี</option>
             </select>
             {groovingDisabled && <p className="text-[10px] text-red-500 mt-1">* ติดคิ้วแล้ว ไม่สามารถเซาะร่องได้</p>}
+            {groovingRequired && !groovingDisabled && <p className="text-[10px] text-orange-500 mt-1">* กว้างเกิน 95cm (TOA/ไม่ทำสี) ต้องเซาะร่องเสมอ</p>}
           </div>
 
           {/* ติดคิ้ว */}
@@ -163,7 +169,11 @@ export const DoorCalculator: React.FC<Props> = ({ form, onInput, onOptionToggle 
               <option value="roma_1">ROMA 1 ช่อง</option>
               <option value="roma_2">ROMA 2 ช่อง</option>
             </select>
-            {moldingDisabled && <p className="text-[10px] text-red-500 mt-1">* SVL ไม่สามารถติดคิ้วได้</p>}
+            {moldingDisabled && (
+              <p className="text-[10px] text-red-500 mt-1">
+                {form.surfaceType === 'SVL' ? '* SVL ไม่สามารถติดคิ้วได้' : '* กว้างเกิน 95cm ไม่สามารถติดคิ้วได้'}
+              </p>
+            )}
           </div>
 
           {/* กระจก */}
@@ -181,7 +191,15 @@ export const DoorCalculator: React.FC<Props> = ({ form, onInput, onOptionToggle 
               <option value="green_side">กระจกเขียวตัดแสงข้าง</option>
               <option value="wavy_half">กระจกลอนครึ่งบาน</option>
             </select>
-            {glassDisabled && <p className="text-[10px] text-red-500 mt-1">* ติดคิ้วและมีเกล็ดแล้ว เลือกได้แค่อันเดียว</p>}
+            {glassDisabled && (
+              <p className="text-[10px] text-red-500 mt-1">
+                {form.molding !== 'none' && form.louver !== 'none'
+                  ? '* ติดคิ้วและมีเกล็ดแล้ว เลือกได้แค่อันเดียว'
+                  : effectiveWidth > 90
+                  ? '* กว้างเกิน 90cm ไม่รองรับกระจก'
+                  : '* สูงเกิน 220cm ไม่รองรับกระจก'}
+              </p>
+            )}
           </div>
 
           {/* เกล็ด */}
