@@ -153,11 +153,17 @@ export default function App() {
     }
   }, [frameForm.frameMaterial]);
 
-  // Auto-switch: SVL → ติดคิ้วไม่ได้
+  // Auto-switch: SVL → ติดคิ้วไม่ได้ + ถ้า width > 95 → reset เซาะร่อง (เพราะไม่ต้องบังคับแล้ว)
   useEffect(() => {
     if (doorForm.surfaceType === 'SVL') {
-      setDoorForm(prev => ({ ...prev, molding: 'none' }));
+      const w = doorForm.sizeType === 'custom' ? parseInt(doorForm.customWidth) || 0 : parseInt(doorForm.sizeType);
+      setDoorForm(prev => ({
+        ...prev,
+        molding: 'none',
+        ...(w > 95 ? { grooving: 'none' } : {}),
+      }));
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [doorForm.surfaceType]);
 
   // Auto-switch: width > 95 → ติดคิ้วไม่ได้
