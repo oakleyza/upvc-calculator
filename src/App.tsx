@@ -178,7 +178,8 @@ export default function App() {
   useEffect(() => {
     const w = doorForm.sizeType === 'custom' ? parseInt(doorForm.customWidth)  || 0 : parseInt(doorForm.sizeType);
     const h = doorForm.sizeType === 'custom' ? parseInt(doorForm.customHeight) || 0 : 200;
-    if ((w > 90 || h > 220) && doorForm.glass !== 'none') {
+    const glassSideOnly = new Set(['none', 'frosted_side', 'green_side']);
+    if ((w > 90 || h > 220) && !glassSideOnly.has(doorForm.glass)) {
       setDoorForm(prev => ({ ...prev, glass: 'none' }));
     }
   }, [doorForm.sizeType, doorForm.customWidth, doorForm.customHeight]);

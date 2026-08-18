@@ -67,7 +67,8 @@ export const DoorCalculator: React.FC<Props> = ({ form, onInput, onOptionToggle 
   const groovingDisabled  = form.molding !== 'none';
   const groovingRequired  = effectiveWidth > 95 && (form.surfaceType === 'TOA' || form.surfaceType === 'none');
   const moldingDisabled   = form.surfaceType === 'SVL' || effectiveWidth > 95;
-  const glassDisabled     = (form.molding !== 'none' && form.louver !== 'none') || effectiveWidth > 90 || effectiveHeight > 220;
+  const glassAllDisabled    = form.molding !== 'none' && form.louver !== 'none';
+  const glassSizeRestricted = effectiveWidth > 90 || effectiveHeight > 220; // อนุญาตเฉพาะกระจกข้าง
   const louverDisabled    = form.molding !== 'none' && form.glass  !== 'none';
 
   return (
@@ -178,26 +179,25 @@ export const DoorCalculator: React.FC<Props> = ({ form, onInput, onOptionToggle 
 
           {/* กระจก */}
           <div>
-            <label className={`block text-sm font-medium mb-1 ${glassDisabled ? 'text-slate-400' : 'text-slate-600'}`}>กระจก</label>
+            <label className={`block text-sm font-medium mb-1 ${glassAllDisabled ? 'text-slate-400' : 'text-slate-600'}`}>กระจก</label>
             <select value={form.glass} onChange={e => onInput('glass', e.target.value)}
-              disabled={glassDisabled}
-              className={`w-full p-2.5 border rounded-lg ${glassDisabled ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : ''}`}>
+              disabled={glassAllDisabled}
+              className={`w-full p-2.5 border rounded-lg ${glassAllDisabled ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : ''}`}>
               <option value="none">ไม่ติดกระจก</option>
-              <option value="frosted">กระจกฝ้าเต็มบาน</option>
-              <option value="frosted_half">กระจกฝ้าครึ่งบาน</option>
+              <option value="frosted"    disabled={glassSizeRestricted}>กระจกฝ้าเต็มบาน</option>
+              <option value="frosted_half" disabled={glassSizeRestricted}>กระจกฝ้าครึ่งบาน</option>
               <option value="frosted_side">กระจกฝ้าข้าง</option>
-              <option value="green_full">กระจกเขียวตัดแสงเต็มบาน</option>
-              <option value="green_half">กระจกเขียวตัดแสงครึ่งบาน</option>
+              <option value="green_full" disabled={glassSizeRestricted}>กระจกเขียวตัดแสงเต็มบาน</option>
+              <option value="green_half" disabled={glassSizeRestricted}>กระจกเขียวตัดแสงครึ่งบาน</option>
               <option value="green_side">กระจกเขียวตัดแสงข้าง</option>
-              <option value="wavy_half">กระจกลอนครึ่งบาน</option>
+              <option value="wavy_half"  disabled={glassSizeRestricted}>กระจกลอนครึ่งบาน</option>
             </select>
-            {glassDisabled && (
-              <p className="text-[10px] text-red-500 mt-1">
-                {form.molding !== 'none' && form.louver !== 'none'
-                  ? '* ติดคิ้วและมีเกล็ดแล้ว เลือกได้แค่อันเดียว'
-                  : effectiveWidth > 90
-                  ? '* กว้างเกิน 90cm ไม่รองรับกระจก'
-                  : '* สูงเกิน 220cm ไม่รองรับกระจก'}
+            {glassAllDisabled && (
+              <p className="text-[10px] text-red-500 mt-1">* ติดคิ้วและมีเกล็ดแล้ว เลือกได้แค่อันเดียว</p>
+            )}
+            {!glassAllDisabled && glassSizeRestricted && (
+              <p className="text-[10px] text-amber-600 mt-1">
+                * {effectiveWidth > 90 ? 'กว้างเกิน 90cm' : 'สูงเกิน 220cm'} — รองรับเฉพาะกระจกข้าง
               </p>
             )}
           </div>
