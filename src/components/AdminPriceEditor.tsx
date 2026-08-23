@@ -28,11 +28,10 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, catalogue, on
   const [catUploading,setCatUploading]= useState<string | null>(null);
   const [catSaving,   setCatSaving]   = useState(false);
   const [catDeleteId, setCatDeleteId] = useState<string | null>(null);
-  const [newName,      setNewName]      = useState('');
-  const [newFile,      setNewFile]      = useState<File | null>(null);
-  const [newPreview,   setNewPreview]   = useState('');
-  const [newLegacyKey, setNewLegacyKey] = useState('');
-  const [adding,       setAdding]       = useState(false);
+  const [newName,    setNewName]    = useState('');
+  const [newFile,    setNewFile]    = useState<File | null>(null);
+  const [newPreview, setNewPreview] = useState('');
+  const [adding,     setAdding]     = useState(false);
   const newFileRef = useRef<HTMLInputElement>(null);
 
   React.useEffect(() => { setCatItems(catalogue); }, [catalogue]);
@@ -103,12 +102,12 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, catalogue, on
     setNewFile(f); setNewPreview(URL.createObjectURL(f));
   };
   const handleAdd = async () => {
-    if (!newName.trim() || !newFile || !newLegacyKey) return;
+    if (!newName.trim() || !newFile) return;
     setAdding(true);
     try {
       const url = await compressAndUpload(newFile);
-      await addCatalogueItem(newName.trim(), url, catItems.length, newLegacyKey);
-      setNewName(''); setNewFile(null); setNewPreview(''); setNewLegacyKey('');
+      await addCatalogueItem(newName.trim(), url, catItems.length);
+      setNewName(''); setNewFile(null); setNewPreview('');
       if (newFileRef.current) newFileRef.current.value = '';
     } catch { alert('เพิ่มสินค้าไม่สำเร็จ'); }
     finally { setAdding(false); }
@@ -430,36 +429,19 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, catalogue, on
                 </div>
 
                 {/* add new */}
-                <div className="px-3 py-3 bg-slate-50 border-t space-y-2">
-                  <div className="flex items-center gap-2">
-                    <label className="cursor-pointer w-7 h-12 flex-shrink-0 rounded border-2 border-dashed border-slate-300 bg-white flex items-center justify-center hover:border-amber-400 overflow-hidden">
-                      {newPreview ? <img src={newPreview} alt="" className="w-full h-full object-contain"/> : <Plus className="w-4 h-4 text-slate-300"/>}
-                      <input ref={newFileRef} type="file" accept="image/*" className="hidden" onChange={pickNewFile}/>
-                    </label>
-                    <input value={newName} onChange={e => setNewName(e.target.value)}
-                      placeholder="ชื่อรุ่นประตูใหม่"
-                      onKeyDown={e => { if (e.key==='Enter') handleAdd(); }}
-                      className="flex-1 text-xs border rounded px-2 py-1.5 focus:ring-2 focus:ring-amber-400 outline-none"/>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-slate-500 whitespace-nowrap">ใช้ราคาเดียวกับ:</span>
-                    <select
-                      value={newLegacyKey}
-                      onChange={e => setNewLegacyKey(e.target.value)}
-                      className="flex-1 text-xs border rounded px-2 py-1.5 focus:ring-2 focus:ring-amber-400 outline-none bg-white">
-                      <option value="">— เลือกรุ่นที่ใช้ราคาร่วม —</option>
-                      {catItems.filter(c => c.legacyKey).map(c => (
-                        <option key={c.id} value={c.legacyKey}>{c.name}</option>
-                      ))}
-                    </select>
-                    <button onClick={handleAdd} disabled={adding || !newName.trim() || !newFile || !newLegacyKey}
-                      className="px-3 py-1.5 bg-amber-500 text-white text-xs font-semibold rounded hover:bg-amber-600 disabled:opacity-40 whitespace-nowrap">
-                      {adding ? '...' : 'เพิ่ม'}
-                    </button>
-                  </div>
-                  {!newLegacyKey && (newName.trim() || newFile) && (
-                    <p className="text-xs text-amber-600">⚠ ต้องเลือกรุ่นที่ใช้ราคาร่วมก่อนจึงจะเพิ่มได้</p>
-                  )}
+                <div className="px-3 py-3 bg-slate-50 border-t flex items-center gap-2">
+                  <label className="cursor-pointer w-7 h-12 flex-shrink-0 rounded border-2 border-dashed border-slate-300 bg-white flex items-center justify-center hover:border-amber-400 overflow-hidden">
+                    {newPreview ? <img src={newPreview} alt="" className="w-full h-full object-contain"/> : <Plus className="w-4 h-4 text-slate-300"/>}
+                    <input ref={newFileRef} type="file" accept="image/*" className="hidden" onChange={pickNewFile}/>
+                  </label>
+                  <input value={newName} onChange={e => setNewName(e.target.value)}
+                    placeholder="ชื่อรุ่นประตูใหม่"
+                    onKeyDown={e => { if (e.key==='Enter') handleAdd(); }}
+                    className="flex-1 text-xs border rounded px-2 py-1.5 focus:ring-2 focus:ring-amber-400 outline-none"/>
+                  <button onClick={handleAdd} disabled={adding || !newName.trim() || !newFile}
+                    className="px-3 py-1.5 bg-amber-500 text-white text-xs font-semibold rounded hover:bg-amber-600 disabled:opacity-40">
+                    {adding ? '...' : 'เพิ่ม'}
+                  </button>
                 </div>
               </div>
 
@@ -501,23 +483,26 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, catalogue, on
                         <span className="w-24 text-xs font-semibold text-orange-600 text-right">ค่าไม้ ฿</span>
                         <span className="w-24 text-xs font-semibold text-purple-600 text-right">ค่าทำสี ฿</span>
                       </div>
-                      {Object.entries(WOOD_MODEL_NAMES).map(([modelId, modelLabel]) => (
-                        <div key={modelId} className="flex items-center gap-2 p-2.5 border-b last:border-0 hover:bg-slate-50 transition-colors">
-                          <span className="flex-1 text-sm font-medium text-slate-700">{modelLabel}</span>
-                          <input
-                            type="number" min={0}
-                            value={localPrices.wood_door_price?.[`wd_base_${wood}_${modelId}_wood`] ?? 0}
-                            onChange={e => handlePriceChange('wood_door_price', `wd_base_${wood}_${modelId}_wood`, e.target.value)}
-                            className="w-24 p-1.5 text-right border rounded text-sm font-semibold focus:ring-2 focus:ring-orange-400 outline-none bg-white"
-                          />
-                          <input
-                            type="number" min={0}
-                            value={localPrices.wood_door_paint?.[`wd_base_${wood}_${modelId}_paint`] ?? 0}
-                            onChange={e => handlePriceChange('wood_door_paint', `wd_base_${wood}_${modelId}_paint`, e.target.value)}
-                            className="w-24 p-1.5 text-right border rounded text-sm font-semibold focus:ring-2 focus:ring-purple-400 outline-none bg-white"
-                          />
-                        </div>
-                      ))}
+                      {catItems.map((item, idx) => {
+                        const modelId = item.legacyKey ?? item.id;
+                        return (
+                          <div key={modelId} className="flex items-center gap-2 p-2.5 border-b last:border-0 hover:bg-slate-50 transition-colors">
+                            <span className="flex-1 text-sm font-medium text-slate-700">{idx + 1}. {item.name}</span>
+                            <input
+                              type="number" min={0}
+                              value={localPrices.wood_door_price?.[`wd_base_${wood}_${modelId}_wood`] ?? 0}
+                              onChange={e => handlePriceChange('wood_door_price', `wd_base_${wood}_${modelId}_wood`, e.target.value)}
+                              className="w-24 p-1.5 text-right border rounded text-sm font-semibold focus:ring-2 focus:ring-orange-400 outline-none bg-white"
+                            />
+                            <input
+                              type="number" min={0}
+                              value={localPrices.wood_door_paint?.[`wd_base_${wood}_${modelId}_paint`] ?? 0}
+                              onChange={e => handlePriceChange('wood_door_paint', `wd_base_${wood}_${modelId}_paint`, e.target.value)}
+                              className="w-24 p-1.5 text-right border rounded text-sm font-semibold focus:ring-2 focus:ring-purple-400 outline-none bg-white"
+                            />
+                          </div>
+                        );
+                      })}
                     </div>
                   ))}
                 </div>

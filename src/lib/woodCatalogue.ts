@@ -48,20 +48,18 @@ async function seedCatalogue() {
   await batch.commit();
 }
 
-/** เพิ่มรายการใหม่ */
+/** เพิ่มรายการใหม่ — auto-generate legacyKey เป็น m_<timestamp> */
 export async function addCatalogueItem(
   name: string,
   imageUrl: string,
   sortOrder: number,
-  legacyKey?: string,
 ): Promise<void> {
   if (!db) return;
-  const data: Record<string, unknown> = {
+  await addDoc(collection(db, 'wood_catalogue'), {
     name, imageUrl, sortOrder,
+    legacyKey: `m_${Date.now()}`,
     createdAt: new Date().toISOString(),
-  };
-  if (legacyKey) data.legacyKey = legacyKey;
-  await addDoc(collection(db, 'wood_catalogue'), data);
+  });
 }
 
 /** แก้ไขรายการ */
