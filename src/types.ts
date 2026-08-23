@@ -2,6 +2,16 @@
 // Types & Interfaces
 // ------------------------------------------------------------------
 
+/** รายการในแคตาล็อกประตูไม้ */
+export interface CatalogueItem {
+  id:         string;   // Firestore doc ID
+  name:       string;   // ชื่อแสดง
+  imageUrl:   string;   // Cloudinary URL หรือ /wood-models/m1.jpg
+  sortOrder:  number;
+  legacyKey?: string;   // 'm1', 'm2' ... สำหรับ backward compat
+  createdAt:  string;
+}
+
 export interface PriceCategory {
   [key: string]: number;
 }

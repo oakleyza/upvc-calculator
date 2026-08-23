@@ -1,19 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { FileText, Check, Loader2 } from 'lucide-react';
-import type { DoorFormData, FrameFormData, WoodDoorFormData, WoodFrameFormData, PriceResult } from '../types';
-import { LABEL_MAP, WOOD_TYPE_NAMES, WOOD_MODEL_NAMES, WOOD_MODEL_IMAGES, WOOD_GLASS_NAMES, WOOD_FRAME_TYPE_NAMES } from '../constants';
+import type { DoorFormData, FrameFormData, WoodDoorFormData, WoodFrameFormData, PriceResult, CatalogueItem } from '../types';
+import { LABEL_MAP, WOOD_TYPE_NAMES, WOOD_GLASS_NAMES, WOOD_FRAME_TYPE_NAMES } from '../constants';
 
 // ─── Wood section with model image ──────────────────────────────────────────
-const WoodSummarySection: React.FC<{ woodForm: WoodDoorFormData }> = ({ woodForm }) => {
+const WoodSummarySection: React.FC<{ woodForm: WoodDoorFormData; catalogue: CatalogueItem[] }> = ({ woodForm, catalogue }) => {
   const [imgOk, setImgOk] = useState(true);
 
   // รีเซ็ต imgOk ทุกครั้งที่เปลี่ยนรุ่น เพื่อให้โหลดรูปใหม่
   useEffect(() => { setImgOk(true); }, [woodForm.modelId]);
 
-  const modelEntries = Object.entries(WOOD_MODEL_NAMES);
-  const modelIdx = modelEntries.findIndex(([k]) => k === woodForm.modelId);
-  const modelName = WOOD_MODEL_NAMES[woodForm.modelId] ?? woodForm.modelId;
-  const imgSrc = WOOD_MODEL_IMAGES[woodForm.modelId];
+  const modelIdx  = catalogue.findIndex(c => c.id === woodForm.modelId);
+  const modelItem = catalogue[modelIdx] ?? null;
+  const modelName = modelItem?.name ?? woodForm.modelId;
+  const imgSrc    = modelItem?.imageUrl ?? '';
   const numPrefix = modelIdx >= 0 ? `${modelIdx + 1}. ` : '';
 
   return (
@@ -89,12 +89,13 @@ interface Props {
   frameForm: FrameFormData;
   woodForm: WoodDoorFormData;
   woodFrameForm: WoodFrameFormData;
+  catalogue: CatalogueItem[];
   priceResult: PriceResult;
   isPricesLoading: boolean;
 }
 
 export const PriceSummary: React.FC<Props> = ({
-  activeTab, doorForm, frameForm, woodForm, woodFrameForm, priceResult, isPricesLoading,
+  activeTab, doorForm, frameForm, woodForm, woodFrameForm, catalogue, priceResult, isPricesLoading,
 }) => {
   const isDoor      = activeTab === 'exclusive';
   const isWood      = activeTab === 'wood';
@@ -211,7 +212,7 @@ export const PriceSummary: React.FC<Props> = ({
               )}
 
               {isWood && (
-                <WoodSummarySection woodForm={woodForm} />
+                <WoodSummarySection woodForm={woodForm} catalogue={catalogue} />
               )}
 
               {isWoodFrame && (

@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { TreePine, Maximize, Palette, ChevronDown, Gem } from 'lucide-react';
-import type { WoodDoorFormData } from '../types';
-import { WOOD_TYPE_NAMES, WOOD_MODEL_NAMES, WOOD_MODEL_IMAGES, WOOD_GLASS_NAMES } from '../constants';
+import type { WoodDoorFormData, CatalogueItem } from '../types';
+import { WOOD_TYPE_NAMES, WOOD_GLASS_NAMES } from '../constants';
 
 interface Props {
-  form: WoodDoorFormData;
-  onInput: (field: keyof WoodDoorFormData, value: string | boolean) => void;
+  form:      WoodDoorFormData;
+  onInput:   (field: keyof WoodDoorFormData, value: string | boolean) => void;
+  catalogue: CatalogueItem[];
 }
 
 // Fallback door icon (SVG inline) แสดงเมื่อไม่มีรูปภาพ
@@ -20,13 +21,13 @@ const DoorPlaceholder: React.FC<{ className?: string }> = ({ className = '' }) =
   </div>
 );
 
-export const WoodDoorCalculator: React.FC<Props> = ({ form, onInput }) => {
+export const WoodDoorCalculator: React.FC<Props> = ({ form, onInput, catalogue }) => {
   const [modelOpen, setModelOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const modelEntries = Object.entries(WOOD_MODEL_NAMES);
-  const selectedIdx = modelEntries.findIndex(([k]) => k === form.modelId);
-  const selectedLabel = WOOD_MODEL_NAMES[form.modelId] ?? form.modelId;
+  const selectedIdx   = catalogue.findIndex(c => c.id === form.modelId);
+  const selectedItem  = catalogue[selectedIdx] ?? null;
+  const selectedLabel = selectedItem?.name ?? form.modelId;
 
   // ปิด dropdown เมื่อคลิกนอกกล่อง
   useEffect(() => {
@@ -44,7 +45,7 @@ export const WoodDoorCalculator: React.FC<Props> = ({ form, onInput }) => {
   //   รุ่นที่มี "กระจก" ในชื่อ → เซ็ต plain อัตโนมัติ
   //   รุ่นที่ไม่มีกระจก         → เซ็ตกลับเป็น none
   useEffect(() => {
-    const name = WOOD_MODEL_NAMES[form.modelId] ?? '';
+    const name = catalogue.find(c => c.id === form.modelId)?.name ?? '';
     const hasGlass = name.includes('กระจก');
     if (hasGlass && form.glassType === 'none') {
       onInput('glassType', 'plain');
@@ -101,7 +102,7 @@ export const WoodDoorCalculator: React.FC<Props> = ({ form, onInput }) => {
                 className="w-full flex items-center gap-3 p-2 border-2 rounded-lg bg-white hover:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400 transition-colors"
               >
                 {/* thumbnail รูป — key บังคับ remount ทุกครั้งที่เปลี่ยนรุ่น */}
-                <ModelThumb key={form.modelId} modelId={form.modelId} size="sm" />
+                <CatalogueThumb key={form.modelId} imageUrl={selectedItem?.imageUrl} size="sm" />
                 <span className="flex-1 text-left text-sm font-medium text-slate-800 truncate">
                   {selectedIdx >= 0 ? `${selectedIdx + 1}. ` : ''}{selectedLabel}
                 </span>
@@ -113,21 +114,21 @@ export const WoodDoorCalculator: React.FC<Props> = ({ form, onInput }) => {
               {/* Dropdown list */}
               {modelOpen && (
                 <div className="absolute z-50 mt-1 w-full bg-white border-2 border-amber-300 rounded-xl shadow-xl max-h-72 overflow-y-auto">
-                  {modelEntries.map(([key, name], idx) => (
+                  {catalogue.map((item, idx) => (
                     <button
-                      key={key}
+                      key={item.id}
                       type="button"
-                      onClick={() => { onInput('modelId', key); setModelOpen(false); }}
+                      onClick={() => { onInput('modelId', item.id); setModelOpen(false); }}
                       className={`w-full flex items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-amber-50 ${
-                        form.modelId === key
+                        form.modelId === item.id
                           ? 'bg-amber-50 font-semibold text-amber-800'
                           : 'text-slate-700'
                       }`}
                     >
-                      <ModelThumb modelId={key} size="md" />
+                      <CatalogueThumb imageUrl={item.imageUrl} size="md" />
                       <span className="text-sm leading-tight">
                         <span className="font-bold text-amber-700 mr-1">{idx + 1}.</span>
-                        {name}
+                        {item.name}
                       </span>
                     </button>
                   ))}
@@ -220,7 +221,7 @@ export const WoodDoorCalculator: React.FC<Props> = ({ form, onInput }) => {
       </div>
 
       {/* กระจก — แสดงเฉพาะรุ่นที่มี "กระจก" ในชื่อ */}
-      {(WOOD_MODEL_NAMES[form.modelId] ?? '').includes('กระจก') && (
+      {(catalogue.find(c => c.id === form.modelId)?.name ?? '').includes('กระจก') && (
         <div className="bg-white p-6 rounded-xl shadow-sm border border-cyan-100">
           <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
             <Gem className="w-5 h-5 text-cyan-600" /> ประเภทกระจก
@@ -250,23 +251,21 @@ export const WoodDoorCalculator: React.FC<Props> = ({ form, onInput }) => {
 };
 
 // ─── thumbnail helper ────────────────────────────────────────────────────────
-interface ThumbProps { modelId: string; size: 'sm' | 'md'; }
+interface ThumbProps { imageUrl?: string; size: 'sm' | 'md'; }
 
-const ModelThumb: React.FC<ThumbProps> = ({ modelId, size }) => {
+const CatalogueThumb: React.FC<ThumbProps> = ({ imageUrl, size }) => {
   const [imgOk, setImgOk] = useState(true);
-  const src = WOOD_MODEL_IMAGES[modelId];
-  // container แนวตั้งให้รูปประตูเต็มภาพ — sm สำหรับปุ่ม, md สำหรับ dropdown
   const cls = size === 'sm'
     ? 'w-9 h-16 rounded flex-shrink-0'
     : 'w-12 h-20 rounded flex-shrink-0';
 
-  if (!src || !imgOk) {
+  if (!imageUrl || !imgOk) {
     return <DoorPlaceholder className={cls} />;
   }
   return (
     <img
-      src={src}
-      alt={modelId}
+      src={imageUrl}
+      alt=""
       className={`${cls} object-contain bg-amber-50 border border-slate-200`}
       onError={() => setImgOk(false)}
     />

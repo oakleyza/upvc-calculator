@@ -1,25 +1,27 @@
 import { useState, useEffect } from 'react';
-import { DoorOpen, Maximize, Settings, User, LogOut, Users, TreePine, Layers } from 'lucide-react';
+import { DoorOpen, Maximize, Settings, User, LogOut, Users, TreePine, Layers, BookImage } from 'lucide-react';
 import { doc, setDoc, getDoc, onSnapshot } from 'firebase/firestore';
 
 import { db, isFirebaseConfigured } from './lib/firebase';
 import { loadSession, clearSession, secureHash, generateSalt } from './lib/auth';
 import { calculateDoorPrice, calculateFramePrice, calculateWoodDoorPrice, calculateWoodFramePrice } from './lib/calculations';
+import { subscribeCatalogue } from './lib/woodCatalogue';
 
-import type { SessionUser, PricingStructure, DoorFormData, FrameFormData, WoodDoorFormData, WoodFrameFormData, PriceResult, TabInfo } from './types';
+import type { SessionUser, PricingStructure, DoorFormData, FrameFormData, WoodDoorFormData, WoodFrameFormData, PriceResult, TabInfo, CatalogueItem } from './types';
 import {
   DEFAULT_PRICES, DEFAULT_DOOR_FORM, DEFAULT_FRAME_FORM, DEFAULT_WOOD_DOOR_FORM, DEFAULT_WOOD_FRAME_FORM,
   DEFAULT_USERS_SEED, isFrameWithSub,
 } from './constants';
 
-import { LoginScreen }           from './components/LoginScreen';
-import { AdminPriceEditor }      from './components/AdminPriceEditor';
-import { UserManagementPanel }   from './components/UserManagementPanel';
-import { DoorCalculator }        from './components/DoorCalculator';
-import { FrameCalculator }       from './components/FrameCalculator';
-import { WoodDoorCalculator }    from './components/WoodDoorCalculator';
-import { WoodFrameCalculator }   from './components/WoodFrameCalculator';
-import { PriceSummary }          from './components/PriceSummary';
+import { LoginScreen }                from './components/LoginScreen';
+import { AdminPriceEditor }           from './components/AdminPriceEditor';
+import { UserManagementPanel }        from './components/UserManagementPanel';
+import { CatalogueManagementModal }   from './components/CatalogueManagementModal';
+import { DoorCalculator }             from './components/DoorCalculator';
+import { FrameCalculator }            from './components/FrameCalculator';
+import { WoodDoorCalculator }         from './components/WoodDoorCalculator';
+import { WoodFrameCalculator }        from './components/WoodFrameCalculator';
+import { PriceSummary }               from './components/PriceSummary';
 
 // ------------------------------------------------------------------
 const TABS: TabInfo[] = [
@@ -46,6 +48,8 @@ export default function App() {
   const [woodForm,       setWoodForm]       = useState<WoodDoorFormData>(DEFAULT_WOOD_DOOR_FORM);
   const [woodFrameForm,  setWoodFrameForm]  = useState<WoodFrameFormData>(DEFAULT_WOOD_FRAME_FORM);
   const [priceResult,    setPriceResult]    = useState<PriceResult>({ total: 0, surcharges: [] });
+  const [catalogue,      setCatalogue]      = useState<CatalogueItem[]>([]);
+  const [showCatalogue,  setShowCatalogue]  = useState(false);
 
   useEffect(() => { document.title = 'ระบบคำนวนราคา -กลางซอยค้าไม้-'; }, []);
 
@@ -92,6 +96,21 @@ export default function App() {
       }
     };
     initSystem();
+  }, []);
+
+  // 2a. Subscribe wood catalogue (real-time + auto-seed)
+  useEffect(() => {
+    const unsub = subscribeCatalogue(items => {
+      setCatalogue(items);
+      // ถ้า modelId ยังเป็นค่า default หรือไม่มีในรายการ → เซ็ตเป็น id แรก
+      if (items.length > 0) {
+        setWoodForm(prev => {
+          const found = items.some(c => c.id === prev.modelId);
+          return found ? prev : { ...prev, modelId: items[0].id };
+        });
+      }
+    });
+    return unsub;
   }, []);
 
   // 2. Listen for prices (real-time)
@@ -299,6 +318,11 @@ export default function App() {
             </div>
             {currentUser.role === 'admin' && (
               <>
+                <button onClick={() => setShowCatalogue(true)}
+                  className="p-2.5 bg-amber-100 border border-amber-300 rounded-lg shadow-sm hover:bg-amber-200 transition-colors"
+                  title="จัดการแคตาล็อกประตูไม้">
+                  <BookImage className="w-4 h-4 text-amber-700" />
+                </button>
                 <button onClick={() => setShowUserPanel(true)}
                   className="p-2.5 bg-white border rounded-lg shadow-sm hover:bg-slate-50 transition-colors">
                   <Users className="w-4 h-4 text-blue-600" />
@@ -313,6 +337,9 @@ export default function App() {
         </header>
 
         {/* Modals */}
+        {showCatalogue && (
+          <CatalogueManagementModal items={catalogue} onClose={() => setShowCatalogue(false)} />
+        )}
         {showUserPanel  && (
           <UserManagementPanel currentUser={currentUser} onClose={() => setShowUserPanel(false)} />
         )}
@@ -338,7 +365,7 @@ export default function App() {
             </div>
 
             {activeTab === 'wood' && (
-              <WoodDoorCalculator form={woodForm} onInput={handleWoodInput} />
+              <WoodDoorCalculator form={woodForm} onInput={handleWoodInput} catalogue={catalogue} />
             )}
             {activeTab === 'wood_frame' && (
               <WoodFrameCalculator form={woodFrameForm} onInput={handleWoodFrameInput} />
@@ -362,6 +389,7 @@ export default function App() {
             frameForm={frameForm}
             woodForm={woodForm}
             woodFrameForm={woodFrameForm}
+            catalogue={catalogue}
             priceResult={priceResult}
             isPricesLoading={isPricesLoading}
           />
