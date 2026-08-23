@@ -1,22 +1,117 @@
-import React, { useState } from 'react';
-import { X, Save, Database, Tag, Maximize, Palette, LayoutDashboard, Hammer, ShieldAlert } from 'lucide-react';
-import type { PricingStructure } from '../types';
+import React, { useState, useRef, useCallback } from 'react';
+import { X, Save, Database, Tag, Maximize, Palette, LayoutDashboard, Hammer, ShieldAlert, GripVertical, Pencil, Trash2, Upload, Plus, Check } from 'lucide-react';
+import type { PricingStructure, CatalogueItem } from '../types';
 import { LABEL_MAP, WOOD_MODEL_NAMES, WOOD_GLASS_NAMES, WOOD_CURVE_MODEL_IDS, WOOD_FRAME_TYPE_NAMES } from '../constants';
+import { addCatalogueItem, updateCatalogueItem, deleteCatalogueItem, saveSortOrder } from '../lib/woodCatalogue';
+import { compressAndUpload } from '../lib/cloudinary';
 
 interface Props {
   currentPrices: PricingStructure;
+  catalogue:     CatalogueItem[];
   onSave: (newPrices: PricingStructure) => void;
   onClose: () => void;
 }
 
 type ActiveCategory = 'door' | 'frame_t2' | 'frame_f10' | 'frame_x' | 'frame_eco' | 'frame_bsx' | 'wood' | 'wood_frame';
 
-export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, onSave, onClose }) => {
+export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, catalogue, onSave, onClose }) => {
   const [activeCategory, setActiveCategory] = useState<ActiveCategory>('wood');
   const [localPrices, setLocalPrices] = useState<PricingStructure>(
     JSON.parse(JSON.stringify(currentPrices))
   );
   const [errors, setErrors] = useState<string[]>([]);
+
+  // ── Catalogue state ────────────────────────────────────────────────
+  const [catItems,    setCatItems]    = useState<CatalogueItem[]>(catalogue);
+  const [catEditId,   setCatEditId]   = useState<string | null>(null);
+  const [catEditName, setCatEditName] = useState('');
+  const [catUploading,setCatUploading]= useState<string | null>(null);
+  const [catSaving,   setCatSaving]   = useState(false);
+  const [catDeleteId, setCatDeleteId] = useState<string | null>(null);
+  const [newName,     setNewName]     = useState('');
+  const [newFile,     setNewFile]     = useState<File | null>(null);
+  const [newPreview,  setNewPreview]  = useState('');
+  const [adding,      setAdding]      = useState(false);
+  const newFileRef = useRef<HTMLInputElement>(null);
+
+  React.useEffect(() => { setCatItems(catalogue); }, [catalogue]);
+
+  // drag
+  const dragIdx = useRef<number | null>(null);
+  const catListRef = useRef<HTMLDivElement>(null);
+  const rafRef = useRef<number>(0);
+
+  const onDragStart = (idx: number) => { dragIdx.current = idx; };
+  const onDragOver = useCallback((e: React.DragEvent, idx: number) => {
+    e.preventDefault();
+    const from = dragIdx.current;
+    if (from === null || from === idx) return;
+    setCatItems(prev => {
+      const next = [...prev];
+      const [moved] = next.splice(from, 1);
+      next.splice(idx, 0, moved);
+      dragIdx.current = idx;
+      return next;
+    });
+    const container = catListRef.current;
+    if (!container) return;
+    cancelAnimationFrame(rafRef.current);
+    const { top, bottom } = container.getBoundingClientRect();
+    const y = e.clientY;
+    const ZONE = 64, SPEED = 10;
+    const scroll = () => {
+      if (y < top + ZONE) container.scrollTop -= SPEED;
+      else if (y > bottom - ZONE) container.scrollTop += SPEED;
+      rafRef.current = requestAnimationFrame(scroll);
+    };
+    if (y < top + ZONE || y > bottom - ZONE) rafRef.current = requestAnimationFrame(scroll);
+  }, []);
+  const onDragEnd = async () => {
+    cancelAnimationFrame(rafRef.current);
+    dragIdx.current = null;
+    setCatSaving(true);
+    await saveSortOrder(catItems);
+    setCatSaving(false);
+  };
+
+  const startEdit = (item: CatalogueItem) => { setCatEditId(item.id); setCatEditName(item.name); };
+  const confirmEdit = async () => {
+    if (!catEditId || !catEditName.trim()) return;
+    await updateCatalogueItem(catEditId, { name: catEditName.trim() });
+    setCatItems(prev => prev.map(i => i.id === catEditId ? { ...i, name: catEditName.trim() } : i));
+    setCatEditId(null);
+  };
+  const changeImage = async (id: string, file: File) => {
+    setCatUploading(id);
+    try {
+      const url = await compressAndUpload(file);
+      await updateCatalogueItem(id, { imageUrl: url });
+      setCatItems(prev => prev.map(i => i.id === id ? { ...i, imageUrl: url } : i));
+    } catch { alert('อัพโหลดรูปไม่สำเร็จ'); }
+    finally { setCatUploading(null); }
+  };
+  const confirmDelete = async () => {
+    if (!catDeleteId) return;
+    await deleteCatalogueItem(catDeleteId);
+    setCatItems(prev => prev.filter(i => i.id !== catDeleteId));
+    setCatDeleteId(null);
+  };
+  const pickNewFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    setNewFile(f); setNewPreview(URL.createObjectURL(f));
+  };
+  const handleAdd = async () => {
+    if (!newName.trim() || !newFile) return;
+    setAdding(true);
+    try {
+      const url = await compressAndUpload(newFile);
+      await addCatalogueItem(newName.trim(), url, catItems.length);
+      setNewName(''); setNewFile(null); setNewPreview('');
+      if (newFileRef.current) newFileRef.current.value = '';
+    } catch { alert('เพิ่มสินค้าไม่สำเร็จ'); }
+    finally { setAdding(false); }
+  };
 
   const handlePriceChange = (category: keyof PricingStructure, key: string, val: string) => {
     const num = parseFloat(val);
@@ -282,6 +377,88 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, onSave, onClo
 
           {activeCategory === 'wood' && (
             <div className="space-y-6">
+
+              {/* ── Catalogue management ─────────────────────────────── */}
+              <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
+                <div className="bg-amber-50 px-4 py-3 border-b flex items-center justify-between">
+                  <h4 className="font-bold text-amber-800">🖼 จัดการรุ่นประตูไม้ (ลาก-วาง เพื่อเรียงลำดับ)</h4>
+                  {catSaving && <span className="text-xs text-slate-400">กำลังบันทึก...</span>}
+                </div>
+
+                {/* list */}
+                <div ref={catListRef} className="divide-y max-h-72 overflow-y-auto">
+                  {catItems.map((item, idx) => (
+                    <div key={item.id} draggable
+                      onDragStart={() => onDragStart(idx)}
+                      onDragOver={e => onDragOver(e, idx)}
+                      onDragEnd={onDragEnd}
+                      className="flex items-center gap-2 px-3 py-2 hover:bg-amber-50 cursor-grab active:cursor-grabbing">
+                      <GripVertical className="w-4 h-4 text-slate-300 flex-shrink-0" />
+                      {/* thumbnail */}
+                      <div className="w-7 h-12 flex-shrink-0 rounded overflow-hidden border border-slate-200 bg-amber-50 relative">
+                        {catUploading === item.id
+                          ? <div className="absolute inset-0 flex items-center justify-center"><div className="w-3 h-3 border-2 border-amber-400 border-t-transparent rounded-full animate-spin"/></div>
+                          : item.imageUrl
+                            ? <img src={item.imageUrl} alt="" className="w-full h-full object-contain"/>
+                            : <div className="w-full h-full bg-slate-100"/>}
+                      </div>
+                      {/* name */}
+                      <div className="flex-1 min-w-0">
+                        {catEditId === item.id
+                          ? <div className="flex items-center gap-1">
+                              <input autoFocus value={catEditName} onChange={e => setCatEditName(e.target.value)}
+                                onKeyDown={e => { if (e.key==='Enter') confirmEdit(); if (e.key==='Escape') setCatEditId(null); }}
+                                className="flex-1 text-xs border rounded px-2 py-1 focus:ring-2 focus:ring-amber-400 outline-none"/>
+                              <button onClick={confirmEdit} className="text-green-600"><Check className="w-3.5 h-3.5"/></button>
+                              <button onClick={() => setCatEditId(null)} className="text-slate-400"><X className="w-3.5 h-3.5"/></button>
+                            </div>
+                          : <p className="text-xs font-medium text-slate-700 truncate">{idx+1}. {item.name}</p>}
+                      </div>
+                      {/* actions */}
+                      <div className="flex gap-1 flex-shrink-0">
+                        <label className="cursor-pointer p-1 rounded hover:bg-slate-100 text-slate-400" title="เปลี่ยนรูป">
+                          <Upload className="w-3.5 h-3.5"/>
+                          <input type="file" accept="image/*" className="hidden"
+                            onChange={e => { const f=e.target.files?.[0]; if(f) changeImage(item.id,f); e.target.value=''; }}/>
+                        </label>
+                        <button onClick={() => startEdit(item)} className="p-1 rounded hover:bg-slate-100 text-slate-400"><Pencil className="w-3.5 h-3.5"/></button>
+                        <button onClick={() => setCatDeleteId(item.id)} className="p-1 rounded hover:bg-red-50 text-red-400"><Trash2 className="w-3.5 h-3.5"/></button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* add new */}
+                <div className="px-3 py-3 bg-slate-50 border-t flex items-center gap-2">
+                  <label className="cursor-pointer w-7 h-12 flex-shrink-0 rounded border-2 border-dashed border-slate-300 bg-white flex items-center justify-center hover:border-amber-400 overflow-hidden">
+                    {newPreview ? <img src={newPreview} alt="" className="w-full h-full object-contain"/> : <Plus className="w-4 h-4 text-slate-300"/>}
+                    <input ref={newFileRef} type="file" accept="image/*" className="hidden" onChange={pickNewFile}/>
+                  </label>
+                  <input value={newName} onChange={e => setNewName(e.target.value)}
+                    placeholder="ชื่อรุ่นประตูใหม่"
+                    onKeyDown={e => { if (e.key==='Enter') handleAdd(); }}
+                    className="flex-1 text-xs border rounded px-2 py-1.5 focus:ring-2 focus:ring-amber-400 outline-none"/>
+                  <button onClick={handleAdd} disabled={adding || !newName.trim() || !newFile}
+                    className="px-3 py-1.5 bg-amber-500 text-white text-xs font-semibold rounded hover:bg-amber-600 disabled:opacity-40">
+                    {adding ? '...' : 'เพิ่ม'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Delete confirm */}
+              {catDeleteId && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60">
+                  <div className="bg-white rounded-xl p-5 shadow-xl max-w-xs w-full text-center">
+                    <p className="font-semibold text-slate-800 mb-1">ยืนยันการลบ</p>
+                    <p className="text-xs text-slate-500 mb-4">รายการจะถูกลบถาวร</p>
+                    <div className="flex gap-3 justify-center">
+                      <button onClick={() => setCatDeleteId(null)} className="px-4 py-2 border rounded-lg text-sm text-slate-600 hover:bg-slate-50">ยกเลิก</button>
+                      <button onClick={confirmDelete} className="px-4 py-2 bg-red-500 text-white rounded-lg text-sm font-semibold hover:bg-red-600">ลบ</button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="bg-green-50 p-4 rounded-lg border border-green-200">
                 <h4 className="font-bold text-green-800 flex items-center gap-2">🪵 ตั้งราคาประตูไม้</h4>
                 <p className="text-sm text-green-700 mt-1">

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { DoorOpen, Maximize, Settings, User, LogOut, Users, TreePine, Layers, BookImage } from 'lucide-react';
+import { DoorOpen, Maximize, Settings, User, LogOut, Users, TreePine, Layers } from 'lucide-react';
 import { doc, setDoc, getDoc, onSnapshot } from 'firebase/firestore';
 
 import { db, isFirebaseConfigured } from './lib/firebase';
@@ -16,7 +16,6 @@ import {
 import { LoginScreen }                from './components/LoginScreen';
 import { AdminPriceEditor }           from './components/AdminPriceEditor';
 import { UserManagementPanel }        from './components/UserManagementPanel';
-import { CatalogueManagementModal }   from './components/CatalogueManagementModal';
 import { DoorCalculator }             from './components/DoorCalculator';
 import { FrameCalculator }            from './components/FrameCalculator';
 import { WoodDoorCalculator }         from './components/WoodDoorCalculator';
@@ -49,7 +48,6 @@ export default function App() {
   const [woodFrameForm,  setWoodFrameForm]  = useState<WoodFrameFormData>(DEFAULT_WOOD_FRAME_FORM);
   const [priceResult,    setPriceResult]    = useState<PriceResult>({ total: 0, surcharges: [] });
   const [catalogue,      setCatalogue]      = useState<CatalogueItem[]>([]);
-  const [showCatalogue,  setShowCatalogue]  = useState(false);
 
   useEffect(() => { document.title = 'ระบบคำนวนราคา -กลางซอยค้าไม้-'; }, []);
 
@@ -105,8 +103,8 @@ export default function App() {
       // ถ้า modelId ยังเป็นค่า default หรือไม่มีในรายการ → เซ็ตเป็น id แรก
       if (items.length > 0) {
         setWoodForm(prev => {
-          const found = items.some(c => c.id === prev.modelId);
-          return found ? prev : { ...prev, modelId: items[0].id };
+          const found = items.some(c => (c.legacyKey ?? c.id) === prev.modelId);
+          return found ? prev : { ...prev, modelId: items[0].legacyKey ?? items[0].id };
         });
       }
     });
@@ -318,11 +316,6 @@ export default function App() {
             </div>
             {currentUser.role === 'admin' && (
               <>
-                <button onClick={() => setShowCatalogue(true)}
-                  className="p-2.5 bg-amber-100 border border-amber-300 rounded-lg shadow-sm hover:bg-amber-200 transition-colors"
-                  title="จัดการแคตาล็อกประตูไม้">
-                  <BookImage className="w-4 h-4 text-amber-700" />
-                </button>
                 <button onClick={() => setShowUserPanel(true)}
                   className="p-2.5 bg-white border rounded-lg shadow-sm hover:bg-slate-50 transition-colors">
                   <Users className="w-4 h-4 text-blue-600" />
@@ -337,14 +330,11 @@ export default function App() {
         </header>
 
         {/* Modals */}
-        {showCatalogue && (
-          <CatalogueManagementModal items={catalogue} onClose={() => setShowCatalogue(false)} />
-        )}
         {showUserPanel  && (
           <UserManagementPanel currentUser={currentUser} onClose={() => setShowUserPanel(false)} />
         )}
         {showAdminPanel && (
-          <AdminPriceEditor currentPrices={prices} onSave={handlePriceUpdate} onClose={() => setShowAdminPanel(false)} />
+          <AdminPriceEditor currentPrices={prices} catalogue={catalogue} onSave={handlePriceUpdate} onClose={() => setShowAdminPanel(false)} />
         )}
 
         {/* Main layout */}

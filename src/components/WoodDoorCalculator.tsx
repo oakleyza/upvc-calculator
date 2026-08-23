@@ -25,8 +25,13 @@ export const WoodDoorCalculator: React.FC<Props> = ({ form, onInput, catalogue }
   const [modelOpen, setModelOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const selectedIdx   = catalogue.findIndex(c => c.id === form.modelId);
-  const selectedItem  = catalogue[selectedIdx] ?? null;
+  // form.modelId ยังคงเป็น legacyKey ('m1','m2'...) เพื่อ backward-compat กับระบบราคา
+  // catalogue ใช้ legacyKey เป็น key lookup; รายการใหม่ที่ไม่มี legacyKey ใช้ id แทน
+  const findByModelId = (id: string) =>
+    catalogue.find(c => (c.legacyKey ?? c.id) === id) ?? null;
+
+  const selectedItem  = findByModelId(form.modelId);
+  const selectedIdx   = selectedItem ? catalogue.indexOf(selectedItem) : -1;
   const selectedLabel = selectedItem?.name ?? form.modelId;
 
   // ปิด dropdown เมื่อคลิกนอกกล่อง
@@ -45,7 +50,7 @@ export const WoodDoorCalculator: React.FC<Props> = ({ form, onInput, catalogue }
   //   รุ่นที่มี "กระจก" ในชื่อ → เซ็ต plain อัตโนมัติ
   //   รุ่นที่ไม่มีกระจก         → เซ็ตกลับเป็น none
   useEffect(() => {
-    const name = catalogue.find(c => c.id === form.modelId)?.name ?? '';
+    const name = findByModelId(form.modelId)?.name ?? '';
     const hasGlass = name.includes('กระจก');
     if (hasGlass && form.glassType === 'none') {
       onInput('glassType', 'plain');
@@ -118,9 +123,9 @@ export const WoodDoorCalculator: React.FC<Props> = ({ form, onInput, catalogue }
                     <button
                       key={item.id}
                       type="button"
-                      onClick={() => { onInput('modelId', item.id); setModelOpen(false); }}
+                      onClick={() => { onInput('modelId', item.legacyKey ?? item.id); setModelOpen(false); }}
                       className={`w-full flex items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-amber-50 ${
-                        form.modelId === item.id
+                        form.modelId === (item.legacyKey ?? item.id)
                           ? 'bg-amber-50 font-semibold text-amber-800'
                           : 'text-slate-700'
                       }`}

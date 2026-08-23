@@ -10,8 +10,8 @@ const WoodSummarySection: React.FC<{ woodForm: WoodDoorFormData; catalogue: Cata
   // รีเซ็ต imgOk ทุกครั้งที่เปลี่ยนรุ่น เพื่อให้โหลดรูปใหม่
   useEffect(() => { setImgOk(true); }, [woodForm.modelId]);
 
-  const modelIdx  = catalogue.findIndex(c => c.id === woodForm.modelId);
-  const modelItem = catalogue[modelIdx] ?? null;
+  const modelItem = catalogue.find(c => (c.legacyKey ?? c.id) === woodForm.modelId) ?? null;
+  const modelIdx  = modelItem ? catalogue.indexOf(modelItem) : -1;
   const modelName = modelItem?.name ?? woodForm.modelId;
   const imgSrc    = modelItem?.imageUrl ?? '';
   const numPrefix = modelIdx >= 0 ? `${modelIdx + 1}. ` : '';
