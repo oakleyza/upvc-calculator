@@ -53,12 +53,15 @@ export async function addCatalogueItem(
   name: string,
   imageUrl: string,
   sortOrder: number,
+  legacyKey?: string,
 ): Promise<void> {
   if (!db) return;
-  await addDoc(collection(db, 'wood_catalogue'), {
+  const data: Record<string, unknown> = {
     name, imageUrl, sortOrder,
     createdAt: new Date().toISOString(),
-  });
+  };
+  if (legacyKey) data.legacyKey = legacyKey;
+  await addDoc(collection(db, 'wood_catalogue'), data);
 }
 
 /** แก้ไขรายการ */
