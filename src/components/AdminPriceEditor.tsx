@@ -58,7 +58,7 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, catalogue, on
     cancelAnimationFrame(rafRef.current);
     const { top, bottom } = container.getBoundingClientRect();
     const y = e.clientY;
-    const ZONE = 64, SPEED = 10;
+    const ZONE = 64, SPEED = 4;
     const scroll = () => {
       if (y < top + ZONE) container.scrollTop -= SPEED;
       else if (y > bottom - ZONE) container.scrollTop += SPEED;
