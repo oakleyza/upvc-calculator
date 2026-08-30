@@ -1,7 +1,7 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { X, Save, Database, Tag, Maximize, Palette, LayoutDashboard, Hammer, ShieldAlert, GripVertical, Pencil, Trash2, Upload, Plus, Check } from 'lucide-react';
 import type { PricingStructure, CatalogueItem } from '../types';
-import { LABEL_MAP, WOOD_MODEL_NAMES, WOOD_GLASS_NAMES, WOOD_CURVE_MODEL_IDS, WOOD_FRAME_TYPE_NAMES } from '../constants';
+import { LABEL_MAP, WOOD_MODEL_NAMES, WOOD_GLASS_NAMES, WOOD_CURVE_MODEL_IDS, WOOD_FRAME_TYPE_NAMES, WOOD_TYPE_MULTIPLIER } from '../constants';
 import { addCatalogueItem, updateCatalogueItem, deleteCatalogueItem, saveSortOrder } from '../lib/woodCatalogue';
 import { compressAndUpload } from '../lib/cloudinary';
 
@@ -466,46 +466,49 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, catalogue, on
                 </p>
               </div>
 
-              {/* ราคาตั้งต้น */}
+              {/* ราคาตั้งต้น — กรอกเฉพาะไม้สะเดา ตะแบก/สักคำนวณอัตโนมัติ */}
               <div className="bg-white p-5 rounded-xl shadow-sm border">
-                <h4 className="font-bold text-slate-800 mb-4 pb-2 border-b">ราคาตั้งต้น (ตามชนิดไม้ × รุ่น)</h4>
-                <div className="space-y-6">
-                  {([
-                    { wood: 'sadao', label: 'ไม้สะเดา' },
-                    { wood: 'tabak', label: 'ไม้ตะแบก' },
-                    { wood: 'teak',  label: 'ไม้สัก' },
-                  ] as const).map(({ wood, label }) => (
-                    <div key={wood}>
-                      <h5 className="text-sm font-bold text-slate-700 mb-2 bg-slate-100 p-2 rounded">{label}</h5>
-                      {/* header row */}
-                      <div className="flex items-center gap-2 px-2.5 mb-1">
-                        <span className="flex-1 text-xs font-semibold text-slate-400">รุ่น</span>
-                        <span className="w-24 text-xs font-semibold text-orange-600 text-right">ค่าไม้ ฿</span>
-                        <span className="w-24 text-xs font-semibold text-purple-600 text-right">ค่าทำสี ฿</span>
-                      </div>
-                      {catItems.map((item, idx) => {
-                        const modelId = item.legacyKey ?? item.id;
-                        return (
-                          <div key={modelId} className="flex items-center gap-2 p-2.5 border-b last:border-0 hover:bg-slate-50 transition-colors">
-                            <span className="flex-1 text-sm font-medium text-slate-700">{idx + 1}. {item.name}</span>
-                            <input
-                              type="number" min={0}
-                              value={localPrices.wood_door_price?.[`wd_base_${wood}_${modelId}_wood`] ?? 0}
-                              onChange={e => handlePriceChange('wood_door_price', `wd_base_${wood}_${modelId}_wood`, e.target.value)}
-                              className="w-24 p-1.5 text-right border rounded text-sm font-semibold focus:ring-2 focus:ring-orange-400 outline-none bg-white"
-                            />
-                            <input
-                              type="number" min={0}
-                              value={localPrices.wood_door_paint?.[`wd_base_${wood}_${modelId}_paint`] ?? 0}
-                              onChange={e => handlePriceChange('wood_door_paint', `wd_base_${wood}_${modelId}_paint`, e.target.value)}
-                              className="w-24 p-1.5 text-right border rounded text-sm font-semibold focus:ring-2 focus:ring-purple-400 outline-none bg-white"
-                            />
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ))}
+                <h4 className="font-bold text-slate-800 mb-1 pb-2 border-b">ราคาตั้งต้น (กรอกเฉพาะไม้สะเดา — ตะแบก/สักคำนวณอัตโนมัติ)</h4>
+                <p className="text-xs text-slate-500 mt-2 mb-4">
+                  ค่าไม้: ไม้ตะแบก = ไม้สะเดา × {WOOD_TYPE_MULTIPLIER.tabak} &nbsp;|&nbsp; ไม้สัก = ไม้สะเดา × {WOOD_TYPE_MULTIPLIER.teak.toFixed(2)}
+                  &nbsp;(คอลัมน์ท้ายเป็น preview คำนวณให้ดู แก้ไขไม่ได้)<br/>
+                  ค่าทำสี: ใช้เรทไม้สะเดาเรทเดียวกันทุกชนิดไม้ ไม่ปรับตามชนิดไม้
+                </p>
+                {/* header row */}
+                <div className="flex items-center gap-2 px-2.5 mb-1">
+                  <span className="flex-1 text-xs font-semibold text-slate-400">รุ่น</span>
+                  <span className="w-24 text-xs font-semibold text-orange-600 text-right">ค่าไม้ (สะเดา) ฿</span>
+                  <span className="w-24 text-xs font-semibold text-orange-300 text-right">→ ตะแบก ฿</span>
+                  <span className="w-24 text-xs font-semibold text-orange-300 text-right">→ สัก ฿</span>
+                  <span className="w-24 text-xs font-semibold text-purple-600 text-right">ค่าทำสี ฿</span>
                 </div>
+                {catItems.map((item, idx) => {
+                  const modelId = item.legacyKey ?? item.id;
+                  const baseWood = localPrices.wood_door_price?.[`wd_base_sadao_${modelId}_wood`] ?? 0;
+                  return (
+                    <div key={modelId} className="flex items-center gap-2 p-2.5 border-b last:border-0 hover:bg-slate-50 transition-colors">
+                      <span className="flex-1 text-sm font-medium text-slate-700">{idx + 1}. {item.name}</span>
+                      <input
+                        type="number" min={0}
+                        value={baseWood}
+                        onChange={e => handlePriceChange('wood_door_price', `wd_base_sadao_${modelId}_wood`, e.target.value)}
+                        className="w-24 p-1.5 text-right border rounded text-sm font-semibold focus:ring-2 focus:ring-orange-400 outline-none bg-white"
+                      />
+                      <span className="w-24 text-right text-sm text-slate-400">
+                        {Math.round(baseWood * WOOD_TYPE_MULTIPLIER.tabak).toLocaleString()}
+                      </span>
+                      <span className="w-24 text-right text-sm text-slate-400">
+                        {Math.round(baseWood * WOOD_TYPE_MULTIPLIER.teak).toLocaleString()}
+                      </span>
+                      <input
+                        type="number" min={0}
+                        value={localPrices.wood_door_paint?.[`wd_base_sadao_${modelId}_paint`] ?? 0}
+                        onChange={e => handlePriceChange('wood_door_paint', `wd_base_sadao_${modelId}_paint`, e.target.value)}
+                        className="w-24 p-1.5 text-right border rounded text-sm font-semibold focus:ring-2 focus:ring-purple-400 outline-none bg-white"
+                      />
+                    </div>
+                  );
+                })}
               </div>
 
               {/* ส่วนต่างความกว้าง */}
@@ -514,10 +517,12 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, catalogue, on
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <h5 className="text-sm font-bold text-slate-500 mb-2 bg-orange-50 p-2 rounded">งานไม้ (ตามกว้าง)</h5>
+                    <p className="text-xs text-slate-400 mb-2">กรอกเป็นเรทไม้สะเดา — ตะแบก/สักจะคูณอัตโนมัติเหมือนราคาตั้งต้น</p>
                     {Object.keys(localPrices.wood_door_price).filter(k => k.startsWith('wd_w_')).map(k => renderInput('wood_door_price', k))}
                   </div>
                   <div>
                     <h5 className="text-sm font-bold text-slate-500 mb-2 bg-purple-50 p-2 rounded">งานทำสี (ตามกว้าง)</h5>
+                    <p className="text-xs text-slate-400 mb-2">เรทเดียวใช้ร่วมกันทุกชนิดไม้ ไม่ปรับตามชนิดไม้</p>
                     {Object.keys(localPrices.wood_door_paint).filter(k => k.startsWith('wd_w_')).map(k => renderInput('wood_door_paint', k))}
                   </div>
                 </div>
@@ -529,10 +534,12 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, catalogue, on
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <h5 className="text-sm font-bold text-slate-500 mb-2 bg-orange-50 p-2 rounded">งานไม้ (ตามสูง)</h5>
+                    <p className="text-xs text-slate-400 mb-2">กรอกเป็นเรทไม้สะเดา — ตะแบก/สักจะคูณอัตโนมัติเหมือนราคาตั้งต้น</p>
                     {Object.keys(localPrices.wood_door_price).filter(k => k.startsWith('wd_h_')).map(k => renderInput('wood_door_price', k))}
                   </div>
                   <div>
                     <h5 className="text-sm font-bold text-slate-500 mb-2 bg-purple-50 p-2 rounded">งานทำสี (ตามสูง)</h5>
+                    <p className="text-xs text-slate-400 mb-2">เรทเดียวใช้ร่วมกันทุกชนิดไม้ ไม่ปรับตามชนิดไม้</p>
                     {Object.keys(localPrices.wood_door_paint).filter(k => k.startsWith('wd_h_')).map(k => renderInput('wood_door_paint', k))}
                   </div>
                 </div>
@@ -549,10 +556,12 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, catalogue, on
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <h5 className="text-sm font-bold text-slate-500 mb-2 bg-orange-50 p-2 rounded">งานไม้ (โค้ง ตามกว้าง)</h5>
+                    <p className="text-xs text-slate-400 mb-2">กรอกเป็นเรทไม้สะเดา — ตะแบก/สักจะคูณอัตโนมัติเหมือนราคาตั้งต้น</p>
                     {Object.keys(localPrices.wood_door_price).filter(k => k.startsWith('wd_curve_w_')).map(k => renderInput('wood_door_price', k))}
                   </div>
                   <div>
                     <h5 className="text-sm font-bold text-slate-500 mb-2 bg-purple-50 p-2 rounded">งานทำสี (โค้ง ตามกว้าง)</h5>
+                    <p className="text-xs text-slate-400 mb-2">เรทเดียวใช้ร่วมกันทุกชนิดไม้ ไม่ปรับตามชนิดไม้</p>
                     {Object.keys(localPrices.wood_door_paint).filter(k => k.startsWith('wd_curve_w_')).map(k => renderInput('wood_door_paint', k))}
                   </div>
                 </div>
@@ -566,10 +575,12 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, catalogue, on
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <h5 className="text-sm font-bold text-slate-500 mb-2 bg-orange-50 p-2 rounded">งานไม้ (โค้ง ตามสูง)</h5>
+                    <p className="text-xs text-slate-400 mb-2">กรอกเป็นเรทไม้สะเดา — ตะแบก/สักจะคูณอัตโนมัติเหมือนราคาตั้งต้น</p>
                     {Object.keys(localPrices.wood_door_price).filter(k => k.startsWith('wd_curve_h_')).map(k => renderInput('wood_door_price', k))}
                   </div>
                   <div>
                     <h5 className="text-sm font-bold text-slate-500 mb-2 bg-purple-50 p-2 rounded">งานทำสี (โค้ง ตามสูง)</h5>
+                    <p className="text-xs text-slate-400 mb-2">เรทเดียวใช้ร่วมกันทุกชนิดไม้ ไม่ปรับตามชนิดไม้</p>
                     {Object.keys(localPrices.wood_door_paint).filter(k => k.startsWith('wd_curve_h_')).map(k => renderInput('wood_door_paint', k))}
                   </div>
                 </div>

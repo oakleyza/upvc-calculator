@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------
 
 import type { DoorFormData, FrameFormData, WoodDoorFormData, WoodFrameFormData, PricingStructure, PriceResult } from '../types';
-import { FRAME_MATERIALS, WOOD_CURVE_MODEL_IDS, WOOD_MODEL_NAMES } from '../constants';
+import { FRAME_MATERIALS, WOOD_CURVE_MODEL_IDS, WOOD_MODEL_NAMES, WOOD_TYPE_MULTIPLIER } from '../constants';
 
 // ------------------------------------------------------------------
 // Door price calculation
@@ -230,6 +230,10 @@ export const calculateFramePrice = (form: FrameFormData, prices: PricingStructur
 // ------------------------------------------------------------------
 // calculateWoodDoorPrice — ระบบ bracket ตามช่วงขนาด (กว้าง + สูง)
 // รองรับ: ประตูทั่วไป / ประตูโค้ง (surcharge แยก) / ประตูกระจก (ราคากระจกแยก)
+//
+// Auto-pricing ตะแบก/สัก: ราคากรอกในระบบมีแค่ของ "ไม้สะเดา" เท่านั้น
+// ค่าไม้ (base + ส่วนต่างกว้าง/สูง/โค้ง) ของตะแบก/สัก = ค่าไม้สะเดา × WOOD_TYPE_MULTIPLIER
+// ค่าทำสี ไม่ถูกปรับ — ใช้เรทไม้สะเดาเสมอไม่ว่าจะเลือกไม้ชนิดใด
 // ------------------------------------------------------------------
 export const calculateWoodDoorPrice = (form: WoodDoorFormData, prices: PricingStructure): PriceResult => {
   const surcharges: string[] = [];
@@ -240,12 +244,15 @@ export const calculateWoodDoorPrice = (form: WoodDoorFormData, prices: PricingSt
   const isCurve = WOOD_CURVE_MODEL_IDS.has(form.modelId);
   const modelName = WOOD_MODEL_NAMES[form.modelId] ?? '';
   const hasGlass = modelName.includes('กระจก');
+  const woodMultiplier = WOOD_TYPE_MULTIPLIER[form.woodType] ?? 1;
 
-  // ค่าไม้ตั้งต้น (เสมอ) + ค่าทำสีตั้งต้น (เฉพาะเมื่อ painted)
-  const baseWoodKey = `wd_base_${form.woodType}_${form.modelId}_wood`;
-  let price = getP(baseWoodKey);
+  // ค่าไม้ตั้งต้น — อ่านจากเรทไม้สะเดาเสมอ แล้วปรับตามชนิดไม้ที่เลือก
+  const baseWoodKey = `wd_base_sadao_${form.modelId}_wood`;
+  let price = getP(baseWoodKey) * woodMultiplier;
+
+  // ค่าทำสีตั้งต้น — อ่านจากเรทไม้สะเดาเสมอ ไม่ปรับตามชนิดไม้
   if (form.painted) {
-    const basePaintKey = `wd_base_${form.woodType}_${form.modelId}_paint`;
+    const basePaintKey = `wd_base_sadao_${form.modelId}_paint`;
     const basePaint = getPaint(basePaintKey);
     price += basePaint;
     if (basePaint) surcharges.push(`ค่าทำสีพื้นฐาน (+฿${basePaint.toLocaleString()})`);
@@ -279,7 +286,7 @@ export const calculateWoodDoorPrice = (form: WoodDoorFormData, prices: PricingSt
 
     if (widthSuffix) {
       const widthKey = wPrefix + widthSuffix;
-      const wp = getP(widthKey);
+      const wp = getP(widthKey) * woodMultiplier;
       price += wp;
       if (wp) surcharges.push(`${wLabel}งานไม้ ส่วนต่างกว้าง (+฿${wp.toLocaleString()})`);
       if (form.painted) {
@@ -305,7 +312,7 @@ export const calculateWoodDoorPrice = (form: WoodDoorFormData, prices: PricingSt
 
     if (heightSuffix) {
       const heightKey = hPrefix + heightSuffix;
-      const hp = getP(heightKey);
+      const hp = getP(heightKey) * woodMultiplier;
       price += hp;
       if (hp) surcharges.push(`${wLabel}งานไม้ ส่วนต่างสูง (+฿${hp.toLocaleString()})`);
       if (form.painted) {

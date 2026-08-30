@@ -32,6 +32,14 @@ export const WOOD_TYPE_NAMES: Record<string, string> = {
   teak:  'ไม้สัก',
 };
 
+// ระบบ auto-pricing: ค่าไม้ของตะแบก/สัก คำนวณจากค่าไม้สะเดา (ราคาตั้งต้น + ส่วนต่างขนาดสุทธิ) × ตัวคูณ
+// ตะแบก = สะเดา × 1.6 | สัก = ตะแบก × 1.6 (= สะเดา × 2.56) — ค่าทำสีไม่ถูกปรับ ใช้เรทไม้สะเดาเสมอ
+export const WOOD_TYPE_MULTIPLIER: Record<string, number> = {
+  sadao: 1,
+  tabak: 1.6,
+  teak:  1.6 * 1.6,
+};
+
 export const WOOD_MODEL_NAMES: Record<string, string> = {
   // ── ประตูทึบ ──────────────────────────────────────────────────────
   m1:  'ประตูฟักหนึ่งลูก',
@@ -421,7 +429,7 @@ export const DEFAULT_PRICES: PricingStructure = {
     'bsx_svl_h_200': 0, 'bsx_svl_h_201_210': 0, 'bsx_svl_h_211_220': 0, 'bsx_svl_h_221_240': 0,
   },
   wood_door_price: {
-    // ค่าไม้ตั้งต้น ตามชนิดไม้ × รุ่น (sadao)
+    // ค่าไม้ตั้งต้น ตามรุ่น (สะเดา — เป็นฐานสำหรับคำนวณตะแบก/สัก อัตโนมัติผ่าน WOOD_TYPE_MULTIPLIER)
     'wd_base_sadao_m1_wood': 999, 'wd_base_sadao_m2_wood': 999, 'wd_base_sadao_m3_wood': 999,
     'wd_base_sadao_m4_wood': 999, 'wd_base_sadao_m5_wood': 999, 'wd_base_sadao_m6_wood': 999,
     'wd_base_sadao_m7_wood': 999, 'wd_base_sadao_m8_wood': 999, 'wd_base_sadao_m9_wood': 999,
@@ -435,34 +443,6 @@ export const DEFAULT_PRICES: PricingStructure = {
     'wd_base_sadao_m31_wood': 999, 'wd_base_sadao_m32_wood': 999, 'wd_base_sadao_m33_wood': 999,
     'wd_base_sadao_m34_wood': 999, 'wd_base_sadao_m35_wood': 999, 'wd_base_sadao_m36_wood': 999,
     'wd_base_sadao_m37_wood': 999,
-    // ค่าไม้ตั้งต้น (tabak)
-    'wd_base_tabak_m1_wood': 999, 'wd_base_tabak_m2_wood': 999, 'wd_base_tabak_m3_wood': 999,
-    'wd_base_tabak_m4_wood': 999, 'wd_base_tabak_m5_wood': 999, 'wd_base_tabak_m6_wood': 999,
-    'wd_base_tabak_m7_wood': 999, 'wd_base_tabak_m8_wood': 999, 'wd_base_tabak_m9_wood': 999,
-    'wd_base_tabak_m10_wood': 999, 'wd_base_tabak_m11_wood': 999, 'wd_base_tabak_m12_wood': 999,
-    'wd_base_tabak_m13_wood': 999, 'wd_base_tabak_m14_wood': 999, 'wd_base_tabak_m15_wood': 999,
-    'wd_base_tabak_m16_wood': 999, 'wd_base_tabak_m17_wood': 999, 'wd_base_tabak_m18_wood': 999,
-    'wd_base_tabak_m19_wood': 999, 'wd_base_tabak_m20_wood': 999, 'wd_base_tabak_m21_wood': 999,
-    'wd_base_tabak_m22_wood': 999, 'wd_base_tabak_m23_wood': 999, 'wd_base_tabak_m24_wood': 999,
-    'wd_base_tabak_m25_wood': 999, 'wd_base_tabak_m26_wood': 999, 'wd_base_tabak_m27_wood': 999,
-    'wd_base_tabak_m28_wood': 999, 'wd_base_tabak_m29_wood': 999, 'wd_base_tabak_m30_wood': 999,
-    'wd_base_tabak_m31_wood': 999, 'wd_base_tabak_m32_wood': 999, 'wd_base_tabak_m33_wood': 999,
-    'wd_base_tabak_m34_wood': 999, 'wd_base_tabak_m35_wood': 999, 'wd_base_tabak_m36_wood': 999,
-    'wd_base_tabak_m37_wood': 999,
-    // ค่าไม้ตั้งต้น (teak)
-    'wd_base_teak_m1_wood': 999, 'wd_base_teak_m2_wood': 999, 'wd_base_teak_m3_wood': 999,
-    'wd_base_teak_m4_wood': 999, 'wd_base_teak_m5_wood': 999, 'wd_base_teak_m6_wood': 999,
-    'wd_base_teak_m7_wood': 999, 'wd_base_teak_m8_wood': 999, 'wd_base_teak_m9_wood': 999,
-    'wd_base_teak_m10_wood': 999, 'wd_base_teak_m11_wood': 999, 'wd_base_teak_m12_wood': 999,
-    'wd_base_teak_m13_wood': 999, 'wd_base_teak_m14_wood': 999, 'wd_base_teak_m15_wood': 999,
-    'wd_base_teak_m16_wood': 999, 'wd_base_teak_m17_wood': 999, 'wd_base_teak_m18_wood': 999,
-    'wd_base_teak_m19_wood': 999, 'wd_base_teak_m20_wood': 999, 'wd_base_teak_m21_wood': 999,
-    'wd_base_teak_m22_wood': 999, 'wd_base_teak_m23_wood': 999, 'wd_base_teak_m24_wood': 999,
-    'wd_base_teak_m25_wood': 999, 'wd_base_teak_m26_wood': 999, 'wd_base_teak_m27_wood': 999,
-    'wd_base_teak_m28_wood': 999, 'wd_base_teak_m29_wood': 999, 'wd_base_teak_m30_wood': 999,
-    'wd_base_teak_m31_wood': 999, 'wd_base_teak_m32_wood': 999, 'wd_base_teak_m33_wood': 999,
-    'wd_base_teak_m34_wood': 999, 'wd_base_teak_m35_wood': 999, 'wd_base_teak_m36_wood': 999,
-    'wd_base_teak_m37_wood': 999,
     // งานไม้ — ส่วนต่างความกว้าง (ประตูทั่วไป)
     'wd_w_71_80': 0, 'wd_w_81_90': 500, 'wd_w_91_100': 1000,
     'wd_w_101_110': 1500, 'wd_w_111_120': 2000, 'wd_w_121_plus': 2500,
@@ -481,7 +461,7 @@ export const DEFAULT_PRICES: PricingStructure = {
     'wd_curve_h_291_plus': 0,
   },
   wood_door_paint: {
-    // ค่าทำสีตั้งต้น ตามชนิดไม้ × รุ่น (sadao)
+    // ค่าทำสีตั้งต้น ตามรุ่น — เรทเดียวใช้ร่วมกันทุกชนิดไม้ (สะเดา/ตะแบก/สัก ไม่ปรับราคาสีตามชนิดไม้)
     'wd_base_sadao_m1_paint': 999, 'wd_base_sadao_m2_paint': 999, 'wd_base_sadao_m3_paint': 999,
     'wd_base_sadao_m4_paint': 999, 'wd_base_sadao_m5_paint': 999, 'wd_base_sadao_m6_paint': 999,
     'wd_base_sadao_m7_paint': 999, 'wd_base_sadao_m8_paint': 999, 'wd_base_sadao_m9_paint': 999,
@@ -495,34 +475,6 @@ export const DEFAULT_PRICES: PricingStructure = {
     'wd_base_sadao_m31_paint': 999, 'wd_base_sadao_m32_paint': 999, 'wd_base_sadao_m33_paint': 999,
     'wd_base_sadao_m34_paint': 999, 'wd_base_sadao_m35_paint': 999, 'wd_base_sadao_m36_paint': 999,
     'wd_base_sadao_m37_paint': 999,
-    // ค่าทำสีตั้งต้น (tabak)
-    'wd_base_tabak_m1_paint': 999, 'wd_base_tabak_m2_paint': 999, 'wd_base_tabak_m3_paint': 999,
-    'wd_base_tabak_m4_paint': 999, 'wd_base_tabak_m5_paint': 999, 'wd_base_tabak_m6_paint': 999,
-    'wd_base_tabak_m7_paint': 999, 'wd_base_tabak_m8_paint': 999, 'wd_base_tabak_m9_paint': 999,
-    'wd_base_tabak_m10_paint': 999, 'wd_base_tabak_m11_paint': 999, 'wd_base_tabak_m12_paint': 999,
-    'wd_base_tabak_m13_paint': 999, 'wd_base_tabak_m14_paint': 999, 'wd_base_tabak_m15_paint': 999,
-    'wd_base_tabak_m16_paint': 999, 'wd_base_tabak_m17_paint': 999, 'wd_base_tabak_m18_paint': 999,
-    'wd_base_tabak_m19_paint': 999, 'wd_base_tabak_m20_paint': 999, 'wd_base_tabak_m21_paint': 999,
-    'wd_base_tabak_m22_paint': 999, 'wd_base_tabak_m23_paint': 999, 'wd_base_tabak_m24_paint': 999,
-    'wd_base_tabak_m25_paint': 999, 'wd_base_tabak_m26_paint': 999, 'wd_base_tabak_m27_paint': 999,
-    'wd_base_tabak_m28_paint': 999, 'wd_base_tabak_m29_paint': 999, 'wd_base_tabak_m30_paint': 999,
-    'wd_base_tabak_m31_paint': 999, 'wd_base_tabak_m32_paint': 999, 'wd_base_tabak_m33_paint': 999,
-    'wd_base_tabak_m34_paint': 999, 'wd_base_tabak_m35_paint': 999, 'wd_base_tabak_m36_paint': 999,
-    'wd_base_tabak_m37_paint': 999,
-    // ค่าทำสีตั้งต้น (teak)
-    'wd_base_teak_m1_paint': 999, 'wd_base_teak_m2_paint': 999, 'wd_base_teak_m3_paint': 999,
-    'wd_base_teak_m4_paint': 999, 'wd_base_teak_m5_paint': 999, 'wd_base_teak_m6_paint': 999,
-    'wd_base_teak_m7_paint': 999, 'wd_base_teak_m8_paint': 999, 'wd_base_teak_m9_paint': 999,
-    'wd_base_teak_m10_paint': 999, 'wd_base_teak_m11_paint': 999, 'wd_base_teak_m12_paint': 999,
-    'wd_base_teak_m13_paint': 999, 'wd_base_teak_m14_paint': 999, 'wd_base_teak_m15_paint': 999,
-    'wd_base_teak_m16_paint': 999, 'wd_base_teak_m17_paint': 999, 'wd_base_teak_m18_paint': 999,
-    'wd_base_teak_m19_paint': 999, 'wd_base_teak_m20_paint': 999, 'wd_base_teak_m21_paint': 999,
-    'wd_base_teak_m22_paint': 999, 'wd_base_teak_m23_paint': 999, 'wd_base_teak_m24_paint': 999,
-    'wd_base_teak_m25_paint': 999, 'wd_base_teak_m26_paint': 999, 'wd_base_teak_m27_paint': 999,
-    'wd_base_teak_m28_paint': 999, 'wd_base_teak_m29_paint': 999, 'wd_base_teak_m30_paint': 999,
-    'wd_base_teak_m31_paint': 999, 'wd_base_teak_m32_paint': 999, 'wd_base_teak_m33_paint': 999,
-    'wd_base_teak_m34_paint': 999, 'wd_base_teak_m35_paint': 999, 'wd_base_teak_m36_paint': 999,
-    'wd_base_teak_m37_paint': 999,
     // งานทำสี — ส่วนต่างความกว้าง (ประตูทั่วไป)
     'wd_w_71_80': 0, 'wd_w_81_90': 0, 'wd_w_91_100': 0,
     'wd_w_101_110': 500, 'wd_w_111_120': 500, 'wd_w_121_plus': 1000,
