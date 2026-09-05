@@ -12,7 +12,7 @@ interface Props {
   onClose: () => void;
 }
 
-type ActiveCategory = 'door' | 'frame_t2' | 'frame_f10' | 'frame_x' | 'frame_eco' | 'frame_bsx' | 'wood' | 'wood_frame';
+type ActiveCategory = 'door' | 'frame_t2' | 'frame_f10' | 'frame_x' | 'frame_eco' | 'frame_bsx' | 'frame_5in' | 'wood' | 'wood_frame';
 
 export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, catalogue, onSave, onClose }) => {
   const [activeCategory, setActiveCategory] = useState<ActiveCategory>('wood');
@@ -172,6 +172,7 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, catalogue, on
     { id: 'frame_x',   label: '✨ Adjust X' },
     { id: 'frame_eco', label: '✨ Adjust Eco' },
     { id: 'frame_bsx', label: '⬡ Big Six' },
+    { id: 'frame_5in', label: '🔳 5 นิ้ว เหลี่ยม' },
   ];
 
   return (
@@ -370,6 +371,33 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, catalogue, on
                       {Object.keys(localPrices.frame_surface).filter(k => k.startsWith('bsx_svl_h_')).map(k => renderInput('frame_surface', k))}
                     </div>
                   </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeCategory === 'frame_5in' && (
+            <div className="space-y-6">
+              <div className="bg-slate-100 p-4 rounded-lg border border-slate-300">
+                <h4 className="font-bold text-slate-800 flex items-center gap-2"><LayoutDashboard className="w-5 h-5" /> วงกบไม้สังเคราะห์ 5 นิ้ว เหลี่ยม (Max 180x240, ไม่มี SVL)</h4>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-white p-4 rounded-lg shadow-sm border">
+                  <h4 className="font-bold text-slate-800 mb-3 pb-2 border-b">ราคาตั้งต้น & มาตรฐาน</h4>
+                  {renderInput('frame_base', 'wpc_5in')}
+                  {['w5_std_70','w5_std_80','w5_std_90'].map(k => renderInput('frame_size', k))}
+                </div>
+                <div className="bg-white p-4 rounded-lg shadow-sm border">
+                  <h4 className="font-bold text-orange-600 mb-3 pb-2 border-b">Surcharge ความกว้าง</h4>
+                  {Object.keys(localPrices.frame_size).filter(k => k.startsWith('w5_w_')).map(k => renderInput('frame_size', k))}
+                </div>
+                <div className="bg-white p-4 rounded-lg shadow-sm border">
+                  <h4 className="font-bold text-orange-600 mb-3 pb-2 border-b">Surcharge ความสูง</h4>
+                  {Object.keys(localPrices.frame_size).filter(k => k.startsWith('w5_h_')).map(k => renderInput('frame_size', k))}
+                </div>
+                <div className="bg-white p-4 rounded-lg shadow-sm border">
+                  <h4 className="font-bold text-purple-600 mb-3 pb-2 border-b">ราคาทำสี TOA (5 นิ้ว)</h4>
+                  {Object.keys(localPrices.frame_surface).filter(k => k.startsWith('w5_toa_h_')).map(k => renderInput('frame_surface', k))}
                 </div>
               </div>
             </div>

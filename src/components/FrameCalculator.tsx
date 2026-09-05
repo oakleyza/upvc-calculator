@@ -81,6 +81,7 @@ export const FrameCalculator: React.FC<Props> = ({ form, onInput }) => {
                 <option value={FRAME_MATERIALS.ADJUST_ECO}>วงกบไม้สังเคราะห์ มีซับ รุ่น Adjust Eco — สูงสุด 240cm</option>
                 <option value={FRAME_MATERIALS.ADJUST_X}>วงกบไม้สังเคราะห์ มีซับ รุ่น Adjust X — สูงสุด 220cm</option>
                 <option value={FRAME_MATERIALS.ADJUST_BIG_SIX}>วงกบไม้สังเคราะห์ รุ่น Adjust Big Six (ไม่มีซับ) — สูงสุด 240cm</option>
+                <option value={FRAME_MATERIALS.WPC_5IN}>วงกบไม้สังเคราะห์ 5 นิ้ว เหลี่ยม — สูงสุด 240cm</option>
               </optgroup>
             </select>
           </div>

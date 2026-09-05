@@ -81,6 +81,7 @@ const FRAME_DISPLAY: Record<string, string> = {
   'wpc_adjust_eco':'วงกบไม้สังเคราะห์ มีซับ รุ่น Adjust Eco — สูงสุด 240cm',
   'wpc_adjust_x':  'วงกบไม้สังเคราะห์ มีซับ รุ่น Adjust X — สูงสุด 220cm',
   'wpc_adjust_bsx':'วงกบไม้สังเคราะห์ รุ่น Adjust Big Six (ไม่มีซับ) — สูงสุด 240cm',
+  'wpc_5in':       'วงกบไม้สังเคราะห์ 5 นิ้ว เหลี่ยม — สูงสุด 240cm',
 };
 
 interface Props {

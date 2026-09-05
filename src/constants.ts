@@ -9,6 +9,7 @@ export const FRAME_MATERIALS = {
   ADJUST_X:       'wpc_adjust_x',
   ADJUST_ECO:     'wpc_adjust_eco',
   ADJUST_BIG_SIX: 'wpc_adjust_bsx',
+  WPC_5IN:        'wpc_5in',
 } as const;
 
 export type FrameMaterialKey = typeof FRAME_MATERIALS[keyof typeof FRAME_MATERIALS];
@@ -332,6 +333,22 @@ export const LABEL_MAP: Record<string, string> = {
   'bsx_svl_h_201_210': 'Adjust Big Six — ค่าปิดผิว SVL (สูง 201–210 cm)',
   'bsx_svl_h_211_220': 'Adjust Big Six — ค่าปิดผิว SVL (สูง 211–220 cm)',
   'bsx_svl_h_221_240': 'Adjust Big Six — ค่าปิดผิว SVL (สูง 221–240 cm)',
+  // === วงกบไม้สังเคราะห์ 5 นิ้ว เหลี่ยม (ไม่มี SVL) ===
+  'wpc_5in': 'วงกบ 5 นิ้ว เหลี่ยม — ราคาเริ่มต้นชุดวงกบ',
+  'w5_std_70': '5 นิ้ว — ไซส์มาตรฐาน 70×200 (ไม่มีค่าเพิ่ม)',
+  'w5_std_80': '5 นิ้ว — ไซส์มาตรฐาน 80×200 (ไม่มีค่าเพิ่ม)',
+  'w5_std_90': '5 นิ้ว — ไซส์มาตรฐาน 90×200 (ไม่มีค่าเพิ่ม)',
+  'w5_w_81_90': '5 นิ้ว — ค่าเพิ่มความกว้าง 81–90 cm',
+  'w5_w_91_140': '5 นิ้ว — ค่าเพิ่มความกว้าง 91–140 cm',
+  'w5_w_141_180': '5 นิ้ว — ค่าเพิ่มความกว้าง 141–180 cm',
+  'w5_h_under_200': '5 นิ้ว — ค่าลดไซส์ ความสูงต่ำกว่า 200 cm',
+  'w5_h_201_210': '5 นิ้ว — ค่าเพิ่มความสูง 201–210 cm',
+  'w5_h_211_220': '5 นิ้ว — ค่าเพิ่มความสูง 211–220 cm',
+  'w5_h_221_240': '5 นิ้ว — ค่าเพิ่มความสูง 221–240 cm',
+  'w5_toa_h_200': '5 นิ้ว — ค่าพ่นสี TOA (สูงไม่เกิน 200 cm)',
+  'w5_toa_h_201_210': '5 นิ้ว — ค่าพ่นสี TOA (สูง 201–210 cm)',
+  'w5_toa_h_211_220': '5 นิ้ว — ค่าพ่นสี TOA (สูง 211–220 cm)',
+  'w5_toa_h_221_240': '5 นิ้ว — ค่าพ่นสี TOA (สูง 221–240 cm)',
   // === วงกบไม้ ===
   'wf_pluang_70x200cm':       'วงกบไม้พลวง 70×200 (ไม่ทำสี)',
   'wf_pluang_80x200cm':       'วงกบไม้พลวง 80×200 (ไม่ทำสี)',
@@ -398,6 +415,7 @@ export const DEFAULT_PRICES: PricingStructure = {
     [FRAME_MATERIALS.ADJUST_X]: 1200,
     [FRAME_MATERIALS.ADJUST_ECO]: 999,
     [FRAME_MATERIALS.ADJUST_BIG_SIX]: 999,
+    [FRAME_MATERIALS.WPC_5IN]: 0,
   },
   frame_size: {
     '70x200cm': 0, '80x200cm': 0, '90x200cm': 0, 'custom': 0,
@@ -416,6 +434,9 @@ export const DEFAULT_PRICES: PricingStructure = {
     'bsx_std_70': 0, 'bsx_std_80': 0, 'bsx_std_90': 0,
     'bsx_w_81_90': 0, 'bsx_w_91_140': 0, 'bsx_w_141_180': 0,
     'bsx_h_under_200': 200, 'bsx_h_201_210': 0, 'bsx_h_211_220': 0, 'bsx_h_221_240': 0,
+    'w5_std_70': 0, 'w5_std_80': 0, 'w5_std_90': 0,
+    'w5_w_81_90': 0, 'w5_w_91_140': 0, 'w5_w_141_180': 0,
+    'w5_h_under_200': 0, 'w5_h_201_210': 0, 'w5_h_211_220': 0, 'w5_h_221_240': 0,
   },
   frame_surface: {
     'none': 0,
@@ -427,6 +448,7 @@ export const DEFAULT_PRICES: PricingStructure = {
     'eco_svl_h_under_200': 1200, 'eco_svl_h_200_210': 1200, 'eco_svl_h_211_220': 1500, 'eco_svl_h_221_240': 1700,
     'bsx_toa_h_200': 0, 'bsx_toa_h_201_210': 0, 'bsx_toa_h_211_220': 0, 'bsx_toa_h_221_240': 0,
     'bsx_svl_h_200': 0, 'bsx_svl_h_201_210': 0, 'bsx_svl_h_211_220': 0, 'bsx_svl_h_221_240': 0,
+    'w5_toa_h_200': 0, 'w5_toa_h_201_210': 0, 'w5_toa_h_211_220': 0, 'w5_toa_h_221_240': 0,
   },
   wood_door_price: {
     // ค่าไม้ตั้งต้น ตามรุ่น (สะเดา — เป็นฐานสำหรับคำนวณตะแบก/สัก อัตโนมัติผ่าน WOOD_TYPE_MULTIPLIER)

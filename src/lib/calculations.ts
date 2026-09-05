@@ -196,6 +196,29 @@ export const calculateFramePrice = (form: FrameFormData, prices: PricingStructur
     }
   }
 
+  // ─── วงกบไม้สังเคราะห์ 5 นิ้ว เหลี่ยม (เหมือน Big Six แต่ไม่มี SVL) ──
+  else if (form.frameMaterial === FRAME_MATERIALS.WPC_5IN) {
+    if      (form.sizeType === '70x200cm') price += getSize('w5_std_70');
+    else if (form.sizeType === '80x200cm') price += getSize('w5_std_80');
+    else if (form.sizeType === '90x200cm') price += getSize('w5_std_90');
+    else if (form.sizeType === 'custom') {
+      if      (width >= 81 && width <= 90)   { const p = getSize('w5_w_81_90');   price += p; if (p) surcharges.push(`5 นิ้ว: กว้าง 81-90cm (+฿${p.toLocaleString()})`); }
+      else if (width >= 91 && width <= 140)  { const p = getSize('w5_w_91_140');  price += p; if (p) surcharges.push(`5 นิ้ว: กว้าง 91-140cm (+฿${p.toLocaleString()})`); }
+      else if (width >= 141 && width <= 180) { const p = getSize('w5_w_141_180'); price += p; if (p) surcharges.push(`5 นิ้ว: กว้าง 141-180cm (+฿${p.toLocaleString()})`); }
+
+      if      (height < 200)                  { const p = getSize('w5_h_under_200'); price += p; if (p) surcharges.push(`5 นิ้ว: ค่าลดไซส์ < 200cm (+฿${p.toLocaleString()})`); }
+      else if (height >= 201 && height <= 210) { const p = getSize('w5_h_201_210');  price += p; if (p) surcharges.push(`5 นิ้ว: สูง 201-210cm (+฿${p.toLocaleString()})`); }
+      else if (height >= 211 && height <= 220) { const p = getSize('w5_h_211_220');  price += p; if (p) surcharges.push(`5 นิ้ว: สูง 211-220cm (+฿${p.toLocaleString()})`); }
+      else if (height >= 221 && height <= 240) { const p = getSize('w5_h_221_240');  price += p; if (p) surcharges.push(`5 นิ้ว: สูง 221-240cm (+฿${p.toLocaleString()})`); }
+    }
+    if (form.surfaceType === 'TOA') {
+      if      (height <= 200) { const p = getSurf('w5_toa_h_200');     price += p; if (p) surcharges.push(`5 นิ้ว: TOA ≤200cm (+฿${p.toLocaleString()})`); }
+      else if (height <= 210) { const p = getSurf('w5_toa_h_201_210'); price += p; if (p) surcharges.push(`5 นิ้ว: TOA 201-210cm (+฿${p.toLocaleString()})`); }
+      else if (height <= 220) { const p = getSurf('w5_toa_h_211_220'); price += p; if (p) surcharges.push(`5 นิ้ว: TOA 211-220cm (+฿${p.toLocaleString()})`); }
+      else                    { const p = getSurf('w5_toa_h_221_240'); price += p; if (p) surcharges.push(`5 นิ้ว: TOA 221-240cm (+฿${p.toLocaleString()})`); }
+    }
+  }
+
   // ─── Adjust Eco ────────────────────────────────────────────────
   else if (form.frameMaterial === FRAME_MATERIALS.ADJUST_ECO) {
     if      (form.sizeType === '70x200cm') price += getSize('eco_std_70');
