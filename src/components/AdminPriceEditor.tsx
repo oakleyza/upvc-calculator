@@ -121,6 +121,9 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, catalogue, on
     }));
   };
 
+  // แสดงช่องว่างแทนเลข 0 (ให้ 0 เป็น placeholder จางๆ) — กันไม่ให้ค่า 0 ติดนำหน้าเวลาพิมพ์
+  const inputVal = (v: number): number | string => (v === 0 ? '' : v);
+
   const handleSaveWithValidation = () => {
     const errs: string[] = [];
     const cats: (keyof PricingStructure)[] = [
@@ -151,9 +154,9 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, catalogue, on
         <span className="text-sm font-medium text-slate-700">{LABEL_MAP[key]}</span>
         <div className="flex items-center gap-2">
           <input
-            type="number" value={value} min={0}
+            type="number" value={inputVal(value)} min={0} placeholder="0"
             onChange={e => handlePriceChange(category, key, e.target.value)}
-            className={`w-20 p-1.5 text-right border rounded focus:ring-2 outline-none text-sm font-semibold ${
+            className={`w-20 p-1.5 text-right border rounded focus:ring-2 outline-none text-sm font-semibold placeholder:text-slate-300 placeholder:font-normal ${
               isNeg ? 'border-red-400 bg-red-50 focus:ring-red-500' : 'bg-white focus:ring-blue-500'
             }`}
           />
@@ -517,10 +520,10 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, catalogue, on
                     <div key={modelId} className="flex items-center gap-2 p-2.5 border-b last:border-0 hover:bg-slate-50 transition-colors">
                       <span className="flex-1 text-sm font-medium text-slate-700">{idx + 1}. {item.name}</span>
                       <input
-                        type="number" min={0}
-                        value={baseWood}
+                        type="number" min={0} placeholder="0"
+                        value={inputVal(baseWood)}
                         onChange={e => handlePriceChange('wood_door_price', `wd_base_sadao_${modelId}_wood`, e.target.value)}
-                        className="w-24 p-1.5 text-right border rounded text-sm font-semibold focus:ring-2 focus:ring-orange-400 outline-none bg-white"
+                        className="w-24 p-1.5 text-right border rounded text-sm font-semibold focus:ring-2 focus:ring-orange-400 outline-none bg-white placeholder:text-slate-300 placeholder:font-normal"
                       />
                       <span className="w-24 text-right text-sm text-slate-400">
                         {Math.round(baseWood * WOOD_TYPE_MULTIPLIER.tabak).toLocaleString()}
@@ -529,10 +532,10 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, catalogue, on
                         {Math.round(baseWood * WOOD_TYPE_MULTIPLIER.teak).toLocaleString()}
                       </span>
                       <input
-                        type="number" min={0}
-                        value={localPrices.wood_door_paint?.[`wd_base_sadao_${modelId}_paint`] ?? 0}
+                        type="number" min={0} placeholder="0"
+                        value={inputVal(localPrices.wood_door_paint?.[`wd_base_sadao_${modelId}_paint`] ?? 0)}
                         onChange={e => handlePriceChange('wood_door_paint', `wd_base_sadao_${modelId}_paint`, e.target.value)}
-                        className="w-24 p-1.5 text-right border rounded text-sm font-semibold focus:ring-2 focus:ring-purple-400 outline-none bg-white"
+                        className="w-24 p-1.5 text-right border rounded text-sm font-semibold focus:ring-2 focus:ring-purple-400 outline-none bg-white placeholder:text-slate-300 placeholder:font-normal"
                       />
                     </div>
                   );
@@ -642,9 +645,9 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, catalogue, on
                             <div key={modelId} className="flex items-center gap-2 p-2.5 border-b last:border-0 hover:bg-slate-50 transition-colors">
                               <span className="flex-1 text-sm font-medium text-slate-700">{modelName}</span>
                               <input
-                                type="number" min={0} value={val}
+                                type="number" min={0} placeholder="0" value={inputVal(val)}
                                 onChange={e => handlePriceChange('wood_door_glass', key, e.target.value)}
-                                className="w-24 p-1.5 text-right border rounded text-sm font-semibold focus:ring-2 focus:ring-cyan-400 outline-none bg-white"
+                                className="w-24 p-1.5 text-right border rounded text-sm font-semibold focus:ring-2 focus:ring-cyan-400 outline-none bg-white placeholder:text-slate-300 placeholder:font-normal"
                               />
                             </div>
                           );
@@ -695,14 +698,14 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, catalogue, on
                       <div key={size} className="flex items-center gap-2 p-2.5 border-b last:border-0 hover:bg-slate-50 transition-colors">
                         <span className="flex-1 text-sm font-medium text-slate-700">{size}</span>
                         <input
-                          type="number" min={0} value={valNoP}
+                          type="number" min={0} placeholder="0" value={inputVal(valNoP)}
                           onChange={e => handlePriceChange('wood_frame_price', keyNoP, e.target.value)}
-                          className="w-28 p-1.5 text-right border rounded text-sm font-semibold focus:ring-2 focus:ring-slate-400 outline-none bg-white"
+                          className="w-28 p-1.5 text-right border rounded text-sm font-semibold focus:ring-2 focus:ring-slate-400 outline-none bg-white placeholder:text-slate-300 placeholder:font-normal"
                         />
                         <input
-                          type="number" min={0} value={valPaint}
+                          type="number" min={0} placeholder="0" value={inputVal(valPaint)}
                           onChange={e => handlePriceChange('wood_frame_price', keyPaint, e.target.value)}
-                          className="w-28 p-1.5 text-right border rounded text-sm font-semibold focus:ring-2 focus:ring-purple-400 outline-none bg-white"
+                          className="w-28 p-1.5 text-right border rounded text-sm font-semibold focus:ring-2 focus:ring-purple-400 outline-none bg-white placeholder:text-slate-300 placeholder:font-normal"
                         />
                       </div>
                     );
