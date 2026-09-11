@@ -191,13 +191,16 @@ export default function App() {
     }
   }, [doorForm.sizeType, doorForm.customWidth]);
 
-  // Auto-switch: width > 90 หรือ height > 220 → กระจกไม่ได้
+  // Auto-switch: width > 90 → กระจกข้างเท่านั้น / height > 220 → กระจกข้าง + ครึ่งบาน (ฝ้า/เขียวตัดแสง)
   useEffect(() => {
     const w = doorForm.sizeType === 'custom' ? parseInt(doorForm.customWidth)  || 0 : parseInt(doorForm.sizeType);
     const h = doorForm.sizeType === 'custom' ? parseInt(doorForm.customHeight) || 0 : 200;
-    const glassSideOnly = new Set(['none', 'frosted_side', 'green_side']);
-    if ((w > 90 || h > 220) && !glassSideOnly.has(doorForm.glass)) {
-      setDoorForm(prev => ({ ...prev, glass: 'none' }));
+    const glassSideOnly    = new Set(['none', 'frosted_side', 'green_side']);
+    const glassHeightAllow = new Set(['none', 'frosted_side', 'green_side', 'frosted_half', 'green_half']);
+    if (w > 90) {
+      if (!glassSideOnly.has(doorForm.glass)) setDoorForm(prev => ({ ...prev, glass: 'none' }));
+    } else if (h > 220) {
+      if (!glassHeightAllow.has(doorForm.glass)) setDoorForm(prev => ({ ...prev, glass: 'none' }));
     }
   }, [doorForm.sizeType, doorForm.customWidth, doorForm.customHeight]);
 
