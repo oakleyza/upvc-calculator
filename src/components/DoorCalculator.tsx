@@ -196,6 +196,7 @@ export const DoorCalculator: React.FC<Props> = ({ form, onInput, onOptionToggle 
               <option value="green_half" disabled={glassHalfDisabled}>กระจกเขียวตัดแสงครึ่งบาน</option>
               <option value="green_side">กระจกเขียวตัดแสงข้าง</option>
               <option value="wavy_half"  disabled={glassFullDisabled}>กระจกลอนครึ่งบาน</option>
+              <option value="wavy_half_6" disabled={glassFullDisabled}>กระจกลอนครึ่งบาน (6 ช่อง)</option>
             </select>
             {glassAllDisabled && (
               <p className="text-[10px] text-red-500 mt-1">* ติดคิ้วและมีเกล็ดแล้ว เลือกได้แค่อันเดียว</p>
