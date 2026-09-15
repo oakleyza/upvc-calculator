@@ -220,6 +220,13 @@ export default function App() {
     }
   }, [doorForm.molding]);
 
+  // Auto-switch: เซาะร่องซี่ระแนง ใช้ได้เฉพาะ WPC MAX → เปลี่ยนวัสดุอื่นให้รีเซ็ตเป็นไม่เซาะร่อง
+  useEffect(() => {
+    if (doorForm.structure !== 'WPC MAX' && doorForm.grooving === 'slat') {
+      setDoorForm(prev => ({ ...prev, grooving: 'none' }));
+    }
+  }, [doorForm.structure]);
+
   // Auto-switch: ติดคิ้ว + เกล็ด → ไม่มีกระจกพร้อมกัน
   useEffect(() => {
     if (doorForm.molding !== 'none' && doorForm.glass !== 'none' && doorForm.louver !== 'none') {
@@ -368,6 +375,7 @@ export default function App() {
                 form={doorForm}
                 onInput={handleDoorInput}
                 onOptionToggle={handleOptionToggle}
+                onReset={() => setDoorForm(DEFAULT_DOOR_FORM)}
               />
             )}
             {activeTab === 'frame' && (

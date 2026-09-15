@@ -1,14 +1,15 @@
 import React from 'react';
-import { Settings, Palette, Calculator, Check } from 'lucide-react';
+import { Settings, Palette, Calculator, Check, RotateCcw } from 'lucide-react';
 import type { DoorFormData } from '../types';
 
 interface Props {
   form: DoorFormData;
   onInput: (field: keyof DoorFormData, value: string | boolean | Record<string, boolean>) => void;
   onOptionToggle: (key: string) => void;
+  onReset: () => void;
 }
 
-export const DoorCalculator: React.FC<Props> = ({ form, onInput, onOptionToggle }) => {
+export const DoorCalculator: React.FC<Props> = ({ form, onInput, onOptionToggle, onReset }) => {
   const handleWidthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const v = e.target.value;
     if (v === '') { onInput('customWidth', ''); return; }
@@ -64,6 +65,7 @@ export const DoorCalculator: React.FC<Props> = ({ form, onInput, onOptionToggle 
   const effectiveHeight = form.sizeType === 'custom' ? parseInt(form.customHeight) || 0 : 200;
 
   // Constraint flags
+  const isWpcMax          = form.structure === 'WPC MAX';   // เซาะร่องซี่ระแนงใช้ได้เฉพาะ WPC MAX
   const groovingDisabled  = form.molding !== 'none';
   const groovingRequired  = effectiveWidth > 95 && (form.surfaceType === 'TOA' || form.surfaceType === 'none');
   const moldingDisabled   = form.surfaceType === 'SVL' || effectiveWidth > 95;
@@ -80,9 +82,15 @@ export const DoorCalculator: React.FC<Props> = ({ form, onInput, onOptionToggle 
     <div className="space-y-8">
       {/* โครงสร้างและขนาด */}
       <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-        <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
-          <Settings className="w-5 h-5 text-blue-600" /> ข้อมูลโครงสร้างและขนาด (ประตู)
-        </h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+            <Settings className="w-5 h-5 text-blue-600" /> ข้อมูลโครงสร้างและขนาด (ประตู)
+          </h3>
+          <button type="button" onClick={onReset}
+            className="flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-lg border border-slate-200 transition-colors">
+            <RotateCcw className="w-4 h-4" /> รีเซ็ต
+          </button>
+        </div>
         <div className="space-y-4">
           {/* แถว 1: โครงสร้างวัสดุ */}
           <div>
@@ -158,8 +166,10 @@ export const DoorCalculator: React.FC<Props> = ({ form, onInput, onOptionToggle 
               <option value="standard">เซาะร่องปกติ</option>
               <option value="black_line">เซาะร่องแปะเส้นดำ</option>
               <option value="painted">เซาะร่องทำสี</option>
+              <option value="slat" disabled={!isWpcMax}>เซาะร่องซี่ระแนง{!isWpcMax ? ' (เฉพาะ WPC MAX)' : ''}</option>
             </select>
             {groovingDisabled && <p className="text-[10px] text-red-500 mt-1">* ติดคิ้วแล้ว ไม่สามารถเซาะร่องได้</p>}
+            {!groovingDisabled && !isWpcMax && <p className="text-[10px] text-slate-400 mt-1">* เซาะร่องซี่ระแนง เลือกได้เฉพาะโครงสร้าง WPC MAX</p>}
             {groovingRequired && !groovingDisabled && <p className="text-[10px] text-orange-500 mt-1">* กว้างเกิน 95cm (TOA/ไม่ทำสี) ต้องเซาะร่องเสมอ</p>}
           </div>
 
