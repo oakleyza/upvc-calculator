@@ -35,13 +35,13 @@ export const WOOD_TYPE_NAMES: Record<string, string> = {
 };
 
 // ระบบ auto-pricing: ค่าไม้ของตะแบก/สัก B/สัก A คำนวณจากค่าไม้สะเดา (ราคาตั้งต้น + ส่วนต่างขนาดสุทธิ) × ตัวคูณ แบบไล่ขั้น
-// ตะแบก = สะเดา × 1.6 | สัก B = ตะแบก × 1.6 (= สะเดา × 2.56) | สัก A = สัก B × 1.6 (= สะเดา × 4.096)
+// ตะแบก = สะเดา +60% (×1.6) | สัก B = ตะแบก +30% (×1.3 = สะเดา ×2.08) | สัก A = สัก B +50% (×1.5 = สะเดา ×3.12)
 // ค่าทำสีไม่ถูกปรับ ใช้เรทไม้สะเดาเสมอไม่ว่าจะเลือกไม้ชนิดใด
 export const WOOD_TYPE_MULTIPLIER: Record<string, number> = {
   sadao:  1,
   tabak:  1.6,
-  teak:   1.6 * 1.6,
-  teak_a: 1.6 * 1.6 * 1.6,
+  teak:   1.6 * 1.3,
+  teak_a: 1.6 * 1.3 * 1.5,
 };
 
 export const WOOD_MODEL_NAMES: Record<string, string> = {
