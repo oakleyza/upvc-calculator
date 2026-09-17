@@ -366,7 +366,10 @@ export const calculateWoodDoorPrice = (form: WoodDoorFormData, prices: PricingSt
     }
   }
 
-  return { total: price, surcharges };
+  // ปัดราคาสุทธิขึ้นเป็นหลักร้อยเสมอ (หลักหน่วย/หลักสิบ → 00) เช่น 13,240 → 13,300
+  const roundedTotal = Math.ceil(price / 100) * 100;
+
+  return { total: roundedTotal, surcharges };
 };
 
 // ------------------------------------------------------------------
