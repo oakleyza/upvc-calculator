@@ -501,7 +501,7 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, catalogue, on
               <div className="bg-white p-5 rounded-xl shadow-sm border">
                 <h4 className="font-bold text-slate-800 mb-1 pb-2 border-b">ราคาตั้งต้น (กรอกเฉพาะไม้สะเดา — ตะแบก/สัก B/สัก A คำนวณอัตโนมัติ)</h4>
                 <p className="text-xs text-slate-500 mt-2 mb-4">
-                  ค่าไม้: ไม้ตะแบก = ไม้สะเดา +60% (สะเดา × {WOOD_TYPE_MULTIPLIER.tabak}) &nbsp;|&nbsp; ไม้สัก B = ไม้ตะแบก +30% (สะเดา × {WOOD_TYPE_MULTIPLIER.teak.toFixed(2)})
+                  ค่าไม้: ไม้ตะแบก = ไม้สะเดา +60% (สะเดา × {WOOD_TYPE_MULTIPLIER.tabak}) &nbsp;|&nbsp; ไม้สัก B = ไม้ตะแบก +40% (สะเดา × {WOOD_TYPE_MULTIPLIER.teak.toFixed(2)})
                   &nbsp;|&nbsp; ไม้สัก A = ไม้สัก B +50% (สะเดา × {WOOD_TYPE_MULTIPLIER.teak_a.toFixed(3)})
                   &nbsp;(คอลัมน์ท้ายเป็น preview คำนวณให้ดู แก้ไขไม่ได้)<br/>
                   ค่าทำสี: ใช้เรทไม้สะเดาเรทเดียวกันทุกชนิดไม้ ไม่ปรับตามชนิดไม้
