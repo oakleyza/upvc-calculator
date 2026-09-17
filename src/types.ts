@@ -41,7 +41,7 @@ export interface PricingStructure {
 }
 
 export interface WoodDoorFormData {
-  woodType: string;    // 'sadao' | 'tabak' | 'teak'
+  woodType: string;    // 'sadao' | 'tabak' | 'teak' (สัก B) | 'teak_a' (สัก A)
   modelId: string;     // 'm1' | 'm2' ... 'm37'
   sizeType: string;    // '70x200cm' | '80x200cm' | '90x200cm' | 'custom'
   customWidth: string;

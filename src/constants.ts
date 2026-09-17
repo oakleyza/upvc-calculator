@@ -28,17 +28,20 @@ export const isFrameWithSub = (material: string): boolean =>
 // Wood door constants
 // ------------------------------------------------------------------
 export const WOOD_TYPE_NAMES: Record<string, string> = {
-  sadao: 'ไม้สะเดา',
-  tabak: 'ไม้ตะแบก',
-  teak:  'ไม้สัก',
+  sadao:  'ไม้สะเดา',
+  tabak:  'ไม้ตะแบก',
+  teak:   'ไม้สัก B',
+  teak_a: 'ไม้สัก A',
 };
 
-// ระบบ auto-pricing: ค่าไม้ของตะแบก/สัก คำนวณจากค่าไม้สะเดา (ราคาตั้งต้น + ส่วนต่างขนาดสุทธิ) × ตัวคูณ
-// ตะแบก = สะเดา × 1.6 | สัก = ตะแบก × 1.6 (= สะเดา × 2.56) — ค่าทำสีไม่ถูกปรับ ใช้เรทไม้สะเดาเสมอ
+// ระบบ auto-pricing: ค่าไม้ของตะแบก/สัก B/สัก A คำนวณจากค่าไม้สะเดา (ราคาตั้งต้น + ส่วนต่างขนาดสุทธิ) × ตัวคูณ แบบไล่ขั้น
+// ตะแบก = สะเดา × 1.6 | สัก B = ตะแบก × 1.6 (= สะเดา × 2.56) | สัก A = สัก B × 1.6 (= สะเดา × 4.096)
+// ค่าทำสีไม่ถูกปรับ ใช้เรทไม้สะเดาเสมอไม่ว่าจะเลือกไม้ชนิดใด
 export const WOOD_TYPE_MULTIPLIER: Record<string, number> = {
-  sadao: 1,
-  tabak: 1.6,
-  teak:  1.6 * 1.6,
+  sadao:  1,
+  tabak:  1.6,
+  teak:   1.6 * 1.6,
+  teak_a: 1.6 * 1.6 * 1.6,
 };
 
 export const WOOD_MODEL_NAMES: Record<string, string> = {

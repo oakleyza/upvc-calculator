@@ -499,9 +499,10 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, catalogue, on
 
               {/* ราคาตั้งต้น — กรอกเฉพาะไม้สะเดา ตะแบก/สักคำนวณอัตโนมัติ */}
               <div className="bg-white p-5 rounded-xl shadow-sm border">
-                <h4 className="font-bold text-slate-800 mb-1 pb-2 border-b">ราคาตั้งต้น (กรอกเฉพาะไม้สะเดา — ตะแบก/สักคำนวณอัตโนมัติ)</h4>
+                <h4 className="font-bold text-slate-800 mb-1 pb-2 border-b">ราคาตั้งต้น (กรอกเฉพาะไม้สะเดา — ตะแบก/สัก B/สัก A คำนวณอัตโนมัติ)</h4>
                 <p className="text-xs text-slate-500 mt-2 mb-4">
-                  ค่าไม้: ไม้ตะแบก = ไม้สะเดา × {WOOD_TYPE_MULTIPLIER.tabak} &nbsp;|&nbsp; ไม้สัก = ไม้สะเดา × {WOOD_TYPE_MULTIPLIER.teak.toFixed(2)}
+                  ค่าไม้: ไม้ตะแบก = ไม้สะเดา × {WOOD_TYPE_MULTIPLIER.tabak} &nbsp;|&nbsp; ไม้สัก B = ไม้ตะแบก × {WOOD_TYPE_MULTIPLIER.tabak} (สะเดา × {WOOD_TYPE_MULTIPLIER.teak.toFixed(2)})
+                  &nbsp;|&nbsp; ไม้สัก A = ไม้สัก B × {WOOD_TYPE_MULTIPLIER.tabak} (สะเดา × {WOOD_TYPE_MULTIPLIER.teak_a.toFixed(3)})
                   &nbsp;(คอลัมน์ท้ายเป็น preview คำนวณให้ดู แก้ไขไม่ได้)<br/>
                   ค่าทำสี: ใช้เรทไม้สะเดาเรทเดียวกันทุกชนิดไม้ ไม่ปรับตามชนิดไม้
                 </p>
@@ -510,7 +511,8 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, catalogue, on
                   <span className="flex-1 text-xs font-semibold text-slate-400">รุ่น</span>
                   <span className="w-24 text-xs font-semibold text-orange-600 text-right">ค่าไม้ (สะเดา) ฿</span>
                   <span className="w-24 text-xs font-semibold text-orange-300 text-right">→ ตะแบก ฿</span>
-                  <span className="w-24 text-xs font-semibold text-orange-300 text-right">→ สัก ฿</span>
+                  <span className="w-24 text-xs font-semibold text-orange-300 text-right">→ สัก B ฿</span>
+                  <span className="w-24 text-xs font-semibold text-orange-300 text-right">→ สัก A ฿</span>
                   <span className="w-24 text-xs font-semibold text-purple-600 text-right">ค่าทำสี ฿</span>
                 </div>
                 {catItems.map((item, idx) => {
@@ -530,6 +532,9 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, catalogue, on
                       </span>
                       <span className="w-24 text-right text-sm text-slate-400">
                         {Math.round(baseWood * WOOD_TYPE_MULTIPLIER.teak).toLocaleString()}
+                      </span>
+                      <span className="w-24 text-right text-sm text-slate-400">
+                        {Math.round(baseWood * WOOD_TYPE_MULTIPLIER.teak_a).toLocaleString()}
                       </span>
                       <input
                         type="number" min={0} placeholder="0"
