@@ -83,7 +83,7 @@ export const WoodFrameCalculator: React.FC<Props> = ({ form, onInput }) => {
 
       {/* ชนิดไม้ */}
       <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-        <h3 className="font-semibold text-slate-700 mb-4 flex items-center gap-2">
+        <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
           <Layers className="w-5 h-5 text-amber-600" /> ชนิดวงกบไม้
         </h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -108,7 +108,7 @@ export const WoodFrameCalculator: React.FC<Props> = ({ form, onInput }) => {
       {/* หน้าตัดไม้ — ซ่อนสำหรับสะเดา */}
       {!isSadao && (
         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-          <h3 className="font-semibold text-slate-700 mb-4 flex items-center gap-2">
+          <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
             <Grid3x3 className="w-5 h-5 text-blue-600" /> หน้าตัดไม้
           </h3>
           <div className="grid grid-cols-4 gap-3">
@@ -131,7 +131,7 @@ export const WoodFrameCalculator: React.FC<Props> = ({ form, onInput }) => {
 
       {/* ขนาด */}
       <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-        <h3 className="font-semibold text-slate-700 mb-4 flex items-center gap-2">
+        <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
           <Ruler className="w-5 h-5 text-emerald-600" /> ขนาดวงกบ (บานหลัก)
         </h3>
         <div className="grid grid-cols-2 gap-4">
@@ -176,7 +176,7 @@ export const WoodFrameCalculator: React.FC<Props> = ({ form, onInput }) => {
       {/* ธรณี & ช่องแสง — ซ่อนสำหรับสะเดา */}
       {!isSadao && (
         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-          <h3 className="font-semibold text-slate-700 mb-4 flex items-center gap-2">
+          <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
             <PlusSquare className="w-5 h-5 text-amber-600" /> เพิ่มเติม — ธรณี &amp; ช่องแสง
           </h3>
           <div className="space-y-3">
@@ -213,7 +213,7 @@ export const WoodFrameCalculator: React.FC<Props> = ({ form, onInput }) => {
 
       {/* การทำสี */}
       <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-        <h3 className="font-semibold text-slate-700 mb-4 flex items-center gap-2">
+        <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
           <Palette className="w-5 h-5 text-purple-600" /> การทำสี
         </h3>
         <div className="grid grid-cols-2 gap-3">
