@@ -99,9 +99,12 @@ export const WoodFrameCalculator: React.FC<Props> = ({ form, onInput }) => {
           <div className="grid grid-cols-4 gap-3">
             {WOOD_FRAME_SECTIONS.map(s => (
               <div key={s.id} onClick={() => onInput('section', s.id)}
-                className={`cursor-pointer border-2 rounded-lg p-3 text-center text-sm transition-all ${
-                  form.section === s.id ? 'border-blue-500 bg-blue-50 text-blue-700 font-bold' : 'border-slate-200'
-                }`}>{s.label}</div>
+                className={`cursor-pointer border-2 rounded-lg p-3 text-center transition-all ${
+                  form.section === s.id ? 'border-blue-500 bg-blue-50' : 'border-slate-200'
+                }`}>
+                <div className={`text-sm ${form.section === s.id ? 'font-bold text-blue-700' : 'text-slate-700'}`}>{s.label}</div>
+                <div className="text-xs text-slate-400 mt-0.5">{s.cm}</div>
+              </div>
             ))}
           </div>
         </div>
