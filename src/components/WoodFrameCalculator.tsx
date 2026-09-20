@@ -15,14 +15,52 @@ const SIZE_OPTIONS = [
   { id: 'custom',   l: 'Custom' },
 ];
 
+// ปัดค่าขนาดไม่ให้เกิน 400
+const clampDim = (v: string) => {
+  if (v === '') return '';
+  if (Number(v) > 400) return '400';
+  return v;
+};
+
+// ── ช่องแสง: checkbox + ช่องกรอกขนาด ──
+// นิยามที่ระดับ module เพื่อไม่ให้ React remount input ทุกครั้งที่พิมพ์ (โฟกัสจะได้ไม่หลุด)
+const Sidelight: React.FC<{
+  form: WoodFrameFormData;
+  onInput: (field: keyof WoodFrameFormData, value: string | boolean) => void;
+  field: keyof WoodFrameFormData; label: string;
+  wField: keyof WoodFrameFormData; hField: keyof WoodFrameFormData;
+}> = ({ form, onInput, field, label, wField, hField }) => {
+  const on = form[field] as boolean;
+  return (
+    <div className="border rounded-lg overflow-hidden">
+      <label className="flex items-center space-x-3 p-3 cursor-pointer hover:bg-slate-50 transition-colors">
+        <input type="checkbox" checked={on} onChange={() => onInput(field, !on)}
+          className="w-5 h-5 rounded text-blue-600" />
+        <span className="text-sm text-slate-700 font-medium">{label}</span>
+        <span className="text-xs text-slate-400">+3 ท่อน (ข้าง·บน·ล่าง)</span>
+      </label>
+      {on && (
+        <div className="grid grid-cols-2 gap-4 bg-slate-50 border-t p-3">
+          <div>
+            <label className="block text-xs text-slate-600 mb-1">กว้างช่อง (cm)</label>
+            <input type="number" min={1} max={400} value={form[wField] as string}
+              onChange={e => onInput(wField, clampDim(e.target.value))}
+              className="w-full p-2 border rounded" />
+          </div>
+          <div>
+            <label className="block text-xs text-slate-600 mb-1">สูงช่อง (cm)</label>
+            <input type="number" min={1} max={400} value={form[hField] as string}
+              onChange={e => onInput(hField, clampDim(e.target.value))}
+              className="w-full p-2 border rounded" />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 export const WoodFrameCalculator: React.FC<Props> = ({ form, onInput }) => {
   const isSadao = form.frameType === 'sadao';
-
-  const clampDim = (v: string) => {
-    if (v === '') return '';
-    if (Number(v) > 400) return '400';
-    return v;
-  };
 
   const selectWood = (key: string) => {
     onInput('frameType', key);
@@ -32,40 +70,6 @@ export const WoodFrameCalculator: React.FC<Props> = ({ form, onInput }) => {
       onInput('threshold', false);
       onInput('slLeft', false); onInput('slRight', false); onInput('slTop', false);
     }
-  };
-
-  // ── ช่องแสง: checkbox + ช่องกรอกขนาด ──
-  const Sidelight: React.FC<{
-    field: keyof WoodFrameFormData; label: string;
-    wField: keyof WoodFrameFormData; hField: keyof WoodFrameFormData;
-  }> = ({ field, label, wField, hField }) => {
-    const on = form[field] as boolean;
-    return (
-      <div className="border rounded-lg overflow-hidden">
-        <label className="flex items-center space-x-3 p-3 cursor-pointer hover:bg-slate-50 transition-colors">
-          <input type="checkbox" checked={on} onChange={() => onInput(field, !on)}
-            className="w-5 h-5 rounded text-blue-600" />
-          <span className="text-sm text-slate-700 font-medium">{label}</span>
-          <span className="text-xs text-slate-400">+3 ท่อน (ข้าง·บน·ล่าง)</span>
-        </label>
-        {on && (
-          <div className="grid grid-cols-2 gap-4 bg-slate-50 border-t p-3">
-            <div>
-              <label className="block text-xs text-slate-600 mb-1">กว้างช่อง (cm)</label>
-              <input type="number" min={1} max={400} value={form[wField] as string}
-                onChange={e => onInput(wField, clampDim(e.target.value))}
-                className="w-full p-2 border rounded" />
-            </div>
-            <div>
-              <label className="block text-xs text-slate-600 mb-1">สูงช่อง (cm)</label>
-              <input type="number" min={1} max={400} value={form[hField] as string}
-                onChange={e => onInput(hField, clampDim(e.target.value))}
-                className="w-full p-2 border rounded" />
-            </div>
-          </div>
-        )}
-      </div>
-    );
   };
 
   return (
@@ -162,9 +166,9 @@ export const WoodFrameCalculator: React.FC<Props> = ({ form, onInput }) => {
               <span className="text-xs text-slate-400">+1 ท่อน = ความกว้าง</span>
             </label>
 
-            <Sidelight field="slLeft"  label="ช่องแสงด้านซ้าย"        wField="slLeftW"  hField="slLeftH" />
-            <Sidelight field="slRight" label="ช่องแสงด้านขวา"         wField="slRightW" hField="slRightH" />
-            <Sidelight field="slTop"   label="ช่องแสงด้านบน (transom)" wField="slTopW"   hField="slTopH" />
+            <Sidelight form={form} onInput={onInput} field="slLeft"  label="ช่องแสงด้านซ้าย"        wField="slLeftW"  hField="slLeftH" />
+            <Sidelight form={form} onInput={onInput} field="slRight" label="ช่องแสงด้านขวา"         wField="slRightW" hField="slRightH" />
+            <Sidelight form={form} onInput={onInput} field="slTop"   label="ช่องแสงด้านบน (transom)" wField="slTopW"   hField="slTopH" />
           </div>
           <p className="mt-3 text-xs text-slate-400">
             * ช่องแสงงานสีจะสรุปเป็น “เหมาต่อช่อง” ภายหลัง — ตอนนี้คิดค่าไม้ตามความยาว
