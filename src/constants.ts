@@ -608,10 +608,11 @@ export const DEFAULT_WOOD_DOOR_FORM: WoodDoorFormData = {
 };
 
 export const DEFAULT_WOOD_FRAME_FORM: WoodFrameFormData = {
-  frameType: 'pluang',
-  section:   '2x4',
-  width:     '80',
-  height:    '200',
+  frameType:   'pluang',
+  section:     '2x4',
+  sizeType:    '70x200cm',
+  customWidth:  '',
+  customHeight: '',
   threshold: false,
   slLeft:  false, slLeftW:  '', slLeftH:  '',
   slRight: false, slRightW: '', slRightH: '',

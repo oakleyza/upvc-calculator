@@ -81,8 +81,9 @@ export interface FrameFormData {
 export interface WoodFrameFormData {
   frameType: string;    // 'sadao' | 'pluang' | 'teng' | 'daeng' | 'curve_pluang'
   section: string;      // หน้าตัดไม้: '2x4' | '2x5' | '2x6' | '2x8'
-  width: string;        // กว้างบานหลัก (ซม.)
-  height: string;       // สูงบานหลัก (ซม.)
+  sizeType: string;     // '70x200cm' | '80x200cm' | '90x200cm' | 'custom'
+  customWidth: string;  // ใช้เมื่อ sizeType === 'custom'
+  customHeight: string;
   threshold: boolean;   // เพิ่มธรณี (ขาล่าง)
   slLeft: boolean;  slLeftW: string;  slLeftH: string;   // ช่องแสงซ้าย
   slRight: boolean; slRightW: string; slRightH: string;  // ช่องแสงขวา

@@ -383,8 +383,17 @@ export const calculateWoodDoorPrice = (form: WoodDoorFormData, prices: PricingSt
 export const calculateWoodFramePrice = (form: WoodFrameFormData, prices: PricingStructure): PriceResult => {
   const surcharges: string[] = [];
   const num = (s: string) => { const n = parseFloat(s); return isNaN(n) ? 0 : n; };
-  const W = num(form.width);
-  const H = num(form.height);
+
+  // ขนาดใช้งานจริง — จาก preset หรือ custom (ให้ตรงแพตเทิร์นหน้าอื่น)
+  let W: number, H: number;
+  if (form.sizeType === 'custom') {
+    W = num(form.customWidth);
+    H = num(form.customHeight);
+  } else {
+    const m = form.sizeType.match(/(\d+)x(\d+)/);
+    W = m ? Number(m[1]) : 0;
+    H = m ? Number(m[2]) : 0;
+  }
 
   // ─── สะเดา: ราคาเหมา ───────────────────────────────────────────
   if (form.frameType === 'sadao') {

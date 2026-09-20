@@ -233,7 +233,11 @@ export const PriceSummary: React.FC<Props> = ({
                   )}
                   <div className="flex justify-between">
                     <span className="text-slate-500">ขนาด</span>
-                    <span className="font-medium">{woodFrameForm.width}×{woodFrameForm.height} cm</span>
+                    <span className="font-medium">
+                      {woodFrameForm.sizeType === 'custom'
+                        ? `${woodFrameForm.customWidth}×${woodFrameForm.customHeight} cm`
+                        : woodFrameForm.sizeType}
+                    </span>
                   </div>
                   {woodFrameForm.frameType !== 'sadao' && (woodFrameForm.threshold || woodFrameForm.slLeft || woodFrameForm.slRight || woodFrameForm.slTop) && (
                     <div className="flex justify-between items-start">
