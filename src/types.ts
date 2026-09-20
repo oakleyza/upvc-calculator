@@ -33,7 +33,8 @@ export interface PricingStructure {
   wood_door_price: PriceCategory;   // base(ไม้×รุ่น) + size surcharge + curve surcharge
   wood_door_paint: PriceCategory;   // ค่าทำสี ตามขนาด + curve surcharge
   wood_door_glass: PriceCategory;   // ค่ากระจก ตามรุ่น + ขนาด
-  wood_frame_price: PriceCategory;  // ราคาวงกบไม้ ตาม type × size × painted
+  wood_frame_price: PriceCategory;  // ราคาเหมาวงกบสะเดา (wf_sadao_70x200 ... wf_sadao_paint)
+  wood_frame_rate: PriceCategory;   // เรทคำนวณต่อเมตร: cube_{type}, margin_pct, paint_rate
   // Legacy fallback fields (kept for Firestore backward compatibility)
   structure?: PriceCategory;
   size?: PriceCategory;
@@ -78,11 +79,15 @@ export interface FrameFormData {
 }
 
 export interface WoodFrameFormData {
-  frameType: string;    // 'pluang' | 'teng' | 'daeng' | 'curve_pluang'
-  sizeType: string;     // '70x200cm' | '80x200cm' | '90x200cm' | 'custom'
-  customWidth: string;
-  customHeight: string;
-  painted: boolean;
+  frameType: string;    // 'sadao' | 'pluang' | 'teng' | 'daeng' | 'curve_pluang'
+  section: string;      // หน้าตัดไม้: '2x4' | '2x5' | '2x6' | '2x8'
+  width: string;        // กว้างบานหลัก (ซม.)
+  height: string;       // สูงบานหลัก (ซม.)
+  threshold: boolean;   // เพิ่มธรณี (ขาล่าง)
+  slLeft: boolean;  slLeftW: string;  slLeftH: string;   // ช่องแสงซ้าย
+  slRight: boolean; slRightW: string; slRightH: string;  // ช่องแสงขวา
+  slTop: boolean;   slTopW: string;   slTopH: string;    // ช่องแสงบน (transom)
+  painted: boolean;     // ทำสี
 }
 
 export interface UserAccount {

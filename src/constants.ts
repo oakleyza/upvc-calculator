@@ -140,11 +140,29 @@ export const WOOD_CURVE_MODEL_IDS = new Set(['m32', 'm33', 'm34', 'm35', 'm36', 
 // Wood frame constants (วงกบไม้)
 // ------------------------------------------------------------------
 export const WOOD_FRAME_TYPE_NAMES: Record<string, string> = {
+  sadao:        'วงกบไม้สะเดา',
   pluang:       'วงกบไม้พลวง',
   teng:         'วงกบไม้เต็ง',
   daeng:        'วงกบไม้แดง',
   curve_pluang: 'วงกบโค้งไม้พลวง',
 };
+
+// หน้าตัดไม้ (thickness × width นิ้ว) — ใช้คำนวณปริมาตร(ค่าไม้) และเส้นรอบรูป(ค่าสี)
+export const WOOD_FRAME_SECTIONS = [
+  { id: '2x4', t: 2, w: 4, label: '2"×4"' },
+  { id: '2x5', t: 2, w: 5, label: '2"×5"' },
+  { id: '2x6', t: 2, w: 6, label: '2"×6"' },
+  { id: '2x8', t: 2, w: 8, label: '2"×8"' },
+] as const;
+
+// ค่าคงที่แปลงปริมาตรไม้ (หน้าตัดนิ้ว² × ยาวเมตร × factor = คิว)
+export const WOOD_FRAME_FACTOR = 0.0228;
+
+// ไม้ที่คิดราคาแบบต่อเมตร (สะเดา = ราคาเหมา ไม่อยู่ในเซ็ตนี้)
+export const WOOD_FRAME_METER_TYPES = new Set(['pluang', 'teng', 'daeng', 'curve_pluang']);
+
+// ขนาดมาตรฐานสะเดา (มีเฉพาะ 3 ขนาดนี้)
+export const WOOD_FRAME_SADAO_SIZES = ['70x200', '80x200', '90x200'] as const;
 
 // ------------------------------------------------------------------
 // Label mapping (admin price editor + summary panel)
@@ -354,31 +372,18 @@ export const LABEL_MAP: Record<string, string> = {
   'w5_toa_h_201_210': '5 นิ้ว — ค่าพ่นสี TOA (สูง 201–210 cm)',
   'w5_toa_h_211_220': '5 นิ้ว — ค่าพ่นสี TOA (สูง 211–220 cm)',
   'w5_toa_h_221_240': '5 นิ้ว — ค่าพ่นสี TOA (สูง 221–240 cm)',
-  // === วงกบไม้ ===
-  'wf_pluang_70x200cm':       'วงกบไม้พลวง 70×200 (ไม่ทำสี)',
-  'wf_pluang_80x200cm':       'วงกบไม้พลวง 80×200 (ไม่ทำสี)',
-  'wf_pluang_90x200cm':       'วงกบไม้พลวง 90×200 (ไม่ทำสี)',
-  'wf_pluang_70x200cm_paint': 'วงกบไม้พลวง 70×200 (ทำสี)',
-  'wf_pluang_80x200cm_paint': 'วงกบไม้พลวง 80×200 (ทำสี)',
-  'wf_pluang_90x200cm_paint': 'วงกบไม้พลวง 90×200 (ทำสี)',
-  'wf_teng_70x200cm':         'วงกบไม้เต็ง 70×200 (ไม่ทำสี)',
-  'wf_teng_80x200cm':         'วงกบไม้เต็ง 80×200 (ไม่ทำสี)',
-  'wf_teng_90x200cm':         'วงกบไม้เต็ง 90×200 (ไม่ทำสี)',
-  'wf_teng_70x200cm_paint':   'วงกบไม้เต็ง 70×200 (ทำสี)',
-  'wf_teng_80x200cm_paint':   'วงกบไม้เต็ง 80×200 (ทำสี)',
-  'wf_teng_90x200cm_paint':   'วงกบไม้เต็ง 90×200 (ทำสี)',
-  'wf_daeng_70x200cm':        'วงกบไม้แดง 70×200 (ไม่ทำสี)',
-  'wf_daeng_80x200cm':        'วงกบไม้แดง 80×200 (ไม่ทำสี)',
-  'wf_daeng_90x200cm':        'วงกบไม้แดง 90×200 (ไม่ทำสี)',
-  'wf_daeng_70x200cm_paint':  'วงกบไม้แดง 70×200 (ทำสี)',
-  'wf_daeng_80x200cm_paint':  'วงกบไม้แดง 80×200 (ทำสี)',
-  'wf_daeng_90x200cm_paint':  'วงกบไม้แดง 90×200 (ทำสี)',
-  'wf_curve_pluang_70x200cm':       'วงกบโค้งไม้พลวง 70×200 (ไม่ทำสี)',
-  'wf_curve_pluang_80x200cm':       'วงกบโค้งไม้พลวง 80×200 (ไม่ทำสี)',
-  'wf_curve_pluang_90x200cm':       'วงกบโค้งไม้พลวง 90×200 (ไม่ทำสี)',
-  'wf_curve_pluang_70x200cm_paint': 'วงกบโค้งไม้พลวง 70×200 (ทำสี)',
-  'wf_curve_pluang_80x200cm_paint': 'วงกบโค้งไม้พลวง 80×200 (ทำสี)',
-  'wf_curve_pluang_90x200cm_paint': 'วงกบโค้งไม้พลวง 90×200 (ทำสี)',
+  // === วงกบไม้สะเดา (ราคาเหมา) ===
+  'wf_sadao_70x200': 'วงกบสะเดา 70×200 (งานดิบ)',
+  'wf_sadao_80x200': 'วงกบสะเดา 80×200 (งานดิบ)',
+  'wf_sadao_90x200': 'วงกบสะเดา 90×200 (งานดิบ)',
+  'wf_sadao_paint':  'วงกบสะเดา — ค่าทำสี (เหมาทุกขนาด)',
+  // === เรทคำนวณวงกบไม้ต่อเมตร ===
+  'cube_pluang':  'ต้นทุนไม้พลวง (บาท/คิว)',
+  'cube_teng':    'ต้นทุนไม้เต็ง (บาท/คิว)',
+  'cube_daeng':   'ต้นทุนไม้แดง (บาท/คิว)',
+  'cube_curve_pluang': 'ต้นทุนไม้โค้งพลวง (บาท/คิว)',
+  'margin_pct':   'กำไร (%)',
+  'paint_rate':   'เรทสี (ต่อ นิ้วเส้นรอบรูป × เมตร)',
   // === Adjust Eco ===
   'eco_std_70': 'Adjust Eco — ไซส์มาตรฐาน 70×200 (ไม่มีค่าเพิ่ม)',
   'eco_std_80': 'Adjust Eco — ไซส์มาตรฐาน 80×200 (ไม่มีค่าเพิ่ม)',
@@ -538,16 +543,20 @@ export const DEFAULT_PRICES: PricingStructure = {
     'wd_glass_h_291_plus': 0,
   },
   wood_frame_price: {
-    // ราคารวมทั้งชุดวงกบไม้ ตาม type × size (ไม่ทำสี)
-    'wf_pluang_70x200cm': 0, 'wf_pluang_80x200cm': 0, 'wf_pluang_90x200cm': 0,
-    'wf_teng_70x200cm':   0, 'wf_teng_80x200cm':   0, 'wf_teng_90x200cm':   0,
-    'wf_daeng_70x200cm':  0, 'wf_daeng_80x200cm':  0, 'wf_daeng_90x200cm':  0,
-    'wf_curve_pluang_70x200cm': 0, 'wf_curve_pluang_80x200cm': 0, 'wf_curve_pluang_90x200cm': 0,
-    // ราคารวมทั้งชุดวงกบไม้ ตาม type × size (ทำสี — ราคารวมทั้งหมด ไม่ใช่ส่วนต่าง)
-    'wf_pluang_70x200cm_paint': 0, 'wf_pluang_80x200cm_paint': 0, 'wf_pluang_90x200cm_paint': 0,
-    'wf_teng_70x200cm_paint':   0, 'wf_teng_80x200cm_paint':   0, 'wf_teng_90x200cm_paint':   0,
-    'wf_daeng_70x200cm_paint':  0, 'wf_daeng_80x200cm_paint':  0, 'wf_daeng_90x200cm_paint':  0,
-    'wf_curve_pluang_70x200cm_paint': 0, 'wf_curve_pluang_80x200cm_paint': 0, 'wf_curve_pluang_90x200cm_paint': 0,
+    // วงกบไม้สะเดา — ราคาเหมา 3 ขนาด (งานดิบ) + ค่าทำสีเหมาทุกขนาด
+    'wf_sadao_70x200': 1000,
+    'wf_sadao_80x200': 1000,
+    'wf_sadao_90x200': 1100,
+    'wf_sadao_paint':  1200,
+  },
+  wood_frame_rate: {
+    // ต้นทุนไม้ต่อคิว (บาท) — ใช้กับสูตรต่อเมตร
+    cube_pluang: 1000,
+    cube_teng:   1300,
+    cube_daeng:  2300,
+    cube_curve_pluang: 0,   // ยังไม่สรุปสูตรโค้ง
+    margin_pct: 50,         // กำไร +50%
+    paint_rate: 20.83,      // ค่าสี: เส้นรอบรูป(นิ้ว) × ยาว(ม.) × 20.83  → 2"×4" มาตรฐาน ≈ 1,200
   },
   structure: {}, size: {}, surface: {},
   grooving: { 'none': 0, 'standard': 999, 'black_line': 999, 'painted': 999, 'slat': 0 },
@@ -599,11 +608,15 @@ export const DEFAULT_WOOD_DOOR_FORM: WoodDoorFormData = {
 };
 
 export const DEFAULT_WOOD_FRAME_FORM: WoodFrameFormData = {
-  frameType:    'pluang',
-  sizeType:     '70x200cm',
-  customWidth:  '',
-  customHeight: '',
-  painted:      true,
+  frameType: 'pluang',
+  section:   '2x4',
+  width:     '80',
+  height:    '200',
+  threshold: false,
+  slLeft:  false, slLeftW:  '', slLeftH:  '',
+  slRight: false, slRightW: '', slRightH: '',
+  slTop:   false, slTopW:   '', slTopH:   '',
+  painted:   false,
 };
 
 // ------------------------------------------------------------------

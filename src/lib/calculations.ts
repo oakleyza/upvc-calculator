@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------
 
 import type { DoorFormData, FrameFormData, WoodDoorFormData, WoodFrameFormData, PricingStructure, PriceResult } from '../types';
-import { FRAME_MATERIALS, WOOD_CURVE_MODEL_IDS, WOOD_MODEL_NAMES, WOOD_TYPE_MULTIPLIER } from '../constants';
+import { FRAME_MATERIALS, WOOD_CURVE_MODEL_IDS, WOOD_MODEL_NAMES, WOOD_TYPE_MULTIPLIER, WOOD_FRAME_SECTIONS, WOOD_FRAME_FACTOR } from '../constants';
 
 // ------------------------------------------------------------------
 // Door price calculation
@@ -373,19 +373,72 @@ export const calculateWoodDoorPrice = (form: WoodDoorFormData, prices: PricingSt
 };
 
 // ------------------------------------------------------------------
-// calculateWoodFramePrice — วงกบไม้ (ราคารวมตรง — ไม่ใช่ bracket surcharge)
-// admin กรอกราคารวมทั้งชุดแยกตาม type × size × painted
-// custom size: ยังไม่มี logic (รอ user อธิบาย) → คืน 0
+// calculateWoodFramePrice — วงกบไม้
+//   • สะเดา = ราคาเหมา 3 ขนาด (งานดิบ) + ค่าทำสีเหมา
+//   • พลวง/เต็ง/แดง = คำนวณต่อเมตร
+//       ค่าไม้ = หน้าตัด(นิ้ว²) × ยาวรวม(ม.) × factor × ต้นทุน/คิว × (1+กำไร%)
+//       ค่าสี  = เส้นรอบรูป(นิ้ว) × ยาวรวม(ม.) × เรทสี   (ตามพื้นที่ผิว)
+//   ยาวรวม = โครงหลัก(บน+ซ้าย+ขวา) + ธรณี(กว้าง) + ช่องแสง(สูง+2กว้าง ต่อช่อง)
 // ------------------------------------------------------------------
 export const calculateWoodFramePrice = (form: WoodFrameFormData, prices: PricingStructure): PriceResult => {
-  if (form.sizeType === 'custom') {
-    return { total: 0, surcharges: ['ขนาด Custom: กรุณาสอบถามราคาเพิ่มเติม'] };
+  const surcharges: string[] = [];
+  const num = (s: string) => { const n = parseFloat(s); return isNaN(n) ? 0 : n; };
+  const W = num(form.width);
+  const H = num(form.height);
+
+  // ─── สะเดา: ราคาเหมา ───────────────────────────────────────────
+  if (form.frameType === 'sadao') {
+    const key = `${W}x${H}`;
+    const isValid = key === '70x200' || key === '80x200' || key === '90x200';
+    if (!isValid) {
+      return { total: 0, surcharges: ['ไม้สะเดามีเฉพาะ 70×200, 80×200, 90×200 — ขนาดอื่นกรุณาเลือกไม้พลวง/เต็ง/แดง'] };
+    }
+    if (form.painted) {
+      const paint = prices.wood_frame_price?.['wf_sadao_paint'] ?? 0;
+      surcharges.push(`วงกบสะเดา ${W}×${H} · ทำสี (ราคาเหมา)`);
+      return { total: paint, surcharges };
+    }
+    const base = prices.wood_frame_price?.[`wf_sadao_${key}`] ?? 0;
+    surcharges.push(`วงกบสะเดา ${W}×${H} · งานดิบ`);
+    return { total: base, surcharges };
   }
 
-  const priceKey = form.painted
-    ? `wf_${form.frameType}_${form.sizeType}_paint`
-    : `wf_${form.frameType}_${form.sizeType}`;
+  // ─── พลวง/เต็ง/แดง/โค้ง: คำนวณต่อเมตร ──────────────────────────
+  const sec = WOOD_FRAME_SECTIONS.find(s => s.id === form.section) ?? WOOD_FRAME_SECTIONS[0];
+  const area  = sec.t * sec.w;         // หน้าตัด นิ้ว²
+  const perim = 2 * (sec.t + sec.w);   // เส้นรอบรูป นิ้ว
 
-  const total = prices.wood_frame_price?.[priceKey] ?? 0;
-  return { total, surcharges: [] };
+  if (W <= 0 || H <= 0) {
+    return { total: 0, surcharges: ['กรุณากรอกขนาดกว้าง × สูง'] };
+  }
+
+  // ความยาวรวมทุกท่อน (เมตร)
+  let L = (W + 2 * H) / 100;                       // โครงหลัก: บน + ซ้าย + ขวา
+  if (form.threshold) L += W / 100;                // ธรณี
+  const addSidelight = (on: boolean, w: string, h: string) => {
+    if (!on) return;
+    L += (num(h) + 2 * num(w)) / 100;              // ข้าง + บน + ล่าง
+  };
+  addSidelight(form.slLeft,  form.slLeftW,  form.slLeftH);
+  addSidelight(form.slRight, form.slRightW, form.slRightH);
+  addSidelight(form.slTop,   form.slTopW,   form.slTopH);
+
+  const cube      = prices.wood_frame_rate?.[`cube_${form.frameType}`] ?? 0;
+  const marginPct = prices.wood_frame_rate?.['margin_pct'] ?? 0;
+  const paintRate = prices.wood_frame_rate?.['paint_rate'] ?? 0;
+
+  if (cube <= 0) {
+    return { total: 0, surcharges: ['ยังไม่ได้ตั้งต้นทุนไม้ชนิดนี้ — กรุณาสอบถามราคา'] };
+  }
+
+  const cost     = area * L * WOOD_FRAME_FACTOR * cube;   // ต้นทุนไม้
+  const woodSale = cost * (1 + marginPct / 100);          // ค่าไม้ขาย
+  const paint    = form.painted ? perim * L * paintRate : 0;
+  const total    = Math.round(woodSale + paint);
+
+  surcharges.push(`ความยาวรวม ${L.toFixed(2)} ม. · หน้าตัด ${sec.label}`);
+  surcharges.push(`ค่าไม้ ฿${Math.round(woodSale).toLocaleString()}`);
+  if (form.painted) surcharges.push(`ค่าสี ฿${Math.round(paint).toLocaleString()}`);
+
+  return { total, surcharges };
 };

@@ -225,23 +225,40 @@ export const PriceSummary: React.FC<Props> = ({
                     <span className="text-slate-500">ชนิดวงกบ</span>
                     <span className="font-medium">{WOOD_FRAME_TYPE_NAMES[woodFrameForm.frameType] ?? woodFrameForm.frameType}</span>
                   </div>
+                  {woodFrameForm.frameType !== 'sadao' && (
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">หน้าตัดไม้</span>
+                      <span className="font-medium">{woodFrameForm.section.replace('x', '"×') + '"'}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between">
                     <span className="text-slate-500">ขนาด</span>
-                    <span className="font-medium">
-                      {woodFrameForm.sizeType === 'custom'
-                        ? `${woodFrameForm.customWidth}×${woodFrameForm.customHeight} cm`
-                        : woodFrameForm.sizeType}
-                    </span>
+                    <span className="font-medium">{woodFrameForm.width}×{woodFrameForm.height} cm</span>
                   </div>
+                  {woodFrameForm.frameType !== 'sadao' && (woodFrameForm.threshold || woodFrameForm.slLeft || woodFrameForm.slRight || woodFrameForm.slTop) && (
+                    <div className="flex justify-between items-start">
+                      <span className="text-slate-500 shrink-0">เพิ่มเติม</span>
+                      <span className="font-medium text-right ml-2 text-xs">
+                        {[
+                          woodFrameForm.threshold && 'ธรณี',
+                          woodFrameForm.slLeft && 'ช่องแสงซ้าย',
+                          woodFrameForm.slRight && 'ช่องแสงขวา',
+                          woodFrameForm.slTop && 'ช่องแสงบน',
+                        ].filter(Boolean).join(' · ')}
+                      </span>
+                    </div>
+                  )}
                   <div className="flex justify-between">
                     <span className="text-slate-500">ทำสี</span>
                     <span className={`font-medium ${woodFrameForm.painted ? 'text-purple-700' : 'text-slate-400'}`}>
                       {woodFrameForm.painted ? 'ทำสี' : 'ไม่ทำสี (งานดิบ)'}
                     </span>
                   </div>
-                  {woodFrameForm.sizeType === 'custom' && (
-                    <div className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded px-2 py-1">
-                      ขนาด Custom — กรุณาสอบถามราคาเพิ่มเติม
+                  {priceResult.surcharges.length > 0 && (
+                    <div className="pt-2 mt-1 border-t border-slate-100 space-y-1">
+                      {priceResult.surcharges.map((s, i) => (
+                        <div key={i} className="text-xs text-slate-500">{s}</div>
+                      ))}
                     </div>
                   )}
                 </>
