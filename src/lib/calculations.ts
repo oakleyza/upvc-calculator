@@ -393,14 +393,15 @@ export const calculateWoodFramePrice = (form: WoodFrameFormData, prices: Pricing
     if (!isValid) {
       return { total: 0, surcharges: ['ไม้สะเดามีเฉพาะ 70×200, 80×200, 90×200 — ขนาดอื่นกรุณาเลือกไม้พลวง/เต็ง/แดง'] };
     }
-    if (form.painted) {
-      const paint = prices.wood_frame_price?.['wf_sadao_paint'] ?? 0;
-      surcharges.push(`วงกบสะเดา ${W}×${H} · ทำสี (ราคาเหมา)`);
-      return { total: paint, surcharges };
-    }
     const base = prices.wood_frame_price?.[`wf_sadao_${key}`] ?? 0;
-    surcharges.push(`วงกบสะเดา ${W}×${H} · งานดิบ`);
-    return { total: base, surcharges };
+    surcharges.push(`วงกบสะเดา ${W}×${H} · งานไม้ ฿${base.toLocaleString()}`);
+    let total = base;
+    if (form.painted) {
+      const paint = prices.wood_frame_price?.['wf_sadao_paint'] ?? 0;   // ค่าทำสีบวกเพิ่ม
+      total += paint;
+      surcharges.push(`ค่าทำสี ฿${paint.toLocaleString()}`);
+    }
+    return { total, surcharges };
   }
 
   // ─── พลวง/เต็ง/แดง/โค้ง: คำนวณต่อเมตร ──────────────────────────
