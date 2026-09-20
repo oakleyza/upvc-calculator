@@ -383,6 +383,7 @@ export const calculateWoodDoorPrice = (form: WoodDoorFormData, prices: PricingSt
 export const calculateWoodFramePrice = (form: WoodFrameFormData, prices: PricingStructure): PriceResult => {
   const surcharges: string[] = [];
   const num = (s: string) => { const n = parseFloat(s); return isNaN(n) ? 0 : n; };
+  const round100 = (n: number) => Math.ceil(n / 100) * 100;   // ปัดขึ้นหลักร้อยเสมอ
 
   // ขนาดใช้งานจริง — จาก preset หรือ custom (ให้ตรงแพตเทิร์นหน้าอื่น)
   let W: number, H: number;
@@ -402,11 +403,11 @@ export const calculateWoodFramePrice = (form: WoodFrameFormData, prices: Pricing
     if (!isValid) {
       return { total: 0, surcharges: ['ไม้สะเดามีเฉพาะ 70×200, 80×200, 90×200 — ขนาดอื่นกรุณาเลือกไม้พลวง/เต็ง/แดง'] };
     }
-    const base = prices.wood_frame_price?.[`wf_sadao_${key}`] ?? 0;
+    const base = round100(prices.wood_frame_price?.[`wf_sadao_${key}`] ?? 0);
     surcharges.push(`วงกบสะเดา ${W}×${H} · งานไม้ ฿${base.toLocaleString()}`);
     let total = base;
     if (form.painted) {
-      const paint = prices.wood_frame_price?.['wf_sadao_paint'] ?? 0;   // ค่าทำสีบวกเพิ่ม
+      const paint = round100(prices.wood_frame_price?.['wf_sadao_paint'] ?? 0);   // ค่าทำสีบวกเพิ่ม
       total += paint;
       surcharges.push(`ค่าทำสี ฿${paint.toLocaleString()}`);
     }
@@ -441,14 +442,14 @@ export const calculateWoodFramePrice = (form: WoodFrameFormData, prices: Pricing
     return { total: 0, surcharges: ['ยังไม่ได้ตั้งต้นทุนไม้ชนิดนี้ — กรุณาสอบถามราคา'] };
   }
 
-  const cost     = area * L * WOOD_FRAME_FACTOR * cube;   // ต้นทุนไม้
-  const woodSale = cost * (1 + marginPct / 100);          // ค่าไม้ขาย
-  const paint    = form.painted ? perim * L * paintRate : 0;
-  const total    = Math.round(woodSale + paint);
+  const cost     = area * L * WOOD_FRAME_FACTOR * cube;              // ต้นทุนไม้
+  const woodSale = round100(cost * (1 + marginPct / 100));           // ค่าไม้ขาย (ปัดขึ้นหลักร้อย)
+  const paint    = form.painted ? round100(perim * L * paintRate) : 0;  // ค่าสี (ปัดขึ้นหลักร้อย)
+  const total    = woodSale + paint;
 
   surcharges.push(`ความยาวรวม ${L.toFixed(2)} ม. · หน้าตัด ${sec.label}`);
-  surcharges.push(`ค่าไม้ ฿${Math.round(woodSale).toLocaleString()}`);
-  if (form.painted) surcharges.push(`ค่าสี ฿${Math.round(paint).toLocaleString()}`);
+  surcharges.push(`ค่าไม้ ฿${woodSale.toLocaleString()}`);
+  if (form.painted) surcharges.push(`ค่าสี ฿${paint.toLocaleString()}`);
 
   return { total, surcharges };
 };

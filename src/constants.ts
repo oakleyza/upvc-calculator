@@ -617,7 +617,7 @@ export const DEFAULT_WOOD_FRAME_FORM: WoodFrameFormData = {
   slLeft:  false, slLeftW:  '', slLeftH:  '',
   slRight: false, slRightW: '', slRightH: '',
   slTop:   false, slTopW:   '', slTopH:   '',
-  painted:   false,
+  painted:   true,   // ค่าเริ่มต้น: แสดงราคารวมทำสี
 };
 
 // ------------------------------------------------------------------
