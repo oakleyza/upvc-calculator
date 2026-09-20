@@ -1,0 +1,25 @@
+{
+  "name": "กลางซอยค้าไม้ - คำนวณราคาประตู",
+  "short_name": "กลางซอยค้าไม้",
+  "description": "ระบบคำนวณราคาประตู วงกบ uPVC",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#E2CB96",
+  "theme_color": "#E2CB96",
+  "icons": [
+    {
+      "src": "/pwa-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/pwa-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
