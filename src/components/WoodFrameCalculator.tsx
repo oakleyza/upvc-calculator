@@ -1,7 +1,7 @@
 import React from 'react';
 import { TreePine, Grid3x3, Maximize, PlusSquare, Palette } from 'lucide-react';
 import type { WoodFrameFormData } from '../types';
-import { WOOD_FRAME_TYPE_NAMES, WOOD_FRAME_SECTIONS } from '../constants';
+import { WOOD_FRAME_TYPE_NAMES, WOOD_FRAME_SECTIONS, WOOD_FRAME_SECTION_MAX } from '../constants';
 
 interface Props {
   form: WoodFrameFormData;
@@ -62,6 +62,10 @@ const Sidelight: React.FC<{
 export const WoodFrameCalculator: React.FC<Props> = ({ form, onInput }) => {
   const isSadao = form.frameType === 'sadao';
 
+  const maxSectionW = WOOD_FRAME_SECTION_MAX[form.frameType] ?? 99;
+  const allowedSections = WOOD_FRAME_SECTIONS.filter(s => s.w <= maxSectionW);
+  const largestAllowed = allowedSections[allowedSections.length - 1];
+
   const selectWood = (key: string) => {
     onInput('frameType', key);
     if (key === 'sadao') {
@@ -69,6 +73,15 @@ export const WoodFrameCalculator: React.FC<Props> = ({ form, onInput }) => {
       if (form.sizeType === 'custom') onInput('sizeType', '80x200cm');
       onInput('threshold', false);
       onInput('slLeft', false); onInput('slRight', false); onInput('slTop', false);
+      return;
+    }
+    // ถ้าหน้าตัดที่เลือกอยู่เกินที่ไม้ชนิดใหม่รองรับ → ปรับลงมาที่ไซส์ใหญ่สุดที่เลือกได้
+    const newMax = WOOD_FRAME_SECTION_MAX[key] ?? 99;
+    const cur = WOOD_FRAME_SECTIONS.find(s => s.id === form.section);
+    if (cur && cur.w > newMax) {
+      const allowed = WOOD_FRAME_SECTIONS.filter(s => s.w <= newMax);
+      const largest = allowed[allowed.length - 1];
+      if (largest) onInput('section', largest.id);
     }
   };
 
@@ -100,17 +113,28 @@ export const WoodFrameCalculator: React.FC<Props> = ({ form, onInput }) => {
           <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
             <Grid3x3 className="w-5 h-5 text-blue-600" /> หน้าตัดไม้
           </h3>
-          <div className="grid grid-cols-4 gap-3">
-            {WOOD_FRAME_SECTIONS.map(s => (
-              <div key={s.id} onClick={() => onInput('section', s.id)}
-                className={`cursor-pointer border-2 rounded-lg p-3 text-center transition-all ${
-                  form.section === s.id ? 'border-blue-500 bg-blue-50' : 'border-slate-200'
-                }`}>
-                <div className={`text-sm ${form.section === s.id ? 'font-bold text-blue-700' : 'text-slate-700'}`}>{s.label}</div>
-                <div className="text-xs text-slate-400 mt-0.5">{s.cm}</div>
-              </div>
-            ))}
+          <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
+            {WOOD_FRAME_SECTIONS.map(s => {
+              const allowed = s.w <= maxSectionW;
+              const selected = form.section === s.id;
+              return (
+                <div key={s.id} onClick={() => allowed && onInput('section', s.id)}
+                  className={`border-2 rounded-lg p-3 text-center transition-all ${
+                    !allowed ? 'opacity-40 cursor-not-allowed bg-slate-50 border-slate-200'
+                      : selected ? 'cursor-pointer border-blue-500 bg-blue-50'
+                      : 'cursor-pointer border-slate-200'
+                  }`}>
+                  <div className={`text-sm ${selected && allowed ? 'font-bold text-blue-700' : 'text-slate-700'}`}>{s.label}</div>
+                  <div className="text-xs text-slate-400 mt-0.5">{s.cm}</div>
+                </div>
+              );
+            })}
           </div>
+          {largestAllowed && maxSectionW < 99 && (
+            <p className="text-xs text-amber-600 mt-3">
+              * {WOOD_FRAME_TYPE_NAMES[form.frameType]} เลือกหน้าตัดได้ถึง {largestAllowed.label} เท่านั้น
+            </p>
+          )}
         </div>
       )}
 

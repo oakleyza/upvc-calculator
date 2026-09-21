@@ -149,11 +149,21 @@ export const WOOD_FRAME_TYPE_NAMES: Record<string, string> = {
 
 // หน้าตัดไม้ (thickness × width นิ้ว) — ใช้คำนวณปริมาตร(ค่าไม้) และเส้นรอบรูป(ค่าสี)
 export const WOOD_FRAME_SECTIONS = [
-  { id: '2x4', t: 2, w: 4, label: '2"×4"', cm: '~4.5×9.5 cm' },
-  { id: '2x5', t: 2, w: 5, label: '2"×5"', cm: '~4.5×12 cm' },
-  { id: '2x6', t: 2, w: 6, label: '2"×6"', cm: '~4.5×14.5 cm' },
-  { id: '2x8', t: 2, w: 8, label: '2"×8"', cm: '~4.5×19.5 cm' },
+  { id: '2x4',  t: 2, w: 4,  label: '2"×4"',  cm: '~4.5×9.5 cm' },
+  { id: '2x5',  t: 2, w: 5,  label: '2"×5"',  cm: '~4.5×12 cm' },
+  { id: '2x6',  t: 2, w: 6,  label: '2"×6"',  cm: '~4.5×14.5 cm' },
+  { id: '2x8',  t: 2, w: 8,  label: '2"×8"',  cm: '~4.5×19.5 cm' },
+  { id: '2x10', t: 2, w: 10, label: '2"×10"', cm: '~4.5×24.5 cm' },
 ] as const;
+
+// หน้าตัดสูงสุดที่แต่ละชนิดไม้เลือกได้ (นิ้ว — ตามความกว้าง w)
+// พลวงถึง 2"×5" · เต็งถึง 2"×6" · แดงครบทุกไซส์
+export const WOOD_FRAME_SECTION_MAX: Record<string, number> = {
+  pluang:       5,
+  curve_pluang: 5,
+  teng:         6,
+  daeng:        99,
+};
 
 // ค่าคงที่แปลงปริมาตรไม้ (หน้าตัดนิ้ว² × ยาวเมตร × factor = คิว)
 export const WOOD_FRAME_FACTOR = 0.0228;
