@@ -35,6 +35,7 @@ export interface PricingStructure {
   wood_door_glass: PriceCategory;   // ค่ากระจก ตามรุ่น + ขนาด
   wood_frame_price: PriceCategory;  // ราคาเหมาวงกบสะเดา (wf_sadao_70x200 ... wf_sadao_paint)
   wood_frame_rate: PriceCategory;   // เรทคำนวณต่อเมตร: cube_{type}, margin_pct, paint_rate
+  glass_rate: PriceCategory;        // เรทกระจกต่อ ตร.ฟุต (แชร์ประตูไม้/วงกบไม้) + margin_pct
   // Legacy fallback fields (kept for Firestore backward compatibility)
   structure?: PriceCategory;
   size?: PriceCategory;
@@ -48,7 +49,9 @@ export interface WoodDoorFormData {
   customWidth: string;
   customHeight: string;
   painted: boolean;
-  glassType: string;   // 'none' | 'plain' — แสดงเฉพาะรุ่นที่มีชื่อว่า "กระจก"
+  glassType: string;    // 'none' | ชนิดกระจก (lon_yai, clear_6, ...) — เฉพาะรุ่นที่มี "กระจก"
+  glassWidth: string;   // ขนาดแผ่นกระจก (cm) — พนักงานกรอกเอง
+  glassHeight: string;
 }
 
 export interface DoorOptions {
@@ -89,6 +92,7 @@ export interface WoodFrameFormData {
   slRight: boolean; slRightW: string; slRightH: string;  // ช่องแสงขวา
   slTop: boolean;   slTopW: string;   slTopH: string;    // ช่องแสงบน (transom)
   painted: boolean;     // ทำสี
+  glassType: string;    // 'none' | ชนิดกระจกในช่องแสง (lon_yai, clear_6, ...)
 }
 
 export interface UserAccount {

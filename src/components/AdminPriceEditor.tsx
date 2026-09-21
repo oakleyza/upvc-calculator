@@ -1,7 +1,7 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { X, Save, Database, Tag, Maximize, Palette, LayoutDashboard, Hammer, ShieldAlert, GripVertical, Pencil, Trash2, Upload, Plus, Check } from 'lucide-react';
 import type { PricingStructure, CatalogueItem } from '../types';
-import { LABEL_MAP, WOOD_MODEL_NAMES, WOOD_GLASS_NAMES, WOOD_CURVE_MODEL_IDS, WOOD_TYPE_MULTIPLIER } from '../constants';
+import { LABEL_MAP, WOOD_CURVE_MODEL_IDS, WOOD_TYPE_MULTIPLIER } from '../constants';
 import { addCatalogueItem, updateCatalogueItem, deleteCatalogueItem, saveSortOrder } from '../lib/woodCatalogue';
 import { compressAndUpload } from '../lib/cloudinary';
 
@@ -12,7 +12,7 @@ interface Props {
   onClose: () => void;
 }
 
-type ActiveCategory = 'door' | 'frame_t2' | 'frame_f10' | 'frame_x' | 'frame_eco' | 'frame_bsx' | 'frame_5in' | 'wood' | 'wood_frame';
+type ActiveCategory = 'door' | 'frame_t2' | 'frame_f10' | 'frame_x' | 'frame_eco' | 'frame_bsx' | 'frame_5in' | 'wood' | 'wood_frame' | 'glass';
 
 export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, catalogue, onSave, onClose }) => {
   const [activeCategory, setActiveCategory] = useState<ActiveCategory>('wood');
@@ -129,7 +129,7 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, catalogue, on
     const cats: (keyof PricingStructure)[] = [
       'door_base','door_size','door_surface','frame_base','frame_size','frame_surface',
       'grooving','molding','glass','louver','reinforce','drilling','options',
-      'wood_door_price','wood_door_paint','wood_door_glass','wood_frame_price','wood_frame_rate',
+      'wood_door_price','wood_door_paint','wood_door_glass','wood_frame_price','wood_frame_rate','glass_rate',
     ];
     cats.forEach(cat => {
       Object.entries(localPrices[cat] ?? {}).forEach(([key, val]) => {
@@ -169,6 +169,7 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, catalogue, on
   const tabs: { id: ActiveCategory; label: string }[] = [
     { id: 'wood',       label: '🪵 ประตูไม้' },
     { id: 'wood_frame', label: '🔶 วงกบไม้' },
+    { id: 'glass',      label: '🔷 กระจก' },
     { id: 'door',       label: '🚪 ประตู uPVC' },
     { id: 'frame_t2',  label: '🔲 วงกบ T2' },
     { id: 'frame_f10', label: '🔲 วงกบ F10' },
@@ -622,56 +623,9 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, catalogue, on
                 </div>
               </div>
 
-              {/* ราคากระจก */}
-              <div className="bg-white p-5 rounded-xl shadow-sm border border-cyan-200">
-                <h4 className="font-bold text-cyan-700 mb-2 pb-2 border-b flex items-center gap-2">
-                  💎 ราคากระจก
-                </h4>
-                <p className="text-xs text-cyan-600 mb-4">
-                  ราคาตั้งต้นกระจก (ต่อรุ่น) + ส่วนต่างตามขนาด — บวกทับราคาไม้และสี
-                </p>
-
-                {/* ราคาตั้งต้นกระจก ตามรุ่น */}
-                <div className="bg-white border rounded-lg p-4 mb-4">
-                  <h5 className="text-sm font-bold text-slate-700 mb-3 bg-cyan-50 p-2 rounded">ราคาตั้งต้นกระจก (ตามรุ่น)</h5>
-                  {Object.entries(WOOD_GLASS_NAMES).map(([glassKey, glassLabel]) => (
-                    <div key={glassKey} className="mb-4">
-                      <h6 className="text-xs font-bold text-cyan-700 mb-2">{glassLabel}</h6>
-                      <div className="flex items-center gap-2 px-2.5 mb-1">
-                        <span className="flex-1 text-xs font-semibold text-slate-400">รุ่น</span>
-                        <span className="w-24 text-xs font-semibold text-cyan-600 text-right">ราคา ฿</span>
-                      </div>
-                      {Object.entries(WOOD_MODEL_NAMES)
-                        .filter(([modelId, modelName]) => modelName.includes('กระจก') && localPrices.wood_door_glass?.[`wd_glass_${glassKey}_${modelId}`] !== undefined)
-                        .map(([modelId, modelName]) => {
-                          const key = `wd_glass_${glassKey}_${modelId}`;
-                          const val = localPrices.wood_door_glass?.[key] ?? 0;
-                          return (
-                            <div key={modelId} className="flex items-center gap-2 p-2.5 border-b last:border-0 hover:bg-slate-50 transition-colors">
-                              <span className="flex-1 text-sm font-medium text-slate-700">{modelName}</span>
-                              <input
-                                type="number" min={0} placeholder="0" value={inputVal(val)}
-                                onChange={e => handlePriceChange('wood_door_glass', key, e.target.value)}
-                                className="w-24 p-1.5 text-right border rounded text-sm font-semibold focus:ring-2 focus:ring-cyan-400 outline-none bg-white placeholder:text-slate-300 placeholder:font-normal"
-                              />
-                            </div>
-                          );
-                        })}
-                    </div>
-                  ))}
-                </div>
-
-                {/* ส่วนต่างขนาดกระจก */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <h5 className="text-sm font-bold text-slate-500 mb-2 bg-cyan-50 p-2 rounded">กระจก: ส่วนต่างความกว้าง</h5>
-                    {Object.keys(localPrices.wood_door_glass ?? {}).filter(k => k.startsWith('wd_glass_w_')).map(k => renderInput('wood_door_glass', k))}
-                  </div>
-                  <div>
-                    <h5 className="text-sm font-bold text-slate-500 mb-2 bg-cyan-50 p-2 rounded">กระจก: ส่วนต่างความสูง</h5>
-                    {Object.keys(localPrices.wood_door_glass ?? {}).filter(k => k.startsWith('wd_glass_h_')).map(k => renderInput('wood_door_glass', k))}
-                  </div>
-                </div>
+              {/* ราคากระจก — ย้ายไปแท็บ "🔷 กระจก" (คิดตามพื้นที่ ตร.ฟุต แชร์กับวงกบไม้) */}
+              <div className="bg-cyan-50 p-4 rounded-lg border border-cyan-200 text-sm text-cyan-700">
+                💎 ราคากระจกย้ายไปตั้งที่แท็บ <b>“🔷 กระจก”</b> แล้ว (คิดตามพื้นที่ ตร.ฟุต ใช้ร่วมกับวงกบไม้)
               </div>
             </div>
           )}
@@ -719,6 +673,32 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, catalogue, on
                         type="number" min={0} placeholder="0" value={inputVal(value)}
                         onChange={e => handlePriceChange('wood_frame_price', key, e.target.value)}
                         className={`w-28 p-1.5 text-right border rounded text-sm font-semibold focus:ring-2 outline-none bg-white placeholder:text-slate-300 placeholder:font-normal ${key === 'wf_sadao_paint' ? 'focus:ring-purple-400' : 'focus:ring-slate-400'}`}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {activeCategory === 'glass' && (
+            <div className="space-y-6">
+              <div className="bg-cyan-50 p-4 rounded-lg border border-cyan-200">
+                <h4 className="font-bold text-cyan-800 flex items-center gap-2">🔷 ตั้งราคากระจก (ต่อ ตร.ฟุต)</h4>
+                <p className="text-sm text-cyan-700 mt-1">
+                  แชร์ทั้งประตูไม้และวงกบไม้ · ค่ากระจก = พื้นที่(ตร.ฟุต) × ต้นทุน × (1+กำไร%) → ปัดขึ้นหลักร้อย
+                </p>
+              </div>
+              <div className="bg-white p-5 rounded-xl shadow-sm border">
+                {(['lon_yai_le244','lon_yai_gt244','lon_lek','clear_5','clear_6','tint_5','tint_6','margin_pct'] as const).map(key => {
+                  const value = localPrices.glass_rate?.[key] ?? 0;
+                  return (
+                    <div key={key} className="flex items-center gap-2 p-2.5 border-b last:border-0 hover:bg-slate-50 transition-colors">
+                      <span className="flex-1 text-sm font-medium text-slate-700">{LABEL_MAP[key] ?? key}</span>
+                      <input
+                        type="number" min={0} placeholder="0" value={inputVal(value)}
+                        onChange={e => handlePriceChange('glass_rate', key, e.target.value)}
+                        className="w-28 p-1.5 text-right border rounded text-sm font-semibold focus:ring-2 focus:ring-cyan-400 outline-none bg-white placeholder:text-slate-300 placeholder:font-normal"
                       />
                     </div>
                   );

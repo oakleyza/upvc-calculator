@@ -63,10 +63,13 @@ const WoodSummarySection: React.FC<{ woodForm: WoodDoorFormData; catalogue: Cata
         </span>
       </div>
       {woodForm.glassType && woodForm.glassType !== 'none' && (
-        <div className="flex justify-between">
-          <span className="text-slate-500">กระจก</span>
-          <span className="font-medium text-cyan-700">
+        <div className="flex justify-between items-start">
+          <span className="text-slate-500 shrink-0">กระจก</span>
+          <span className="font-medium text-cyan-700 text-right ml-2">
             {WOOD_GLASS_NAMES[woodForm.glassType] ?? woodForm.glassType}
+            {woodForm.glassWidth && woodForm.glassHeight && (
+              <span className="block text-xs text-slate-400 font-normal">{woodForm.glassWidth}×{woodForm.glassHeight} cm</span>
+            )}
           </span>
         </div>
       )}

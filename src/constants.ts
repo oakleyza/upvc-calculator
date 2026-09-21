@@ -129,9 +129,26 @@ export const WOOD_MODEL_IMAGES: Record<string, string> = {
 };
 
 // ชื่อประเภทกระจกที่มีในระบบ
-export const WOOD_GLASS_NAMES: Record<string, string> = {
-  plain: 'กระจกใส',
-};
+// ชนิดกระจก (แชร์ประตูไม้/วงกบไม้) — คิดต้นทุนต่อ ตร.ฟุต
+// ลอนใหญ่: เรทขึ้นกับด้านยาวสุดของแผ่น (≤244cm = ถูก, >244cm = แพง)
+export const WOOD_GLASS_TYPES = [
+  { id: 'lon_yai', label: 'ลอนใหญ่',            lengthTiered: true },
+  { id: 'lon_lek', label: 'ลอนเล็ก',            rateKey: 'lon_lek' },
+  { id: 'clear_5', label: 'ใส 5มม.',            rateKey: 'clear_5' },
+  { id: 'clear_6', label: 'ใส 6มม.',            rateKey: 'clear_6' },
+  { id: 'tint_5',  label: 'ฝ้า/เขียว/ชาดำ 5มม.', rateKey: 'tint_5' },
+  { id: 'tint_6',  label: 'ฝ้า/เขียว/ชาดำ 6มม.', rateKey: 'tint_6' },
+] as const;
+
+// ด้านยาวสุดของแผ่นลอนใหญ่ที่ยังได้เรทถูก (เกินกว่านี้ใช้เรทแพง)
+export const GLASS_LON_YAI_MAX_CM = 244;
+
+// ตร.ม. → ตร.ฟุต
+export const SQFT_PER_SQM = 10.7639;
+
+// map id → label (ใช้แสดงผลในหน้าสรุป)
+export const WOOD_GLASS_NAMES: Record<string, string> =
+  Object.fromEntries(WOOD_GLASS_TYPES.map(g => [g.id, g.label]));
 
 // รุ่นประตูโค้ง — ใช้ wd_curve_w_* / wd_curve_h_* สำหรับส่วนต่างขนาด (แทน wd_w_* / wd_h_*)
 export const WOOD_CURVE_MODEL_IDS = new Set(['m32', 'm33', 'm34', 'm35', 'm36', 'm37']);
@@ -394,6 +411,14 @@ export const LABEL_MAP: Record<string, string> = {
   'cube_curve_pluang': 'ต้นทุนไม้โค้งพลวง (บาท/คิว)',
   'margin_pct':   'กำไร (%)',
   'paint_rate':   'เรทสี (ต่อ นิ้วเส้นรอบรูป × เมตร)',
+  // === เรทกระจก (ต่อ ตร.ฟุต) ===
+  'lon_yai_le244': 'ลอนใหญ่ ยาว ≤ 244cm (/ตร.ฟุต)',
+  'lon_yai_gt244': 'ลอนใหญ่ ยาว > 244cm (/ตร.ฟุต)',
+  'lon_lek':       'ลอนเล็ก (/ตร.ฟุต)',
+  'clear_5':       'ใส 5มม. (/ตร.ฟุต)',
+  'clear_6':       'ใส 6มม. (/ตร.ฟุต)',
+  'tint_5':        'ฝ้า/เขียว/ชาดำ 5มม. (/ตร.ฟุต)',
+  'tint_6':        'ฝ้า/เขียว/ชาดำ 6มม. (/ตร.ฟุต)',
   // === Adjust Eco ===
   'eco_std_70': 'Adjust Eco — ไซส์มาตรฐาน 70×200 (ไม่มีค่าเพิ่ม)',
   'eco_std_80': 'Adjust Eco — ไซส์มาตรฐาน 80×200 (ไม่มีค่าเพิ่ม)',
@@ -568,6 +593,17 @@ export const DEFAULT_PRICES: PricingStructure = {
     margin_pct: 50,         // กำไร +50%
     paint_rate: 20.83,      // ค่าสี: เส้นรอบรูป(นิ้ว) × ยาว(ม.) × 20.83  → 2"×4" มาตรฐาน ≈ 1,200
   },
+  glass_rate: {
+    // ต้นทุนกระจกต่อ ตร.ฟุต (แชร์ประตูไม้/วงกบไม้)
+    lon_yai_le244: 120,   // ลอนใหญ่ ด้านยาวสุด ≤ 244cm
+    lon_yai_gt244: 270,   // ลอนใหญ่ ด้านยาวสุด > 244cm
+    lon_lek: 270,
+    clear_5: 50,
+    clear_6: 60,
+    tint_5:  60,          // ฝ้า/เขียว/ชาดำ 5มม.
+    tint_6:  70,          // ฝ้า/เขียว/ชาดำ 6มม.
+    margin_pct: 50,       // กำไรกระจก +50%
+  },
   structure: {}, size: {}, surface: {},
   grooving: { 'none': 0, 'standard': 999, 'black_line': 999, 'painted': 999, 'slat': 0 },
   molding: { 'none': 0, 'first_1': 999, 'first_2': 999, 'roma_1': 999, 'roma_2': 999 },
@@ -614,7 +650,9 @@ export const DEFAULT_WOOD_DOOR_FORM: WoodDoorFormData = {
   customWidth: '',
   customHeight: '',
   painted: true,    // ค่าเริ่มต้น: มีการทำสี (ติ๊กออกถ้าไม่ทำสี)
-  glassType: 'none', // 'none' | 'plain' — auto-set เมื่อเลือกรุ่นที่มีกระจก
+  glassType: 'none', // 'none' | ชนิดกระจก — เลือกเองเมื่อเป็นรุ่นกระจก
+  glassWidth: '',
+  glassHeight: '',
 };
 
 export const DEFAULT_WOOD_FRAME_FORM: WoodFrameFormData = {
@@ -628,6 +666,7 @@ export const DEFAULT_WOOD_FRAME_FORM: WoodFrameFormData = {
   slRight: false, slRightW: '', slRightH: '',
   slTop:   false, slTopW:   '', slTopH:   '',
   painted:   true,   // ค่าเริ่มต้น: แสดงราคารวมทำสี
+  glassType: 'none',
 };
 
 // ------------------------------------------------------------------

@@ -1,7 +1,7 @@
 import React from 'react';
 import { TreePine, Grid3x3, Maximize, PlusSquare, Palette } from 'lucide-react';
 import type { WoodFrameFormData } from '../types';
-import { WOOD_FRAME_TYPE_NAMES, WOOD_FRAME_SECTIONS, WOOD_FRAME_SECTION_MAX } from '../constants';
+import { WOOD_FRAME_TYPE_NAMES, WOOD_FRAME_SECTIONS, WOOD_FRAME_SECTION_MAX, WOOD_GLASS_TYPES } from '../constants';
 
 interface Props {
   form: WoodFrameFormData;
@@ -194,6 +194,24 @@ export const WoodFrameCalculator: React.FC<Props> = ({ form, onInput }) => {
             <Sidelight form={form} onInput={onInput} field="slRight" label="ช่องแสงด้านขวา"         wField="slRightW" hField="slRightH" />
             <Sidelight form={form} onInput={onInput} field="slTop"   label="ช่องแสงด้านบน (transom)" wField="slTopW"   hField="slTopH" />
           </div>
+
+          {(form.slLeft || form.slRight || form.slTop) && (
+            <div className="mt-4 pt-4 border-t border-slate-100">
+              <label className="block text-sm font-medium text-slate-600 mb-2">ชนิดกระจกช่องแสง</label>
+              <select
+                value={form.glassType === 'none' ? '' : form.glassType}
+                onChange={e => onInput('glassType', e.target.value || 'none')}
+                className="w-full p-3 border rounded-lg bg-white focus:ring-2 focus:ring-cyan-400 outline-none"
+              >
+                <option value="">— ไม่ใส่กระจก —</option>
+                {WOOD_GLASS_TYPES.map(g => (
+                  <option key={g.id} value={g.id}>{g.label}</option>
+                ))}
+              </select>
+              <p className="mt-2 text-xs text-slate-400">คิดตามพื้นที่รวมของช่องแสงที่เปิด (ตร.ฟุต)</p>
+            </div>
+          )}
+
           <p className="mt-3 text-xs text-slate-400">
             * ช่องแสงงานสีจะสรุปเป็น “เหมาต่อช่อง” ภายหลัง — ตอนนี้คิดค่าไม้ตามความยาว
           </p>
