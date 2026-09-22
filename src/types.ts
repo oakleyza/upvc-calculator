@@ -88,9 +88,9 @@ export interface WoodFrameFormData {
   customWidth: string;  // ใช้เมื่อ sizeType === 'custom'
   customHeight: string;
   threshold: boolean;   // เพิ่มธรณี (ขาล่าง)
-  slLeft: boolean;  slLeftW: string;  slLeftH: string;   // ช่องแสงซ้าย
-  slRight: boolean; slRightW: string; slRightH: string;  // ช่องแสงขวา
-  slTop: boolean;   slTopW: string;   slTopH: string;    // ช่องแสงบน (transom)
+  slLeft: boolean;  slLeftW: string;  slLeftH: string;  slLeftN: string;   // ช่องแสงซ้าย (N = จำนวนช่อง 1-10)
+  slRight: boolean; slRightW: string; slRightH: string; slRightN: string;  // ช่องแสงขวา
+  slTop: boolean;   slTopW: string;   slTopH: string;   slTopN: string;    // ช่องแสงบน (transom)
   painted: boolean;     // ทำสี
   glassType: string;    // 'none' | ชนิดกระจกในช่องแสง (lon_yai, clear_6, ...)
 }

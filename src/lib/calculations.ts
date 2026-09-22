@@ -447,13 +447,17 @@ export const calculateWoodFramePrice = (form: WoodFrameFormData, prices: Pricing
   // ความยาวรวมทุกท่อน (เมตร)
   let L = (W + 2 * H) / 100;                       // โครงหลัก: บน + ซ้าย + ขวา
   if (form.threshold) L += W / 100;                // ธรณี
-  const addSidelight = (on: boolean, w: string, h: string) => {
+  const addSidelight = (on: boolean, w: string, h: string, n: string) => {
     if (!on) return;
-    L += (num(h) + 2 * num(w)) / 100;              // ข้าง + บน + ล่าง
+    const sw = num(w), sh = num(h);
+    L += (sh + 2 * sw) / 100;                       // ข้าง + บน + ล่าง
+    // เอ็นขั้นกลาง: N ช่อง → (N-1) เส้น ยาว = ด้านสั้นของช่องแสง
+    const count = Math.max(1, Math.min(10, Math.round(num(n) || 1)));
+    if (count >= 2) L += (Math.min(sw, sh) * (count - 1)) / 100;
   };
-  addSidelight(form.slLeft,  form.slLeftW,  form.slLeftH);
-  addSidelight(form.slRight, form.slRightW, form.slRightH);
-  addSidelight(form.slTop,   form.slTopW,   form.slTopH);
+  addSidelight(form.slLeft,  form.slLeftW,  form.slLeftH,  form.slLeftN);
+  addSidelight(form.slRight, form.slRightW, form.slRightH, form.slRightN);
+  addSidelight(form.slTop,   form.slTopW,   form.slTopH,   form.slTopN);
 
   const cube      = prices.wood_frame_rate?.[`cube_${form.frameType}`] ?? 0;
   const marginPct = prices.wood_frame_rate?.['margin_pct'] ?? 0;

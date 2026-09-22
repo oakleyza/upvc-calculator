@@ -662,9 +662,9 @@ export const DEFAULT_WOOD_FRAME_FORM: WoodFrameFormData = {
   customWidth:  '',
   customHeight: '',
   threshold: false,
-  slLeft:  false, slLeftW:  '', slLeftH:  '',
-  slRight: false, slRightW: '', slRightH: '',
-  slTop:   false, slTopW:   '', slTopH:   '',
+  slLeft:  false, slLeftW:  '', slLeftH:  '', slLeftN:  '1',
+  slRight: false, slRightW: '', slRightH: '', slRightN: '1',
+  slTop:   false, slTopW:   '', slTopH:   '', slTopN:   '1',
   painted:   true,   // ค่าเริ่มต้น: แสดงราคารวมทำสี
   glassType: 'none',
 };
