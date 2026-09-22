@@ -55,15 +55,14 @@ export const calculateWoodFrameGlassCost = (
 ): number => computeGlassCost(panes, glassType, prices);
 
 // ------------------------------------------------------------------
-// calculateGlassPrice — แท็บ "กระจก" (คำนวณกระจกแบบเดี่ยว)
+// calculateGlassPrice — แท็บ "กระจก" (คำนวณราคาขายกระจกแบบเดี่ยว)
 //   ใช้หลักการคำนวนเดิม (computeGlassCost) + เรท glass_rate ชุดเดียวกับหลังบ้าน
-//   กรอกกว้าง×สูง(cm) × จำนวนแผ่น → ราคาสุทธิ
+//   กรอกกว้าง×สูง(cm) → ราคาขายต่อแผ่น (ปัดขึ้นหลักร้อย)
 // ------------------------------------------------------------------
 export const calculateGlassPrice = (form: GlassFormData, prices: PricingStructure): PriceResult => {
   const surcharges: string[] = [];
   const w = Number(form.glassWidth)  || 0;
   const h = Number(form.glassHeight) || 0;
-  const qty = Math.max(1, Math.round(Number(form.quantity) || 1));
 
   if (!form.glassType || form.glassType === 'none') {
     return { total: 0, surcharges: ['กรุณาเลือกชนิดกระจก'] };
@@ -72,13 +71,10 @@ export const calculateGlassPrice = (form: GlassFormData, prices: PricingStructur
     return { total: 0, surcharges: ['กรุณากรอกขนาดกว้าง × สูง (cm)'] };
   }
 
-  // แต่ละแผ่นคิดราคาแยก (ปัดขึ้นหลักร้อยต่อแผ่น) แล้วคูณจำนวน — ให้ตรงหลักการเดิม
-  const perPane = computeGlassCost([{ w, h }], form.glassType, prices);
-  const total = perPane * qty;
+  const total = computeGlassCost([{ w, h }], form.glassType, prices);
 
   const glassName = WOOD_GLASS_NAMES[form.glassType] ?? form.glassType;
   surcharges.push(`${glassName} · ${w}×${h} cm`);
-  surcharges.push(`ราคาต่อแผ่น ฿${perPane.toLocaleString()} × ${qty} แผ่น`);
 
   return { total, surcharges };
 };

@@ -723,7 +723,6 @@ export const DEFAULT_GLASS_FORM: GlassFormData = {
   glassType:   'clear_6',
   glassWidth:  '',
   glassHeight: '',
-  quantity:    '1',
 };
 
 // ------------------------------------------------------------------

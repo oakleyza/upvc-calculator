@@ -351,10 +351,6 @@ export const PriceSummary: React.FC<Props> = ({
                         : '—'}
                     </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">จำนวน</span>
-                    <span className="font-medium">{Math.max(1, Math.round(Number(glassForm.quantity) || 1))} แผ่น</span>
-                  </div>
                   {priceResult.surcharges.length > 0 && (
                     <div className="pt-2 mt-1 border-t border-slate-100 space-y-1">
                       {priceResult.surcharges.map((s, i) => (

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Square, Ruler, Layers } from 'lucide-react';
+import { Square, Ruler } from 'lucide-react';
 import type { GlassFormData } from '../types';
 import { WOOD_GLASS_TYPES } from '../constants';
 
@@ -60,20 +60,6 @@ export const GlassCalculator: React.FC<Props> = ({ form, onInput }) => {
             />
           </div>
         </div>
-      </div>
-
-      {/* จำนวนแผ่น */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-        <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
-          <Layers className="w-5 h-5 text-purple-600" /> จำนวนแผ่น
-        </h3>
-        <input
-          type="number" min={1} placeholder="1"
-          value={form.quantity}
-          onChange={e => onInput('quantity', e.target.value)}
-          className="w-full sm:w-40 p-3 border rounded-lg bg-white focus:ring-2 focus:ring-purple-400 outline-none"
-        />
-        <p className="text-xs text-slate-400 mt-2">ราคาต่อแผ่นปัดขึ้นหลักร้อย แล้วคูณจำนวน</p>
       </div>
     </div>
   );
