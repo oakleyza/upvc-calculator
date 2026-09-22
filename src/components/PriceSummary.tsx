@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FileText, Check, Loader2 } from 'lucide-react';
-import type { DoorFormData, FrameFormData, WoodDoorFormData, WoodFrameFormData, PriceResult, CatalogueItem } from '../types';
-import { LABEL_MAP, WOOD_TYPE_NAMES, WOOD_GLASS_NAMES, WOOD_FRAME_TYPE_NAMES } from '../constants';
+import type { DoorFormData, FrameFormData, WoodDoorFormData, WoodFrameFormData, PlaswoodRailFormData, PriceResult, CatalogueItem } from '../types';
+import { LABEL_MAP, WOOD_TYPE_NAMES, WOOD_GLASS_NAMES, WOOD_FRAME_TYPE_NAMES, PLASWOOD_RAIL_SIZES, PLASWOOD_RAIL_FINISH_NAMES } from '../constants';
 
 // ─── Wood section with model image ──────────────────────────────────────────
 const WoodSummarySection: React.FC<{ woodForm: WoodDoorFormData; catalogue: CatalogueItem[] }> = ({ woodForm, catalogue }) => {
@@ -93,18 +93,20 @@ interface Props {
   frameForm: FrameFormData;
   woodForm: WoodDoorFormData;
   woodFrameForm: WoodFrameFormData;
+  plaswoodForm: PlaswoodRailFormData;
   catalogue: CatalogueItem[];
   priceResult: PriceResult;
   isPricesLoading: boolean;
 }
 
 export const PriceSummary: React.FC<Props> = ({
-  activeTab, doorForm, frameForm, woodForm, woodFrameForm, catalogue, priceResult, isPricesLoading,
+  activeTab, doorForm, frameForm, woodForm, woodFrameForm, plaswoodForm, catalogue, priceResult, isPricesLoading,
 }) => {
   const isDoor      = activeTab === 'exclusive';
   const isWood      = activeTab === 'wood';
   const isWoodFrame = activeTab === 'wood_frame';
   const isFrame     = activeTab === 'frame';
+  const isPlaswood  = activeTab === 'plaswood';
 
   return (
     <div className="lg:w-96 shrink-0">
@@ -112,7 +114,7 @@ export const PriceSummary: React.FC<Props> = ({
         <div className="bg-slate-800 p-4 text-white flex items-center justify-between">
           <h2 className="font-semibold flex items-center gap-2">
             <FileText className="w-5 h-5" />
-            สรุปรายการ ({isDoor ? 'ประตู uPVC' : isWood ? 'ประตูไม้' : isWoodFrame ? 'วงกบไม้' : 'วงกบ WPC'})
+            สรุปรายการ ({isDoor ? 'ประตู uPVC' : isWood ? 'ประตูไม้' : isWoodFrame ? 'วงกบไม้' : isPlaswood ? 'บังราง Plaswood' : 'วงกบ WPC'})
           </h2>
         </div>
 
@@ -296,6 +298,37 @@ export const PriceSummary: React.FC<Props> = ({
                       {frameForm.surfaceType === 'none' ? 'ไม่ทำสี (งานดิบ)' : frameForm.surfaceType}
                     </span>
                   </div>
+                </>
+              )}
+
+              {isPlaswood && (
+                <>
+                  <div className="flex justify-between border-b pb-2">
+                    <span className="text-slate-900 font-bold">รายการที่เลือก</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">สินค้า</span>
+                    <span className="font-medium">บังราง Plaswood</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">ขนาด</span>
+                    <span className="font-medium">
+                      {PLASWOOD_RAIL_SIZES.find(s => s.id === plaswoodForm.sizeId)?.label ?? plaswoodForm.sizeId}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">การทำสี</span>
+                    <span className={`font-medium ${plaswoodForm.finish !== 'raw' ? 'text-purple-700' : 'text-slate-400'}`}>
+                      {PLASWOOD_RAIL_FINISH_NAMES[plaswoodForm.finish] ?? plaswoodForm.finish}
+                    </span>
+                  </div>
+                  {priceResult.surcharges.length > 0 && (
+                    <div className="pt-2 mt-1 border-t border-slate-100 space-y-1">
+                      {priceResult.surcharges.map((s, i) => (
+                        <div key={i} className="text-xs text-slate-500">{s}</div>
+                      ))}
+                    </div>
+                  )}
                 </>
               )}
 

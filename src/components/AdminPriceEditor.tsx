@@ -1,7 +1,7 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { X, Save, Database, Tag, Maximize, Palette, LayoutDashboard, Hammer, ShieldAlert, GripVertical, Pencil, Trash2, Upload, Plus, Check } from 'lucide-react';
 import type { PricingStructure, CatalogueItem } from '../types';
-import { LABEL_MAP, WOOD_CURVE_MODEL_IDS, WOOD_TYPE_MULTIPLIER } from '../constants';
+import { LABEL_MAP, WOOD_CURVE_MODEL_IDS, WOOD_TYPE_MULTIPLIER, PLASWOOD_RAIL_SIZES } from '../constants';
 import { addCatalogueItem, updateCatalogueItem, deleteCatalogueItem, saveSortOrder } from '../lib/woodCatalogue';
 import { compressAndUpload } from '../lib/cloudinary';
 
@@ -12,7 +12,7 @@ interface Props {
   onClose: () => void;
 }
 
-type ActiveCategory = 'door' | 'frame_t2' | 'frame_f10' | 'frame_x' | 'frame_eco' | 'frame_bsx' | 'frame_5in' | 'wood' | 'wood_frame' | 'glass';
+type ActiveCategory = 'door' | 'frame_t2' | 'frame_f10' | 'frame_x' | 'frame_eco' | 'frame_bsx' | 'frame_5in' | 'wood' | 'wood_frame' | 'glass' | 'plaswood';
 
 export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, catalogue, onSave, onClose }) => {
   const [activeCategory, setActiveCategory] = useState<ActiveCategory>('wood');
@@ -129,7 +129,7 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, catalogue, on
     const cats: (keyof PricingStructure)[] = [
       'door_base','door_size','door_surface','frame_base','frame_size','frame_surface',
       'grooving','molding','glass','louver','reinforce','drilling','options',
-      'wood_door_price','wood_door_paint','wood_door_glass','wood_frame_price','wood_frame_rate','glass_rate',
+      'wood_door_price','wood_door_paint','wood_door_glass','wood_frame_price','wood_frame_rate','glass_rate','plaswood_rail',
     ];
     cats.forEach(cat => {
       Object.entries(localPrices[cat] ?? {}).forEach(([key, val]) => {
@@ -169,6 +169,7 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, catalogue, on
   const tabs: { id: ActiveCategory; label: string }[] = [
     { id: 'wood',       label: '🪵 ประตูไม้' },
     { id: 'wood_frame', label: '🔶 วงกบไม้' },
+    { id: 'plaswood',   label: '📏 บังราง Plaswood' },
     { id: 'glass',      label: '🔷 กระจก' },
     { id: 'door',       label: '🚪 ประตู uPVC' },
     { id: 'frame_t2',  label: '🔲 วงกบ T2' },
@@ -677,6 +678,56 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, catalogue, on
                     </div>
                   );
                 })}
+              </div>
+            </div>
+          )}
+
+          {activeCategory === 'plaswood' && (
+            <div className="space-y-6">
+              <div className="bg-sky-50 p-4 rounded-lg border border-sky-200">
+                <h4 className="font-bold text-sky-800 flex items-center gap-2">📏 ตั้งราคาบังราง Plaswood</h4>
+                <p className="text-sm text-sky-700 mt-1">
+                  ตั้งราคาแยกตามขนาด · ราคา = ฐาน(ไม่พ่นสี) + ค่าทำสี (พ่นสี / ปิดผิว SVL)
+                </p>
+              </div>
+
+              <div className="bg-white p-5 rounded-xl shadow-sm border overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b text-slate-500">
+                      <th className="text-left font-bold py-2 pr-3">ขนาด</th>
+                      <th className="text-right font-bold py-2 px-2">ไม่พ่นสี (ฐาน)</th>
+                      <th className="text-right font-bold py-2 px-2">พ่นสี (เพิ่ม)</th>
+                      <th className="text-right font-bold py-2 pl-2">ปิดผิว SVL (เพิ่ม)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {PLASWOOD_RAIL_SIZES.map(s => {
+                      const cell = (prefix: string, ring: string) => {
+                        const key = `${prefix}${s.id}`;
+                        const value = localPrices.plaswood_rail?.[key] ?? 0;
+                        return (
+                          <input
+                            type="number" min={0} placeholder="0" value={inputVal(value)}
+                            onChange={e => handlePriceChange('plaswood_rail', key, e.target.value)}
+                            className={`w-24 p-1.5 text-right border rounded text-sm font-semibold focus:ring-2 ${ring} outline-none bg-white placeholder:text-slate-300 placeholder:font-normal`}
+                          />
+                        );
+                      };
+                      return (
+                        <tr key={s.id} className="border-b last:border-0 hover:bg-slate-50 transition-colors">
+                          <td className="py-2 pr-3 font-medium text-slate-700">{s.label}</td>
+                          <td className="py-2 px-2 text-right">{cell('pw_', 'focus:ring-slate-400')}</td>
+                          <td className="py-2 px-2 text-right">{cell('pw_paint_', 'focus:ring-purple-400')}</td>
+                          <td className="py-2 pl-2 text-right">{cell('pw_svl_', 'focus:ring-blue-400')}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+                <p className="text-xs text-slate-400 mt-3">
+                  * ราคาพ่นสี / ปิดผิว SVL เป็นค่าที่บวกเพิ่มจากราคาฐาน — ปล่อยว่าง = 0
+                </p>
               </div>
             </div>
           )}

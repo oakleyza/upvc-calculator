@@ -1,4 +1,4 @@
-import type { PricingStructure, DoorFormData, FrameFormData, WoodDoorFormData, WoodFrameFormData } from './types';
+import type { PricingStructure, DoorFormData, FrameFormData, WoodDoorFormData, WoodFrameFormData, PlaswoodRailFormData } from './types';
 
 // ------------------------------------------------------------------
 // Frame material constants (แทน magic strings ที่กระจายทั่ว codebase)
@@ -190,6 +190,47 @@ export const WOOD_FRAME_METER_TYPES = new Set(['pluang', 'teng', 'daeng', 'curve
 
 // ขนาดมาตรฐานสะเดา (มีเฉพาะ 3 ขนาดนี้)
 export const WOOD_FRAME_SADAO_SIZES = ['70x200', '80x200', '90x200'] as const;
+
+// ------------------------------------------------------------------
+// บังราง Plaswood — ขนาดที่มีราคา (ยาว × กว้าง × หนา cm)
+//   ใส่เฉพาะขนาดที่มีค่าจริง (ไม่รวม "อื่นๆ")
+// ------------------------------------------------------------------
+export const PLASWOOD_RAIL_SIZES = [
+  { id: '180x10x1', label: '180x10x1 cm' },
+  { id: '190x10x1', label: '190x10x1 cm' },
+  { id: '200x10x1', label: '200x10x1 cm' },
+  { id: '210x10x1', label: '210x10x1 cm' },
+  { id: '220x10x1', label: '220x10x1 cm' },
+  { id: '240x10x1', label: '240x10x1 cm' },
+  { id: '180x15x1', label: '180x15x1 cm' },
+  { id: '190x15x1', label: '190x15x1 cm' },
+  { id: '200x15x1', label: '200x15x1 cm' },
+  { id: '210x15x1', label: '210x15x1 cm' },
+  { id: '220x15x1', label: '220x15x1 cm' },
+  { id: '240x15x1', label: '240x15x1 cm' },
+] as const;
+
+// รูปแบบการทำสีบังราง Plaswood
+export const PLASWOOD_RAIL_FINISHES = [
+  { id: 'raw',   label: 'ไม่พ่นสี (งานดิบ)' },
+  { id: 'paint', label: 'พ่นสี' },
+  { id: 'svl',   label: 'ปิดผิว SVL' },
+] as const;
+
+export const PLASWOOD_RAIL_FINISH_NAMES: Record<string, string> =
+  Object.fromEntries(PLASWOOD_RAIL_FINISHES.map(f => [f.id, f.label]));
+
+// ราคาตั้งต้นบังราง Plaswood — ต่อขนาด: ราคาฐาน(ไม่พ่นสี) + ค่าพ่นสี + ค่าปิดผิว SVL
+// key: pw_{size} = ฐาน, pw_paint_{size} = ค่าพ่นสี, pw_svl_{size} = ค่าปิดผิว SVL
+const buildPlaswoodRailDefaults = (): Record<string, number> => {
+  const out: Record<string, number> = {};
+  for (const s of PLASWOOD_RAIL_SIZES) {
+    out[`pw_${s.id}`]       = 0;
+    out[`pw_paint_${s.id}`] = 0;
+    out[`pw_svl_${s.id}`]   = 0;
+  }
+  return out;
+};
 
 // ------------------------------------------------------------------
 // Label mapping (admin price editor + summary panel)
@@ -604,6 +645,7 @@ export const DEFAULT_PRICES: PricingStructure = {
     tint_6:  70,          // ฝ้า/เขียว/ชาดำ 6มม.
     margin_pct: 50,       // กำไรกระจก +50%
   },
+  plaswood_rail: buildPlaswoodRailDefaults(),
   structure: {}, size: {}, surface: {},
   grooving: { 'none': 0, 'standard': 999, 'black_line': 999, 'painted': 999, 'slat': 0 },
   molding: { 'none': 0, 'first_1': 999, 'first_2': 999, 'roma_1': 999, 'roma_2': 999 },
@@ -667,6 +709,11 @@ export const DEFAULT_WOOD_FRAME_FORM: WoodFrameFormData = {
   slTop:   false, slTopW:   '', slTopH:   '', slTopN:   '1',
   painted:   true,   // ค่าเริ่มต้น: แสดงราคารวมทำสี
   glassType: 'none',
+};
+
+export const DEFAULT_PLASWOOD_RAIL_FORM: PlaswoodRailFormData = {
+  sizeId: '200x10x1',   // ค่าเริ่มต้นตามที่เลือกไว้ในรายการ
+  finish: 'raw',        // ไม่พ่นสี
 };
 
 // ------------------------------------------------------------------

@@ -1,16 +1,16 @@
 import { useState, useEffect } from 'react';
-import { DoorOpen, Maximize, Settings, User, LogOut, Users, TreePine, Layers } from 'lucide-react';
+import { DoorOpen, Maximize, Settings, User, LogOut, Users, TreePine, Layers, Ruler } from 'lucide-react';
 import { doc, setDoc, getDoc, onSnapshot } from 'firebase/firestore';
 
 import { db, isFirebaseConfigured } from './lib/firebase';
 import { loadSession, clearSession, secureHash, generateSalt } from './lib/auth';
-import { calculateDoorPrice, calculateFramePrice, calculateWoodDoorPrice, calculateWoodFramePrice } from './lib/calculations';
+import { calculateDoorPrice, calculateFramePrice, calculateWoodDoorPrice, calculateWoodFramePrice, calculatePlaswoodRailPrice } from './lib/calculations';
 import { subscribeCatalogue } from './lib/woodCatalogue';
 
-import type { SessionUser, PricingStructure, DoorFormData, FrameFormData, WoodDoorFormData, WoodFrameFormData, PriceResult, TabInfo, CatalogueItem } from './types';
+import type { SessionUser, PricingStructure, DoorFormData, FrameFormData, WoodDoorFormData, WoodFrameFormData, PlaswoodRailFormData, PriceResult, TabInfo, CatalogueItem } from './types';
 import {
   DEFAULT_PRICES, DEFAULT_DOOR_FORM, DEFAULT_FRAME_FORM, DEFAULT_WOOD_DOOR_FORM, DEFAULT_WOOD_FRAME_FORM,
-  DEFAULT_USERS_SEED, isFrameWithSub,
+  DEFAULT_PLASWOOD_RAIL_FORM, DEFAULT_USERS_SEED, isFrameWithSub,
 } from './constants';
 
 import { LoginScreen }                from './components/LoginScreen';
@@ -20,6 +20,7 @@ import { DoorCalculator }             from './components/DoorCalculator';
 import { FrameCalculator }            from './components/FrameCalculator';
 import { WoodDoorCalculator }         from './components/WoodDoorCalculator';
 import { WoodFrameCalculator }        from './components/WoodFrameCalculator';
+import { PlaswoodRailCalculator }     from './components/PlaswoodRailCalculator';
 import { PriceSummary }               from './components/PriceSummary';
 
 // ------------------------------------------------------------------
@@ -28,6 +29,7 @@ const TABS: TabInfo[] = [
   { id: 'wood_frame', label: 'วงกบไม้',              icon: Layers   },
   { id: 'exclusive',  label: 'ประตู uPVC',           icon: DoorOpen },
   { id: 'frame',      label: 'วงกบ WPC',             icon: Maximize },
+  { id: 'plaswood',   label: 'บังราง Plaswood',      icon: Ruler    },
 ];
 
 // ------------------------------------------------------------------
@@ -46,6 +48,7 @@ export default function App() {
   const [frameForm,      setFrameForm]      = useState<FrameFormData>(DEFAULT_FRAME_FORM);
   const [woodForm,       setWoodForm]       = useState<WoodDoorFormData>(DEFAULT_WOOD_DOOR_FORM);
   const [woodFrameForm,  setWoodFrameForm]  = useState<WoodFrameFormData>(DEFAULT_WOOD_FRAME_FORM);
+  const [plaswoodForm,   setPlaswoodForm]   = useState<PlaswoodRailFormData>(DEFAULT_PLASWOOD_RAIL_FORM);
   const [priceResult,    setPriceResult]    = useState<PriceResult>({ total: 0, surcharges: [] });
   const [catalogue,      setCatalogue]      = useState<CatalogueItem[]>([]);
 
@@ -138,6 +141,7 @@ export default function App() {
           wood_frame_price: { ...DEFAULT_PRICES.wood_frame_price, ...(firestoreData.wood_frame_price ?? {}) },
           wood_frame_rate:  { ...DEFAULT_PRICES.wood_frame_rate,  ...(firestoreData.wood_frame_rate  ?? {}) },
           glass_rate:       { ...DEFAULT_PRICES.glass_rate,       ...(firestoreData.glass_rate       ?? {}) },
+          plaswood_rail:    { ...DEFAULT_PRICES.plaswood_rail,    ...(firestoreData.plaswood_rail    ?? {}) },
         };
         setPrices(merged);
       } else {
@@ -162,8 +166,10 @@ export default function App() {
       setPriceResult(calculateWoodDoorPrice(woodForm, prices));
     } else if (activeTab === 'wood_frame') {
       setPriceResult(calculateWoodFramePrice(woodFrameForm, prices));
+    } else if (activeTab === 'plaswood') {
+      setPriceResult(calculatePlaswoodRailPrice(plaswoodForm, prices));
     }
-  }, [doorForm, frameForm, woodForm, woodFrameForm, prices, activeTab]);
+  }, [doorForm, frameForm, woodForm, woodFrameForm, plaswoodForm, prices, activeTab]);
 
   // Auto-switch: วงกบที่ไม่มีซับ → SVL ไม่ได้
   useEffect(() => {
@@ -273,6 +279,10 @@ export default function App() {
     setWoodFrameForm(prev => ({ ...prev, [field]: value }));
   };
 
+  const handlePlaswoodInput = (field: keyof PlaswoodRailFormData, value: string) => {
+    setPlaswoodForm(prev => ({ ...prev, [field]: value }));
+  };
+
   const handleOptionToggle = (optionKey: string) =>
     setDoorForm(prev => ({
       ...prev,
@@ -287,6 +297,7 @@ export default function App() {
     if (tabId === 'frame')      setFrameForm(DEFAULT_FRAME_FORM);
     if (tabId === 'wood')       setWoodForm(DEFAULT_WOOD_DOOR_FORM);
     if (tabId === 'wood_frame') setWoodFrameForm(DEFAULT_WOOD_FRAME_FORM);
+    if (tabId === 'plaswood')   setPlaswoodForm(DEFAULT_PLASWOOD_RAIL_FORM);
   };
 
   const handleLogout = () => { clearSession(); setCurrentUser(null); };
@@ -383,6 +394,9 @@ export default function App() {
             {activeTab === 'frame' && (
               <FrameCalculator form={frameForm} onInput={handleFrameInput} />
             )}
+            {activeTab === 'plaswood' && (
+              <PlaswoodRailCalculator form={plaswoodForm} onInput={handlePlaswoodInput} />
+            )}
           </div>
 
           {/* Price summary */}
@@ -392,6 +406,7 @@ export default function App() {
             frameForm={frameForm}
             woodForm={woodForm}
             woodFrameForm={woodFrameForm}
+            plaswoodForm={plaswoodForm}
             catalogue={catalogue}
             priceResult={priceResult}
             isPricesLoading={isPricesLoading}

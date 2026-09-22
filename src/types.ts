@@ -36,6 +36,7 @@ export interface PricingStructure {
   wood_frame_price: PriceCategory;  // ราคาเหมาวงกบสะเดา (wf_sadao_70x200 ... wf_sadao_paint)
   wood_frame_rate: PriceCategory;   // เรทคำนวณต่อเมตร: cube_{type}, margin_pct, paint_rate
   glass_rate: PriceCategory;        // เรทกระจกต่อ ตร.ฟุต (แชร์ประตูไม้/วงกบไม้) + margin_pct
+  plaswood_rail: PriceCategory;     // บังราง Plaswood: pw_{size} (ไม่พ่นสี) + pw_paint_{size} + pw_svl_{size}
   // Legacy fallback fields (kept for Firestore backward compatibility)
   structure?: PriceCategory;
   size?: PriceCategory;
@@ -93,6 +94,11 @@ export interface WoodFrameFormData {
   slTop: boolean;   slTopW: string;   slTopH: string;   slTopN: string;    // ช่องแสงบน (transom)
   painted: boolean;     // ทำสี
   glassType: string;    // 'none' | ชนิดกระจกในช่องแสง (lon_yai, clear_6, ...)
+}
+
+export interface PlaswoodRailFormData {
+  sizeId: string;   // '200x10x1' ... (ตามรายการที่มีราคา)
+  finish: string;   // 'raw' = ไม่พ่นสี | 'paint' = พ่นสี | 'svl' = ปิดผิว SVL
 }
 
 export interface UserAccount {

@@ -3,8 +3,8 @@
 // B-2 FIX: TOA_h_under_200 / SVL_h_under_200 ถูกใช้จริงแล้ว
 // ------------------------------------------------------------------
 
-import type { DoorFormData, FrameFormData, WoodDoorFormData, WoodFrameFormData, PricingStructure, PriceResult } from '../types';
-import { FRAME_MATERIALS, WOOD_CURVE_MODEL_IDS, WOOD_MODEL_NAMES, WOOD_TYPE_MULTIPLIER, WOOD_FRAME_SECTIONS, WOOD_FRAME_FACTOR, WOOD_GLASS_TYPES, SQFT_PER_SQM, GLASS_LON_YAI_MAX_CM } from '../constants';
+import type { DoorFormData, FrameFormData, WoodDoorFormData, WoodFrameFormData, PlaswoodRailFormData, PricingStructure, PriceResult } from '../types';
+import { FRAME_MATERIALS, WOOD_CURVE_MODEL_IDS, WOOD_MODEL_NAMES, WOOD_TYPE_MULTIPLIER, WOOD_FRAME_SECTIONS, WOOD_FRAME_FACTOR, WOOD_GLASS_TYPES, SQFT_PER_SQM, GLASS_LON_YAI_MAX_CM, PLASWOOD_RAIL_SIZES, PLASWOOD_RAIL_FINISH_NAMES } from '../constants';
 
 // ------------------------------------------------------------------
 // calculateGlassCost — ราคากระจก (แชร์ประตูไม้/วงกบไม้)
@@ -484,6 +484,34 @@ export const calculateWoodFramePrice = (form: WoodFrameFormData, prices: Pricing
   surcharges.push(`ค่าไม้ ฿${woodSale.toLocaleString()}`);
   if (form.painted) surcharges.push(`ค่าสี ฿${paint.toLocaleString()}`);
   if (glass) surcharges.push(`ค่ากระจกช่องแสง ฿${glass.toLocaleString()}`);
+
+  return { total, surcharges };
+};
+
+// ------------------------------------------------------------------
+// calculatePlaswoodRailPrice — บังราง Plaswood
+//   ราคา = ฐาน(ไม่พ่นสี) ตามขนาด + ค่าทำสีตามรูปแบบ (พ่นสี / ปิดผิว SVL)
+//   ทุกค่ามาจากราคากลางที่ตั้งไว้ในหลังบ้าน (ตามขนาด)
+// ------------------------------------------------------------------
+export const calculatePlaswoodRailPrice = (form: PlaswoodRailFormData, prices: PricingStructure): PriceResult => {
+  const surcharges: string[] = [];
+  const size = PLASWOOD_RAIL_SIZES.find(s => s.id === form.sizeId);
+  if (!size) return { total: 0, surcharges: ['กรุณาเลือกขนาดบังราง'] };
+
+  const pw = prices.plaswood_rail ?? {};
+  const base = pw[`pw_${size.id}`] ?? 0;
+
+  let finishCost = 0;
+  if (form.finish === 'paint')    finishCost = pw[`pw_paint_${size.id}`] ?? 0;
+  else if (form.finish === 'svl') finishCost = pw[`pw_svl_${size.id}`]   ?? 0;
+
+  const total = base + finishCost;
+
+  surcharges.push(`บังราง Plaswood ${size.label}`);
+  surcharges.push(`ราคาฐาน (ไม่พ่นสี) ฿${base.toLocaleString()}`);
+  if (form.finish !== 'raw') {
+    surcharges.push(`${PLASWOOD_RAIL_FINISH_NAMES[form.finish] ?? form.finish} ฿${finishCost.toLocaleString()}`);
+  }
 
   return { total, surcharges };
 };
