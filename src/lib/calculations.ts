@@ -7,12 +7,13 @@ import type { DoorFormData, FrameFormData, WoodDoorFormData, WoodFrameFormData, 
 import { FRAME_MATERIALS, WOOD_CURVE_MODEL_IDS, WOOD_MODEL_NAMES, WOOD_TYPE_MULTIPLIER, WOOD_FRAME_SECTIONS, WOOD_FRAME_FACTOR, WOOD_GLASS_TYPES, SQFT_PER_SQM, GLASS_LON_YAI_MAX_CM, PLASWOOD_RAIL_SIZES, PLASWOOD_RAIL_FINISH_NAMES } from '../constants';
 
 // ------------------------------------------------------------------
-// calculateGlassCost — ราคากระจก (แชร์ประตูไม้/วงกบไม้)
+// computeGlassCost — core logic ราคากระจก (หลักการเดิม ใช้ร่วมกัน)
 //   ต้นทุน/ตร.ฟุต × พื้นที่(ตร.ฟุต) × (1+กำไร%) → ปัดขึ้นหลักร้อย
 //   ลอนใหญ่: เรทขึ้นกับด้านยาวสุดของแผ่น (≤244cm = ถูก)
 //   panes: ขนาดแผ่น (cm) หลายแผ่นได้ (วงกบมีหลายช่องแสง)
+//   เรทกระจก (glass_rate) ใช้ชุดเดียวกันทั้งประตูไม้/วงกบไม้ (หลังบ้าน tab "กระจก")
 // ------------------------------------------------------------------
-export const calculateGlassCost = (
+const computeGlassCost = (
   panes: { w: number; h: number }[],
   glassType: string,
   prices: PricingStructure,
@@ -38,6 +39,20 @@ export const calculateGlassCost = (
   if (cost <= 0) return 0;
   return Math.ceil((cost * (1 + marginPct / 100)) / 100) * 100;   // ปัดขึ้นหลักร้อย
 };
+
+// ราคากระจก — ประตูไม้ (ใช้หลักการคำนวนเดิม / ชุดเรทเดียวกับหลังบ้าน)
+export const calculateWoodDoorGlassCost = (
+  panes: { w: number; h: number }[],
+  glassType: string,
+  prices: PricingStructure,
+): number => computeGlassCost(panes, glassType, prices);
+
+// ราคากระจก — วงกบไม้ (ใช้หลักการคำนวนเดิม / ชุดเรทเดียวกับหลังบ้าน)
+export const calculateWoodFrameGlassCost = (
+  panes: { w: number; h: number }[],
+  glassType: string,
+  prices: PricingStructure,
+): number => computeGlassCost(panes, glassType, prices);
 
 // ------------------------------------------------------------------
 // Door price calculation
@@ -381,7 +396,7 @@ export const calculateWoodDoorPrice = (form: WoodDoorFormData, prices: PricingSt
     if (hasGlass && form.glassType && form.glassType !== 'none') {
       const gw = Number(form.glassWidth)  || 0;
       const gh = Number(form.glassHeight) || 0;
-      const glass = calculateGlassCost([{ w: gw, h: gh }], form.glassType, prices);
+      const glass = calculateWoodDoorGlassCost([{ w: gw, h: gh }], form.glassType, prices);
       price += glass;
       if (glass) surcharges.push(`ค่ากระจก ฿${glass.toLocaleString()}`);
     }
@@ -476,7 +491,7 @@ export const calculateWoodFramePrice = (form: WoodFrameFormData, prices: Pricing
   if (form.slLeft)  glassPanes.push({ w: num(form.slLeftW),  h: num(form.slLeftH) });
   if (form.slRight) glassPanes.push({ w: num(form.slRightW), h: num(form.slRightH) });
   if (form.slTop)   glassPanes.push({ w: num(form.slTopW),   h: num(form.slTopH) });
-  const glass = glassPanes.length ? calculateGlassCost(glassPanes, form.glassType, prices) : 0;
+  const glass = glassPanes.length ? calculateWoodFrameGlassCost(glassPanes, form.glassType, prices) : 0;
 
   const total = woodSale + paint + glass;
 
