@@ -508,7 +508,7 @@ export const calculatePlaswoodRailPrice = (form: PlaswoodRailFormData, prices: P
   const total = base + finishCost;
 
   surcharges.push(`บังราง Plaswood ${size.label}`);
-  surcharges.push(`ราคาฐาน (ไม่พ่นสี) ฿${base.toLocaleString()}`);
+  surcharges.push(`ราคาฐาน (ไม่ทำสี) ฿${base.toLocaleString()}`);
   if (form.finish !== 'raw') {
     surcharges.push(`${PLASWOOD_RAIL_FINISH_NAMES[form.finish] ?? form.finish} ฿${finishCost.toLocaleString()}`);
   }

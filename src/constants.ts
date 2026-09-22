@@ -210,11 +210,11 @@ export const PLASWOOD_RAIL_SIZES = [
   { id: '240x15x1', label: '240x15x1 cm' },
 ] as const;
 
-// รูปแบบการทำสีบังราง Plaswood
+// รูปแบบการทำสีบังราง Plaswood (ลำดับ: พ่นสี TOA → ปิดผิว SVL → ไม่ทำสี)
 export const PLASWOOD_RAIL_FINISHES = [
-  { id: 'raw',   label: 'ไม่พ่นสี (งานดิบ)' },
-  { id: 'paint', label: 'พ่นสี' },
+  { id: 'paint', label: 'พ่นสี TOA' },
   { id: 'svl',   label: 'ปิดผิว SVL' },
+  { id: 'raw',   label: 'ไม่ทำสี (งานดิบ)' },
 ] as const;
 
 export const PLASWOOD_RAIL_FINISH_NAMES: Record<string, string> =
@@ -713,7 +713,7 @@ export const DEFAULT_WOOD_FRAME_FORM: WoodFrameFormData = {
 
 export const DEFAULT_PLASWOOD_RAIL_FORM: PlaswoodRailFormData = {
   sizeId: '200x10x1',   // ค่าเริ่มต้นตามที่เลือกไว้ในรายการ
-  finish: 'raw',        // ไม่พ่นสี
+  finish: 'paint',      // ค่าเริ่มต้น: พ่นสี TOA
 };
 
 // ------------------------------------------------------------------

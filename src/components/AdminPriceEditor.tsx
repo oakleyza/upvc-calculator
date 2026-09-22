@@ -687,7 +687,7 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, catalogue, on
               <div className="bg-sky-50 p-4 rounded-lg border border-sky-200">
                 <h4 className="font-bold text-sky-800 flex items-center gap-2">📏 ตั้งราคาบังราง Plaswood</h4>
                 <p className="text-sm text-sky-700 mt-1">
-                  ตั้งราคาแยกตามขนาด · ราคา = ฐาน(ไม่พ่นสี) + ค่าทำสี (พ่นสี / ปิดผิว SVL)
+                  ตั้งราคาแยกตามขนาด · ราคา = ฐาน(ไม่ทำสี) + ค่าทำสี (พ่นสี TOA / ปิดผิว SVL)
                 </p>
               </div>
 
@@ -696,8 +696,8 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, catalogue, on
                   <thead>
                     <tr className="border-b text-slate-500">
                       <th className="text-left font-bold py-2 pr-3">ขนาด</th>
-                      <th className="text-right font-bold py-2 px-2">ไม่พ่นสี (ฐาน)</th>
-                      <th className="text-right font-bold py-2 px-2">พ่นสี (เพิ่ม)</th>
+                      <th className="text-right font-bold py-2 px-2">ไม่ทำสี (ฐาน)</th>
+                      <th className="text-right font-bold py-2 px-2">พ่นสี TOA (เพิ่ม)</th>
                       <th className="text-right font-bold py-2 pl-2">ปิดผิว SVL (เพิ่ม)</th>
                     </tr>
                   </thead>
