@@ -687,7 +687,8 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, catalogue, on
               <div className="bg-sky-50 p-4 rounded-lg border border-sky-200">
                 <h4 className="font-bold text-sky-800 flex items-center gap-2">📏 ตั้งราคาบังราง Plaswood</h4>
                 <p className="text-sm text-sky-700 mt-1">
-                  ตั้งราคาแยกตามขนาด · ราคา = ฐาน(ไม่ทำสี) + ค่าทำสี (พ่นสี TOA / ปิดผิว SVL)
+                  กรอก<strong>ราคาทุน</strong>แยกตามขนาด (ฐานไม่ทำสี + ค่าทำสี พ่นสี TOA / ปิดผิว SVL)
+                  · ราคาแสดงหน้าเว็บ = ทุนรวม <strong>+60%</strong> แล้วปัดขึ้นหลักร้อย
                 </p>
               </div>
 

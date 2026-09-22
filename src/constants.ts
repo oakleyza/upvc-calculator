@@ -1,4 +1,4 @@
-import type { PricingStructure, DoorFormData, FrameFormData, WoodDoorFormData, WoodFrameFormData, PlaswoodRailFormData } from './types';
+import type { PricingStructure, DoorFormData, FrameFormData, WoodDoorFormData, WoodFrameFormData, PlaswoodRailFormData, GlassFormData } from './types';
 
 // ------------------------------------------------------------------
 // Frame material constants (แทน magic strings ที่กระจายทั่ว codebase)
@@ -219,6 +219,9 @@ export const PLASWOOD_RAIL_FINISHES = [
 
 export const PLASWOOD_RAIL_FINISH_NAMES: Record<string, string> =
   Object.fromEntries(PLASWOOD_RAIL_FINISHES.map(f => [f.id, f.label]));
+
+// ราคาที่กรอกในหลังบ้าน = ราคาทุน · ราคาแสดงหน้าเว็บ = ทุน +60% แล้วปัดขึ้นหลักร้อย
+export const PLASWOOD_RAIL_MARGIN_PCT = 60;
 
 // ราคาตั้งต้นบังราง Plaswood — ต่อขนาด: ราคาฐาน(ไม่พ่นสี) + ค่าพ่นสี + ค่าปิดผิว SVL
 // key: pw_{size} = ฐาน, pw_paint_{size} = ค่าพ่นสี, pw_svl_{size} = ค่าปิดผิว SVL
@@ -714,6 +717,13 @@ export const DEFAULT_WOOD_FRAME_FORM: WoodFrameFormData = {
 export const DEFAULT_PLASWOOD_RAIL_FORM: PlaswoodRailFormData = {
   sizeId: '200x10x1',   // ค่าเริ่มต้นตามที่เลือกไว้ในรายการ
   finish: 'paint',      // ค่าเริ่มต้น: พ่นสี TOA
+};
+
+export const DEFAULT_GLASS_FORM: GlassFormData = {
+  glassType:   'clear_6',
+  glassWidth:  '',
+  glassHeight: '',
+  quantity:    '1',
 };
 
 // ------------------------------------------------------------------

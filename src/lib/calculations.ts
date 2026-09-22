@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------
 
 import type { DoorFormData, FrameFormData, WoodDoorFormData, WoodFrameFormData, PlaswoodRailFormData, PricingStructure, PriceResult } from '../types';
-import { FRAME_MATERIALS, WOOD_CURVE_MODEL_IDS, WOOD_MODEL_NAMES, WOOD_TYPE_MULTIPLIER, WOOD_FRAME_SECTIONS, WOOD_FRAME_FACTOR, WOOD_GLASS_TYPES, SQFT_PER_SQM, GLASS_LON_YAI_MAX_CM, PLASWOOD_RAIL_SIZES, PLASWOOD_RAIL_FINISH_NAMES } from '../constants';
+import { FRAME_MATERIALS, WOOD_CURVE_MODEL_IDS, WOOD_MODEL_NAMES, WOOD_TYPE_MULTIPLIER, WOOD_FRAME_SECTIONS, WOOD_FRAME_FACTOR, WOOD_GLASS_TYPES, SQFT_PER_SQM, GLASS_LON_YAI_MAX_CM, PLASWOOD_RAIL_SIZES, PLASWOOD_RAIL_FINISH_NAMES, PLASWOOD_RAIL_MARGIN_PCT } from '../constants';
 
 // ------------------------------------------------------------------
 // computeGlassCost — core logic ราคากระจก (หลักการเดิม ใช้ร่วมกัน)
@@ -505,8 +505,9 @@ export const calculateWoodFramePrice = (form: WoodFrameFormData, prices: Pricing
 
 // ------------------------------------------------------------------
 // calculatePlaswoodRailPrice — บังราง Plaswood
-//   ราคา = ฐาน(ไม่พ่นสี) ตามขนาด + ค่าทำสีตามรูปแบบ (พ่นสี / ปิดผิว SVL)
-//   ทุกค่ามาจากราคากลางที่ตั้งไว้ในหลังบ้าน (ตามขนาด)
+//   ราคาทุน = ฐาน(ไม่ทำสี) ตามขนาด + ค่าทำสีตามรูปแบบ (พ่นสี TOA / ปิดผิว SVL)
+//   ราคาแสดง = ราคาทุน × (1 + 60%) → ปัดขึ้นหลักร้อย
+//   ทุกค่ามาจากราคาทุนที่ตั้งไว้ในหลังบ้าน (ตามขนาด)
 // ------------------------------------------------------------------
 export const calculatePlaswoodRailPrice = (form: PlaswoodRailFormData, prices: PricingStructure): PriceResult => {
   const surcharges: string[] = [];
@@ -520,13 +521,12 @@ export const calculatePlaswoodRailPrice = (form: PlaswoodRailFormData, prices: P
   if (form.finish === 'paint')    finishCost = pw[`pw_paint_${size.id}`] ?? 0;
   else if (form.finish === 'svl') finishCost = pw[`pw_svl_${size.id}`]   ?? 0;
 
-  const total = base + finishCost;
+  // ราคาทุนรวม → บวกกำไร 60% → ปัดขึ้นหลักร้อย
+  const cost  = base + finishCost;
+  const total = cost > 0 ? Math.ceil((cost * (1 + PLASWOOD_RAIL_MARGIN_PCT / 100)) / 100) * 100 : 0;
 
   surcharges.push(`บังราง Plaswood ${size.label}`);
-  surcharges.push(`ราคาฐาน (ไม่ทำสี) ฿${base.toLocaleString()}`);
-  if (form.finish !== 'raw') {
-    surcharges.push(`${PLASWOOD_RAIL_FINISH_NAMES[form.finish] ?? form.finish} ฿${finishCost.toLocaleString()}`);
-  }
+  surcharges.push(`รูปแบบ: ${PLASWOOD_RAIL_FINISH_NAMES[form.finish] ?? form.finish}`);
 
   return { total, surcharges };
 };

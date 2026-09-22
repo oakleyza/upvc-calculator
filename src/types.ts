@@ -101,6 +101,13 @@ export interface PlaswoodRailFormData {
   finish: string;   // 'raw' = ไม่พ่นสี | 'paint' = พ่นสี | 'svl' = ปิดผิว SVL
 }
 
+export interface GlassFormData {
+  glassType: string;    // 'none' | ชนิดกระจก (lon_yai, clear_6, ...)
+  glassWidth: string;   // ขนาดแผ่นกระจก (cm)
+  glassHeight: string;
+  quantity: string;     // จำนวนแผ่น
+}
+
 export interface UserAccount {
   id: string;
   username: string;
