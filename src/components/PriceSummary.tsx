@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FileText, Check, Loader2 } from 'lucide-react';
-import type { DoorFormData, FrameFormData, WoodDoorFormData, WoodFrameFormData, PlaswoodRailFormData, PriceResult, CatalogueItem } from '../types';
+import type { DoorFormData, FrameFormData, WoodDoorFormData, WoodFrameFormData, PlaswoodRailFormData, GlassFormData, PriceResult, CatalogueItem } from '../types';
 import { LABEL_MAP, WOOD_TYPE_NAMES, WOOD_GLASS_NAMES, WOOD_FRAME_TYPE_NAMES, PLASWOOD_RAIL_SIZES, PLASWOOD_RAIL_FINISH_NAMES } from '../constants';
 
 // ─── Wood section with model image ──────────────────────────────────────────
@@ -94,19 +94,21 @@ interface Props {
   woodForm: WoodDoorFormData;
   woodFrameForm: WoodFrameFormData;
   plaswoodForm: PlaswoodRailFormData;
+  glassForm: GlassFormData;
   catalogue: CatalogueItem[];
   priceResult: PriceResult;
   isPricesLoading: boolean;
 }
 
 export const PriceSummary: React.FC<Props> = ({
-  activeTab, doorForm, frameForm, woodForm, woodFrameForm, plaswoodForm, catalogue, priceResult, isPricesLoading,
+  activeTab, doorForm, frameForm, woodForm, woodFrameForm, plaswoodForm, glassForm, catalogue, priceResult, isPricesLoading,
 }) => {
   const isDoor      = activeTab === 'exclusive';
   const isWood      = activeTab === 'wood';
   const isWoodFrame = activeTab === 'wood_frame';
   const isFrame     = activeTab === 'frame';
   const isPlaswood  = activeTab === 'plaswood';
+  const isGlass     = activeTab === 'glass';
 
   return (
     <div className="lg:w-96 shrink-0">
@@ -114,7 +116,7 @@ export const PriceSummary: React.FC<Props> = ({
         <div className="bg-slate-800 p-4 text-white flex items-center justify-between">
           <h2 className="font-semibold flex items-center gap-2">
             <FileText className="w-5 h-5" />
-            สรุปรายการ ({isDoor ? 'ประตู uPVC' : isWood ? 'ประตูไม้' : isWoodFrame ? 'วงกบไม้' : isPlaswood ? 'บังราง Plaswood' : 'วงกบ WPC'})
+            สรุปรายการ ({isDoor ? 'ประตู uPVC' : isWood ? 'ประตูไม้' : isWoodFrame ? 'วงกบไม้' : isPlaswood ? 'บังราง Plaswood' : isGlass ? 'กระจก' : 'วงกบ WPC'})
           </h2>
         </div>
 
@@ -321,6 +323,37 @@ export const PriceSummary: React.FC<Props> = ({
                     <span className={`font-medium ${plaswoodForm.finish !== 'raw' ? 'text-purple-700' : 'text-slate-400'}`}>
                       {PLASWOOD_RAIL_FINISH_NAMES[plaswoodForm.finish] ?? plaswoodForm.finish}
                     </span>
+                  </div>
+                  {priceResult.surcharges.length > 0 && (
+                    <div className="pt-2 mt-1 border-t border-slate-100 space-y-1">
+                      {priceResult.surcharges.map((s, i) => (
+                        <div key={i} className="text-xs text-slate-500">{s}</div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+
+              {isGlass && (
+                <>
+                  <div className="flex justify-between border-b pb-2">
+                    <span className="text-slate-900 font-bold">รายการที่เลือก</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">ชนิดกระจก</span>
+                    <span className="font-medium text-cyan-700">{WOOD_GLASS_NAMES[glassForm.glassType] ?? glassForm.glassType}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">ขนาดแผ่น</span>
+                    <span className="font-medium">
+                      {glassForm.glassWidth && glassForm.glassHeight
+                        ? `${glassForm.glassWidth}×${glassForm.glassHeight} cm`
+                        : '—'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">จำนวน</span>
+                    <span className="font-medium">{Math.max(1, Math.round(Number(glassForm.quantity) || 1))} แผ่น</span>
                   </div>
                   {priceResult.surcharges.length > 0 && (
                     <div className="pt-2 mt-1 border-t border-slate-100 space-y-1">

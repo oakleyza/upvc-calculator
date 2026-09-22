@@ -1,16 +1,16 @@
 import { useState, useEffect } from 'react';
-import { DoorOpen, Maximize, Settings, User, LogOut, Users, TreePine, Layers, Ruler } from 'lucide-react';
+import { DoorOpen, Maximize, Settings, User, LogOut, Users, TreePine, Layers, Ruler, Square } from 'lucide-react';
 import { doc, setDoc, getDoc, onSnapshot } from 'firebase/firestore';
 
 import { db, isFirebaseConfigured } from './lib/firebase';
 import { loadSession, clearSession, secureHash, generateSalt } from './lib/auth';
-import { calculateDoorPrice, calculateFramePrice, calculateWoodDoorPrice, calculateWoodFramePrice, calculatePlaswoodRailPrice } from './lib/calculations';
+import { calculateDoorPrice, calculateFramePrice, calculateWoodDoorPrice, calculateWoodFramePrice, calculatePlaswoodRailPrice, calculateGlassPrice } from './lib/calculations';
 import { subscribeCatalogue } from './lib/woodCatalogue';
 
-import type { SessionUser, PricingStructure, DoorFormData, FrameFormData, WoodDoorFormData, WoodFrameFormData, PlaswoodRailFormData, PriceResult, TabInfo, CatalogueItem } from './types';
+import type { SessionUser, PricingStructure, DoorFormData, FrameFormData, WoodDoorFormData, WoodFrameFormData, PlaswoodRailFormData, GlassFormData, PriceResult, TabInfo, CatalogueItem } from './types';
 import {
   DEFAULT_PRICES, DEFAULT_DOOR_FORM, DEFAULT_FRAME_FORM, DEFAULT_WOOD_DOOR_FORM, DEFAULT_WOOD_FRAME_FORM,
-  DEFAULT_PLASWOOD_RAIL_FORM, DEFAULT_USERS_SEED, isFrameWithSub,
+  DEFAULT_PLASWOOD_RAIL_FORM, DEFAULT_GLASS_FORM, DEFAULT_USERS_SEED, isFrameWithSub,
 } from './constants';
 
 import { LoginScreen }                from './components/LoginScreen';
@@ -21,11 +21,13 @@ import { FrameCalculator }            from './components/FrameCalculator';
 import { WoodDoorCalculator }         from './components/WoodDoorCalculator';
 import { WoodFrameCalculator }        from './components/WoodFrameCalculator';
 import { PlaswoodRailCalculator }     from './components/PlaswoodRailCalculator';
+import { GlassCalculator }            from './components/GlassCalculator';
 import { PriceSummary }               from './components/PriceSummary';
 
 // ------------------------------------------------------------------
 const TABS: TabInfo[] = [
   { id: 'wood',       label: 'ประตูไม้',              icon: TreePine },
+  { id: 'glass',      label: 'กระจก',                icon: Square   },
   { id: 'wood_frame', label: 'วงกบไม้',              icon: Layers   },
   { id: 'exclusive',  label: 'ประตู uPVC',           icon: DoorOpen },
   { id: 'frame',      label: 'วงกบ WPC',             icon: Maximize },
@@ -49,6 +51,7 @@ export default function App() {
   const [woodForm,       setWoodForm]       = useState<WoodDoorFormData>(DEFAULT_WOOD_DOOR_FORM);
   const [woodFrameForm,  setWoodFrameForm]  = useState<WoodFrameFormData>(DEFAULT_WOOD_FRAME_FORM);
   const [plaswoodForm,   setPlaswoodForm]   = useState<PlaswoodRailFormData>(DEFAULT_PLASWOOD_RAIL_FORM);
+  const [glassForm,      setGlassForm]      = useState<GlassFormData>(DEFAULT_GLASS_FORM);
   const [priceResult,    setPriceResult]    = useState<PriceResult>({ total: 0, surcharges: [] });
   const [catalogue,      setCatalogue]      = useState<CatalogueItem[]>([]);
 
@@ -168,8 +171,10 @@ export default function App() {
       setPriceResult(calculateWoodFramePrice(woodFrameForm, prices));
     } else if (activeTab === 'plaswood') {
       setPriceResult(calculatePlaswoodRailPrice(plaswoodForm, prices));
+    } else if (activeTab === 'glass') {
+      setPriceResult(calculateGlassPrice(glassForm, prices));
     }
-  }, [doorForm, frameForm, woodForm, woodFrameForm, plaswoodForm, prices, activeTab]);
+  }, [doorForm, frameForm, woodForm, woodFrameForm, plaswoodForm, glassForm, prices, activeTab]);
 
   // Auto-switch: วงกบที่ไม่มีซับ → SVL ไม่ได้
   useEffect(() => {
@@ -283,6 +288,10 @@ export default function App() {
     setPlaswoodForm(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleGlassInput = (field: keyof GlassFormData, value: string) => {
+    setGlassForm(prev => ({ ...prev, [field]: value }));
+  };
+
   const handleOptionToggle = (optionKey: string) =>
     setDoorForm(prev => ({
       ...prev,
@@ -298,6 +307,7 @@ export default function App() {
     if (tabId === 'wood')       setWoodForm(DEFAULT_WOOD_DOOR_FORM);
     if (tabId === 'wood_frame') setWoodFrameForm(DEFAULT_WOOD_FRAME_FORM);
     if (tabId === 'plaswood')   setPlaswoodForm(DEFAULT_PLASWOOD_RAIL_FORM);
+    if (tabId === 'glass')      setGlassForm(DEFAULT_GLASS_FORM);
   };
 
   const handleLogout = () => { clearSession(); setCurrentUser(null); };
@@ -397,6 +407,9 @@ export default function App() {
             {activeTab === 'plaswood' && (
               <PlaswoodRailCalculator form={plaswoodForm} onInput={handlePlaswoodInput} />
             )}
+            {activeTab === 'glass' && (
+              <GlassCalculator form={glassForm} onInput={handleGlassInput} />
+            )}
           </div>
 
           {/* Price summary */}
@@ -407,6 +420,7 @@ export default function App() {
             woodForm={woodForm}
             woodFrameForm={woodFrameForm}
             plaswoodForm={plaswoodForm}
+            glassForm={glassForm}
             catalogue={catalogue}
             priceResult={priceResult}
             isPricesLoading={isPricesLoading}

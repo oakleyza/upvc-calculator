@@ -3,8 +3,8 @@
 // B-2 FIX: TOA_h_under_200 / SVL_h_under_200 ถูกใช้จริงแล้ว
 // ------------------------------------------------------------------
 
-import type { DoorFormData, FrameFormData, WoodDoorFormData, WoodFrameFormData, PlaswoodRailFormData, PricingStructure, PriceResult } from '../types';
-import { FRAME_MATERIALS, WOOD_CURVE_MODEL_IDS, WOOD_MODEL_NAMES, WOOD_TYPE_MULTIPLIER, WOOD_FRAME_SECTIONS, WOOD_FRAME_FACTOR, WOOD_GLASS_TYPES, SQFT_PER_SQM, GLASS_LON_YAI_MAX_CM, PLASWOOD_RAIL_SIZES, PLASWOOD_RAIL_FINISH_NAMES, PLASWOOD_RAIL_MARGIN_PCT } from '../constants';
+import type { DoorFormData, FrameFormData, WoodDoorFormData, WoodFrameFormData, PlaswoodRailFormData, GlassFormData, PricingStructure, PriceResult } from '../types';
+import { FRAME_MATERIALS, WOOD_CURVE_MODEL_IDS, WOOD_MODEL_NAMES, WOOD_TYPE_MULTIPLIER, WOOD_FRAME_SECTIONS, WOOD_FRAME_FACTOR, WOOD_GLASS_TYPES, WOOD_GLASS_NAMES, SQFT_PER_SQM, GLASS_LON_YAI_MAX_CM, PLASWOOD_RAIL_SIZES, PLASWOOD_RAIL_FINISH_NAMES, PLASWOOD_RAIL_MARGIN_PCT } from '../constants';
 
 // ------------------------------------------------------------------
 // computeGlassCost — core logic ราคากระจก (หลักการเดิม ใช้ร่วมกัน)
@@ -53,6 +53,35 @@ export const calculateWoodFrameGlassCost = (
   glassType: string,
   prices: PricingStructure,
 ): number => computeGlassCost(panes, glassType, prices);
+
+// ------------------------------------------------------------------
+// calculateGlassPrice — แท็บ "กระจก" (คำนวณกระจกแบบเดี่ยว)
+//   ใช้หลักการคำนวนเดิม (computeGlassCost) + เรท glass_rate ชุดเดียวกับหลังบ้าน
+//   กรอกกว้าง×สูง(cm) × จำนวนแผ่น → ราคาสุทธิ
+// ------------------------------------------------------------------
+export const calculateGlassPrice = (form: GlassFormData, prices: PricingStructure): PriceResult => {
+  const surcharges: string[] = [];
+  const w = Number(form.glassWidth)  || 0;
+  const h = Number(form.glassHeight) || 0;
+  const qty = Math.max(1, Math.round(Number(form.quantity) || 1));
+
+  if (!form.glassType || form.glassType === 'none') {
+    return { total: 0, surcharges: ['กรุณาเลือกชนิดกระจก'] };
+  }
+  if (w <= 0 || h <= 0) {
+    return { total: 0, surcharges: ['กรุณากรอกขนาดกว้าง × สูง (cm)'] };
+  }
+
+  // แต่ละแผ่นคิดราคาแยก (ปัดขึ้นหลักร้อยต่อแผ่น) แล้วคูณจำนวน — ให้ตรงหลักการเดิม
+  const perPane = computeGlassCost([{ w, h }], form.glassType, prices);
+  const total = perPane * qty;
+
+  const glassName = WOOD_GLASS_NAMES[form.glassType] ?? form.glassType;
+  surcharges.push(`${glassName} · ${w}×${h} cm`);
+  surcharges.push(`ราคาต่อแผ่น ฿${perPane.toLocaleString()} × ${qty} แผ่น`);
+
+  return { total, surcharges };
+};
 
 // ------------------------------------------------------------------
 // Door price calculation
