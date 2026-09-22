@@ -715,7 +715,7 @@ export const DEFAULT_WOOD_FRAME_FORM: WoodFrameFormData = {
 };
 
 export const DEFAULT_PLASWOOD_RAIL_FORM: PlaswoodRailFormData = {
-  sizeId: '200x10x1',   // ค่าเริ่มต้นตามที่เลือกไว้ในรายการ
+  sizeId: '200x15x1',   // ค่าเริ่มต้นตามที่เลือกไว้ในรายการ
   finish: 'paint',      // ค่าเริ่มต้น: พ่นสี TOA
 };
 
