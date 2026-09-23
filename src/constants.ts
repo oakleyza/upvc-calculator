@@ -1,4 +1,20 @@
-import type { PricingStructure, DoorFormData, FrameFormData, WoodDoorFormData, WoodFrameFormData, PlaswoodRailFormData, GlassFormData } from './types';
+import type { PricingStructure, DoorFormData, FrameFormData, WoodDoorFormData, WoodFrameFormData, PlaswoodRailFormData, GlassFormData, OpeningFormData } from './types';
+
+// ------------------------------------------------------------------
+// ช่องปูน ↔ ขนาดประตู — ค่าคงที่ทางเรขาคณิต (ปรับได้จุดเดียวที่นี่)
+//   กว้าง: บังใบ 3cm/ข้าง (+6) + gap ยัดวงกบ 0.5cm/ข้าง (+1) = ช่องปูน +7
+//   สูง:   บังใบบน 3cm + ลอยพื้น 1cm = ช่องปูน +4 (วงกบวัดนอกวางพื้น = +3)
+// ------------------------------------------------------------------
+export const OPENING_CALC = {
+  WIDTH_OFFSET:        7, // ช่องปูนกว้าง = ประตูกว้าง + 7
+  HEIGHT_OFFSET:       4, // ช่องปูนสูง  = ประตูสูง  + 4
+  FRAME_WIDTH_OFFSET:  6, // วงกบวัดนอกกว้าง = ประตูกว้าง + 6
+  FRAME_HEIGHT_OFFSET: 3, // วงกบวัดนอกสูง (วางพื้น) = ประตูสูง + 3
+  FLOOR_LIFT:          1, // ยกลอยพื้น
+  STEP:                5, // ประตู uPVC/WPC ต้องลงท้าย 0 หรือ 5
+  MIN_DOOR_W:         40, // กันช่องปูนเล็กเกินไป
+  MIN_DOOR_H:        150,
+} as const;
 
 // ------------------------------------------------------------------
 // Frame material constants (แทน magic strings ที่กระจายทั่ว codebase)
@@ -726,6 +742,13 @@ export const DEFAULT_GLASS_FORM: GlassFormData = {
   glassType:   'clear_6',
   glassWidth:  '',
   glassHeight: '',
+};
+
+export const DEFAULT_OPENING_FORM: OpeningFormData = {
+  mode:     'fromDoor',
+  material: 'upvc',
+  width:    '',
+  height:   '',
 };
 
 // ------------------------------------------------------------------

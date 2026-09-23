@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { DoorOpen, Maximize, Settings, User, LogOut, Users, TreePine, Layers, Ruler, Square } from 'lucide-react';
+import { DoorOpen, Maximize, Settings, User, LogOut, Users, TreePine, Layers, Ruler, Square, BrickWall } from 'lucide-react';
 import { doc, setDoc, getDoc, onSnapshot } from 'firebase/firestore';
 
 import { db, isFirebaseConfigured } from './lib/firebase';
@@ -7,10 +7,10 @@ import { loadSession, clearSession, secureHash, generateSalt } from './lib/auth'
 import { calculateDoorPrice, calculateFramePrice, calculateWoodDoorPrice, calculateWoodFramePrice, calculatePlaswoodRailPrice, calculateGlassPrice } from './lib/calculations';
 import { subscribeCatalogue } from './lib/woodCatalogue';
 
-import type { SessionUser, PricingStructure, DoorFormData, FrameFormData, WoodDoorFormData, WoodFrameFormData, PlaswoodRailFormData, GlassFormData, PriceResult, TabInfo, CatalogueItem } from './types';
+import type { SessionUser, PricingStructure, DoorFormData, FrameFormData, WoodDoorFormData, WoodFrameFormData, PlaswoodRailFormData, GlassFormData, OpeningFormData, PriceResult, TabInfo, CatalogueItem } from './types';
 import {
   DEFAULT_PRICES, DEFAULT_DOOR_FORM, DEFAULT_FRAME_FORM, DEFAULT_WOOD_DOOR_FORM, DEFAULT_WOOD_FRAME_FORM,
-  DEFAULT_PLASWOOD_RAIL_FORM, DEFAULT_GLASS_FORM, DEFAULT_USERS_SEED, isFrameWithSub, FRAME_MATERIALS,
+  DEFAULT_PLASWOOD_RAIL_FORM, DEFAULT_GLASS_FORM, DEFAULT_OPENING_FORM, DEFAULT_USERS_SEED, isFrameWithSub, FRAME_MATERIALS,
 } from './constants';
 
 import { LoginScreen }                from './components/LoginScreen';
@@ -22,10 +22,12 @@ import { WoodDoorCalculator }         from './components/WoodDoorCalculator';
 import { WoodFrameCalculator }        from './components/WoodFrameCalculator';
 import { PlaswoodRailCalculator }     from './components/PlaswoodRailCalculator';
 import { GlassCalculator }            from './components/GlassCalculator';
+import { OpeningConverter }           from './components/OpeningConverter';
 import { PriceSummary }               from './components/PriceSummary';
 
 // ------------------------------------------------------------------
 const TABS: TabInfo[] = [
+  { id: 'opening',    label: 'ช่องปูน ↔ ประตู',       icon: BrickWall },
   { id: 'wood',       label: 'ประตูไม้',              icon: TreePine },
   { id: 'glass',      label: 'กระจก',                icon: Square   },
   { id: 'wood_frame', label: 'วงกบไม้',              icon: Layers   },
@@ -52,6 +54,7 @@ export default function App() {
   const [woodFrameForm,  setWoodFrameForm]  = useState<WoodFrameFormData>(DEFAULT_WOOD_FRAME_FORM);
   const [plaswoodForm,   setPlaswoodForm]   = useState<PlaswoodRailFormData>(DEFAULT_PLASWOOD_RAIL_FORM);
   const [glassForm,      setGlassForm]      = useState<GlassFormData>(DEFAULT_GLASS_FORM);
+  const [openingForm,    setOpeningForm]    = useState<OpeningFormData>(DEFAULT_OPENING_FORM);
   const [priceResult,    setPriceResult]    = useState<PriceResult>({ total: 0, surcharges: [] });
   const [catalogue,      setCatalogue]      = useState<CatalogueItem[]>([]);
 
@@ -296,6 +299,10 @@ export default function App() {
     setGlassForm(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleOpeningInput = (field: keyof OpeningFormData, value: string) => {
+    setOpeningForm(prev => ({ ...prev, [field]: value }));
+  };
+
   const handleOptionToggle = (optionKey: string) =>
     setDoorForm(prev => ({
       ...prev,
@@ -312,6 +319,7 @@ export default function App() {
     if (tabId === 'wood_frame') setWoodFrameForm(DEFAULT_WOOD_FRAME_FORM);
     if (tabId === 'plaswood')   setPlaswoodForm(DEFAULT_PLASWOOD_RAIL_FORM);
     if (tabId === 'glass')      setGlassForm(DEFAULT_GLASS_FORM);
+    if (tabId === 'opening')    setOpeningForm(DEFAULT_OPENING_FORM);
   };
 
   const handleLogout = () => { clearSession(); setCurrentUser(null); };
@@ -391,6 +399,9 @@ export default function App() {
               ))}
             </div>
 
+            {activeTab === 'opening' && (
+              <OpeningConverter form={openingForm} onInput={handleOpeningInput} />
+            )}
             {activeTab === 'wood' && (
               <WoodDoorCalculator form={woodForm} onInput={handleWoodInput} catalogue={catalogue} />
             )}
@@ -416,7 +427,8 @@ export default function App() {
             )}
           </div>
 
-          {/* Price summary */}
+          {/* Price summary — ซ่อนในแท็บช่องปูน (เป็นตัวแปลงขนาด ไม่มีราคา) */}
+          {activeTab !== 'opening' && (
           <PriceSummary
             activeTab={activeTab}
             doorForm={doorForm}
@@ -429,6 +441,7 @@ export default function App() {
             priceResult={priceResult}
             isPricesLoading={isPricesLoading}
           />
+          )}
         </div>
       </div>
     </div>

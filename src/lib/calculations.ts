@@ -3,8 +3,72 @@
 // B-2 FIX: TOA_h_under_200 / SVL_h_under_200 ถูกใช้จริงแล้ว
 // ------------------------------------------------------------------
 
-import type { DoorFormData, FrameFormData, WoodDoorFormData, WoodFrameFormData, PlaswoodRailFormData, GlassFormData, PricingStructure, PriceResult } from '../types';
-import { FRAME_MATERIALS, WOOD_CURVE_MODEL_IDS, WOOD_MODEL_NAMES, WOOD_TYPE_MULTIPLIER, WOOD_FRAME_SECTIONS, WOOD_FRAME_FACTOR, WOOD_GLASS_TYPES, WOOD_GLASS_NAMES, SQFT_PER_SQM, GLASS_LON_YAI_MAX_CM, PLASWOOD_RAIL_SIZES, PLASWOOD_RAIL_FINISH_NAMES, PLASWOOD_RAIL_MARGIN_PCT } from '../constants';
+import type { DoorFormData, FrameFormData, WoodDoorFormData, WoodFrameFormData, PlaswoodRailFormData, GlassFormData, PricingStructure, PriceResult, OpeningFormData, OpeningResult } from '../types';
+import { FRAME_MATERIALS, WOOD_CURVE_MODEL_IDS, WOOD_MODEL_NAMES, WOOD_TYPE_MULTIPLIER, WOOD_FRAME_SECTIONS, WOOD_FRAME_FACTOR, WOOD_GLASS_TYPES, WOOD_GLASS_NAMES, SQFT_PER_SQM, GLASS_LON_YAI_MAX_CM, PLASWOOD_RAIL_SIZES, PLASWOOD_RAIL_FINISH_NAMES, PLASWOOD_RAIL_MARGIN_PCT, OPENING_CALC } from '../constants';
+
+// ------------------------------------------------------------------
+// calculateOpening — แปลงระหว่างขนาดประตู ↔ ช่องปูน (ไม่มีราคา)
+//   โหมด fromDoor:    ประตู → ช่องปูน (ใช้ได้ทั้งไม้/uPVC — สูตรเดียวกัน)
+//   โหมด fromOpening: ช่องปูน → ประตู
+//     • ไม้  → ไสได้ ตรงตามสูตร
+//     • uPVC → ปัดประตูลงเป็นทวีคูณของ 5 (การันตีวงกบยัดเข้าได้) แล้วบอกระยะเก็บปูนเพิ่ม
+// ------------------------------------------------------------------
+const floorToStep = (n: number, step: number) => Math.floor(n / step) * step;
+
+export function calculateOpening(form: OpeningFormData): OpeningResult {
+  const C = OPENING_CALC;
+  const w = Number(form.width);
+  const h = Number(form.height);
+  if (!form.width || !form.height || !Number.isFinite(w) || !Number.isFinite(h) || w <= 0 || h <= 0) {
+    return { ok: false, error: 'กรุณากรอกขนาดกว้าง–สูง' };
+  }
+
+  // ประตู → ช่องปูน
+  if (form.mode === 'fromDoor') {
+    return {
+      ok: true,
+      doorW: w, doorH: h,
+      openingW: w + C.WIDTH_OFFSET,
+      openingH: h + C.HEIGHT_OFFSET,
+      frameW: w + C.FRAME_WIDTH_OFFSET,
+      frameH: h + C.FRAME_HEIGHT_OFFSET,
+    };
+  }
+
+  // ช่องปูน → ประตู
+  const rawDoorW = w - C.WIDTH_OFFSET;
+  const rawDoorH = h - C.HEIGHT_OFFSET;
+  if (rawDoorW < C.MIN_DOOR_W || rawDoorH < C.MIN_DOOR_H) {
+    return { ok: false, error: `ช่องปูนเล็กเกินไป (ประตูจะได้ต่ำกว่า ${C.MIN_DOOR_W}×${C.MIN_DOOR_H} cm)` };
+  }
+
+  // ไม้ — ไสได้ ไม่ต้องปัดเลข
+  if (form.material === 'wood') {
+    return {
+      ok: true,
+      openingW: w, openingH: h,
+      doorW: rawDoorW, doorH: rawDoorH,
+      frameW: rawDoorW + C.FRAME_WIDTH_OFFSET,
+      frameH: rawDoorH + C.FRAME_HEIGHT_OFFSET,
+    };
+  }
+
+  // uPVC/WPC — ปัดประตูลงเป็นทวีคูณของ 5
+  const doorW  = floorToStep(rawDoorW, C.STEP);
+  const doorH  = floorToStep(rawDoorH, C.STEP);
+  const frameW = doorW + C.FRAME_WIDTH_OFFSET;
+  const frameH = doorH + C.FRAME_HEIGHT_OFFSET;
+  return {
+    ok: true,
+    openingW: w, openingH: h,
+    doorW, doorH,
+    frameW, frameH,
+    fillSide:  (w - frameW) / 2,        // ต่อข้าง (รวม gap ยัดวงกบ)
+    fillTop:   h - doorH - C.HEIGHT_OFFSET, // = ช่องสูง − หัววงกบ − ลอยพื้น
+    floorLift: C.FLOOR_LIFT,
+    rounded:   doorW !== rawDoorW || doorH !== rawDoorH,
+  };
+}
 
 // ------------------------------------------------------------------
 // computeGlassCost — core logic ราคากระจก (หลักการเดิม ใช้ร่วมกัน)

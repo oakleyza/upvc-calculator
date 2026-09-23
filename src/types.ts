@@ -108,6 +108,27 @@ export interface GlassFormData {
   glassHeight: string;
 }
 
+/** เครื่องคำนวณช่องปูน ↔ ขนาดประตู (ไม่มีราคา) */
+export interface OpeningFormData {
+  mode: 'fromDoor' | 'fromOpening'; // แจ้งประตู→ช่องปูน | แจ้งช่องปูน→ประตู
+  material: 'wood' | 'upvc';        // ใช้เฉพาะโหมด fromOpening
+  width: string;
+  height: string;
+}
+
+export interface OpeningResult {
+  ok: boolean;
+  error?: string;
+  doorW?: number;    doorH?: number;    // ขนาดประตู
+  openingW?: number; openingH?: number; // ขนาดช่องปูน
+  frameW?: number;   frameH?: number;   // วงกบวัดนอก (วางพื้น ยังไม่ยกลอย)
+  // เฉพาะ fromOpening + uPVC/WPC (ประตูถูกปัดลง จึงต้องเก็บปูนเพิ่ม)
+  fillSide?: number;  // เก็บปูนเพิ่มต่อข้าง (ซ้าย/ขวา)
+  fillTop?: number;   // เก็บปูนเพิ่มด้านบน
+  floorLift?: number; // ระยะลอยพื้น (ปกติ ไม่ต้องเก็บ)
+  rounded?: boolean;  // ประตูถูกปัดลงเป็น 0/5 หรือไม่
+}
+
 export interface UserAccount {
   id: string;
   username: string;
