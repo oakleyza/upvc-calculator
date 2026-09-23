@@ -164,7 +164,6 @@ export const FrameCalculator: React.FC<Props> = ({ form, onInput }) => {
             </div>
             <div>
               <span className="text-sm font-medium text-slate-700">เซาะร่องใส่ซีลยาง</span>
-              <p className="text-[11px] text-slate-400">เฉพาะรุ่น Adjust Eco — เรทเดียวทุกขนาด</p>
             </div>
           </div>
         </div>
