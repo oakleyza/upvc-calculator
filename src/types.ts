@@ -121,12 +121,13 @@ export interface OpeningResult {
   error?: string;
   doorW?: number;    doorH?: number;    // ขนาดประตู
   openingW?: number; openingH?: number; // ขนาดช่องปูน
-  frameW?: number;   frameH?: number;   // วงกบวัดนอก (วางพื้น ยังไม่ยกลอย)
-  // เฉพาะ fromOpening + uPVC/WPC (ประตูถูกปัดลง จึงต้องเก็บปูนเพิ่ม)
-  fillSide?: number;  // เก็บปูนเพิ่มต่อข้าง (ซ้าย/ขวา)
-  fillTop?: number;   // เก็บปูนเพิ่มด้านบน
-  floorLift?: number; // ระยะลอยพื้น (ปกติ ไม่ต้องเก็บ)
-  rounded?: boolean;  // ประตูถูกปัดลงเป็น 0/5 หรือไม่
+  frameW?: number;   frameH?: number;   // วงกบวัดนอก (ไม่ไสบาน)
+  // เฉพาะ fromOpening + uPVC/WPC
+  fillSide?: number;   // เก็บปูนเพิ่มต่อข้าง (ซ้าย/ขวา) — 0 ถ้าพอดีเป๊ะ
+  fillTop?: number;    // เก็บปูนเพิ่มด้านบน — 0 ถ้าพอดีเป๊ะ
+  floorLift?: number;  // ระยะลอยพื้น (ปกติ ไม่ต้องเก็บ)
+  notes?: string[];    // ข้อความให้พนักงานแจ้งลูกค้า
+  shaveHint?: string;  // ทางเลือกสุดท้าย: ขยับขึ้น 1 ไซส์ด้วยการไสบาน (ถ้ามี)
 }
 
 export interface UserAccount {

@@ -129,20 +129,28 @@ export const OpeningConverter: React.FC<Props> = ({ form, onInput }) => {
               <Stat label="วงกบวัดนอก" value={`${fmt(result.frameW!)} × ${fmt(result.frameH!)}`} />
             </div>
 
-            {isUpvc && result.rounded && (
-              <div className="mt-4 bg-amber-50 border border-amber-200 rounded-lg p-4">
-                <p className="text-sm font-semibold text-amber-800 mb-2 flex items-center gap-1.5">
-                  <Info className="w-4 h-4" /> ประตูถูกปัดลงเป็นเลข 0/5 — ลูกค้าต้องเก็บช่องปูนเพิ่ม
-                </p>
-                <ul className="text-sm text-amber-900 space-y-1">
-                  <li>• ด้านข้าง (ซ้าย–ขวา): ข้างละ <b>{fmt(result.fillSide!)} cm</b></li>
-                  <li>• ด้านบน: <b>{fmt(result.fillTop!)} cm</b></li>
-                  <li className="text-amber-700">• ด้านล่าง: ลอยพื้น ~{fmt(result.floorLift!)} cm (ปกติ ไม่ต้องเก็บ)</li>
-                </ul>
-              </div>
-            )}
-            {isUpvc && !result.rounded && (
-              <Note>ช่องปูนนี้ลงตัวพอดี ไม่ต้องเก็บปูนเพิ่ม (เหลือ gap ยัดวงกบข้างละ {fmt(result.fillSide!)} cm ตามปกติ)</Note>
+            {/* หมายเหตุการติดตั้ง (เฉพาะ uPVC) */}
+            {isUpvc && (() => {
+              const warn = (result.notes?.length ?? 0) > 0;
+              return (
+                <div className={`mt-4 rounded-lg p-4 border ${warn ? 'bg-amber-50 border-amber-200' : 'bg-slate-50 border-slate-200'}`}>
+                  <p className={`text-sm font-semibold mb-2 flex items-center gap-1.5 ${warn ? 'text-amber-800' : 'text-slate-600'}`}>
+                    <Info className="w-4 h-4" /> {warn ? 'ต้องแจ้งลูกค้าก่อนสั่ง' : 'การติดตั้ง'}
+                  </p>
+                  <ul className={`text-sm space-y-1.5 ${warn ? 'text-amber-900' : 'text-slate-600'}`}>
+                    {result.notes?.map((n, i) => <li key={i}>{n}</li>)}
+                    <li className={warn ? 'text-amber-700' : 'text-slate-500'}>
+                      เก็บปูนเพิ่ม: ข้าง <b>{fmt(result.fillSide!)}</b> cm/ข้าง · บน <b>{fmt(result.fillTop!)}</b> cm · ล่างลอยพื้น ~{fmt(result.floorLift!)} cm (ไม่ต้องเก็บ)
+                    </li>
+                  </ul>
+                </div>
+              );
+            })()}
+            {/* ทางเลือกสุดท้าย: ไสบานขึ้น 1 ไซส์ */}
+            {isUpvc && result.shaveHint && (
+              <p className="mt-3 text-xs text-slate-400 flex items-start gap-1.5">
+                <ArrowLeftRight className="w-3.5 h-3.5 mt-0.5 shrink-0" /> <span>{result.shaveHint}</span>
+              </p>
             )}
             {!isUpvc && (
               <Note>ประตูไม้ไสได้ จึงตัดตรงตามช่องปูน (ช่องกว้าง −7, สูง −4)</Note>

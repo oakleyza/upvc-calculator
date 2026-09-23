@@ -11,6 +11,7 @@ export const OPENING_CALC = {
   FRAME_WIDTH_OFFSET:  6, // วงกบวัดนอกกว้าง = ประตูกว้าง + 6
   FRAME_HEIGHT_OFFSET: 3, // วงกบวัดนอกสูง (วางพื้น) = ประตูสูง + 3
   FLOOR_LIFT:          1, // ยกลอยพื้น
+  MAX_SHAVE:           1, // ไสบาน uPVC/WPC ได้รวม 1cm (กว้าง=ข้างละ 0.5 / สูง=1) ถ้าจำเป็น
   STEP:                5, // ประตู uPVC/WPC ต้องลงท้าย 0 หรือ 5
   MIN_DOOR_W:         40, // กันช่องปูนเล็กเกินไป
   MIN_DOOR_H:        150,

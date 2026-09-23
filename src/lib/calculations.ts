@@ -36,14 +36,13 @@ export function calculateOpening(form: OpeningFormData): OpeningResult {
   }
 
   // ช่องปูน → ประตู
-  const rawDoorW = w - C.WIDTH_OFFSET;
-  const rawDoorH = h - C.HEIGHT_OFFSET;
-  if (rawDoorW < C.MIN_DOOR_W || rawDoorH < C.MIN_DOOR_H) {
-    return { ok: false, error: `ช่องปูนเล็กเกินไป (ประตูจะได้ต่ำกว่า ${C.MIN_DOOR_W}×${C.MIN_DOOR_H} cm)` };
-  }
-
   // ไม้ — ไสได้ ไม่ต้องปัดเลข
   if (form.material === 'wood') {
+    const rawDoorW = w - C.WIDTH_OFFSET;
+    const rawDoorH = h - C.HEIGHT_OFFSET;
+    if (rawDoorW < C.MIN_DOOR_W || rawDoorH < C.MIN_DOOR_H) {
+      return { ok: false, error: `ช่องปูนเล็กเกินไป (ประตูจะได้ต่ำกว่า ${C.MIN_DOOR_W}×${C.MIN_DOOR_H} cm)` };
+    }
     return {
       ok: true,
       openingW: w, openingH: h,
@@ -53,20 +52,52 @@ export function calculateOpening(form: OpeningFormData): OpeningResult {
     };
   }
 
-  // uPVC/WPC — ปัดประตูลงเป็นทวีคูณของ 5
-  const doorW  = floorToStep(rawDoorW, C.STEP);
-  const doorH  = floorToStep(rawDoorH, C.STEP);
-  const frameW = doorW + C.FRAME_WIDTH_OFFSET;
+  // uPVC/WPC — เลือกประตู (ทวีคูณ 5) ตัวใหญ่สุดที่ใส่ได้ "โดยไม่ต้องไสบาน"
+  //   กว้าง: วงกบ (door+6) ≤ ช่อง        → door = floor5(ช่อง − 6)   [+6 พอดี = กระแทก]
+  //   สูง:   วงกบวางพื้น (door+3) + ลอย 1 ≤ ช่อง → door = floor5(ช่อง − 4)
+  const doorW = floorToStep(w - C.FRAME_WIDTH_OFFSET, C.STEP);
+  const doorH = floorToStep(h - C.HEIGHT_OFFSET, C.STEP);
+  if (doorW < C.MIN_DOOR_W || doorH < C.MIN_DOOR_H) {
+    return { ok: false, error: `ช่องปูนเล็กเกินไป (ประตูจะได้ต่ำกว่า ${C.MIN_DOOR_W}×${C.MIN_DOOR_H} cm)` };
+  }
+
+  const frameW = doorW + C.FRAME_WIDTH_OFFSET;   // วงกบวัดนอก
   const frameH = doorH + C.FRAME_HEIGHT_OFFSET;
+  const fillSide = (w - frameW) / 2;             // เก็บปูนต่อข้าง
+  const fillTop  = h - (doorH + C.HEIGHT_OFFSET); // = ช่องสูง − หัววงกบ − ลอยพื้น
+
+  const nf = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
+  const notes: string[] = [];
+  if (fillSide < 0.001)
+    notes.push('↔ วงกบด้านกว้างพอดีช่องเป๊ะ (ไม่มีร่องเผื่อ) อาจต้องกระแทกเข้าเล็กน้อย');
+  if (fillTop < 0.001)
+    notes.push(`↕ ความสูงพอดีช่องเป๊ะ วงกบชนคานบน (ลอยพื้น ${nf(C.FLOOR_LIFT)} cm)`);
+
+  // ทางเลือกสุดท้าย: ขยับขึ้นอีก 1 ไซส์ได้ ถ้ายอมไสบานพอดี ≤1cm (เลี่ยงได้ไม่แนะนำ)
+  //   กว้าง: (door+5)+6−1 ≤ ช่อง  → ช่องลงท้าย 0/5
+  //   สูง:   (door+5)+3+1−1 ≤ ช่อง → ช่องลงท้าย 3/8
+  const canUpW = (doorW + C.STEP) + C.FRAME_WIDTH_OFFSET  - C.MAX_SHAVE <= w;
+  const canUpH = (doorH + C.STEP) + C.FRAME_HEIGHT_OFFSET + C.FLOOR_LIFT - C.MAX_SHAVE <= h;
+  let shaveHint: string | undefined;
+  if (canUpW || canUpH) {
+    const aw = canUpW ? doorW + C.STEP : doorW;
+    const ah = canUpH ? doorH + C.STEP : doorH;
+    const how = [
+      canUpW && 'ไสด้านกว้างข้างละ 0.5 cm',
+      canUpH && 'ไสด้านสูง 1 cm',
+    ].filter(Boolean).join(' + ');
+    shaveHint = `ถ้าต้องการประตูใหญ่ขึ้นเป็น ${aw}×${ah} cm ก็ได้ แต่ต้อง${how} (ทางเลือกสุดท้าย เลี่ยงได้ไม่แนะนำ)`;
+  }
+
   return {
     ok: true,
     openingW: w, openingH: h,
     doorW, doorH,
     frameW, frameH,
-    fillSide:  (w - frameW) / 2,        // ต่อข้าง (รวม gap ยัดวงกบ)
-    fillTop:   h - doorH - C.HEIGHT_OFFSET, // = ช่องสูง − หัววงกบ − ลอยพื้น
+    fillSide, fillTop,
     floorLift: C.FLOOR_LIFT,
-    rounded:   doorW !== rawDoorW || doorH !== rawDoorH,
+    notes,
+    shaveHint,
   };
 }
 
