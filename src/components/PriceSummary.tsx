@@ -300,6 +300,12 @@ export const PriceSummary: React.FC<Props> = ({
                       {frameForm.surfaceType === 'none' ? 'ไม่ทำสี (งานดิบ)' : frameForm.surfaceType}
                     </span>
                   </div>
+                  {frameForm.rubberSeal && (
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">เซาะร่องซีลยาง</span>
+                      <span className="font-medium">มี</span>
+                    </div>
+                  )}
                 </>
               )}
 

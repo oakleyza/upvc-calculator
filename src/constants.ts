@@ -481,6 +481,7 @@ export const LABEL_MAP: Record<string, string> = {
   'eco_svl_h_200_210': 'Adjust Eco — ค่าปิดผิว SVL (สูง 200–210 cm)',
   'eco_svl_h_211_220': 'Adjust Eco — ค่าปิดผิว SVL (สูง 211–220 cm)',
   'eco_svl_h_221_240': 'Adjust Eco — ค่าปิดผิว SVL (สูง 221–240 cm)',
+  'eco_rubber_seal': 'Adjust Eco — เซาะร่องใส่ซีลยาง (เรทเดียวทุกขนาด)',
 };
 
 // ------------------------------------------------------------------
@@ -520,6 +521,7 @@ export const DEFAULT_PRICES: PricingStructure = {
     'eco_std_70': 0, 'eco_std_80': 0, 'eco_std_90': 0,
     'eco_w_81_90': 80, 'eco_w_91_140': 200, 'eco_w_141_180': 280,
     'eco_h_201_210': 200, 'eco_h_211_220': 400, 'eco_h_221_240': 600, 'eco_h_under_200': 200,
+    'eco_rubber_seal': 0,   // เซาะร่องใส่ซีลยาง — เรทเดียวทุกขนาด (เจ้าของกรอกเอง)
     'bsx_std_70': 0, 'bsx_std_80': 0, 'bsx_std_90': 0,
     'bsx_w_81_90': 0, 'bsx_w_91_140': 0, 'bsx_w_141_180': 0,
     'bsx_h_under_200': 200, 'bsx_h_201_210': 0, 'bsx_h_211_220': 0, 'bsx_h_221_240': 0,
@@ -686,6 +688,7 @@ export const DEFAULT_FRAME_FORM: FrameFormData = {
   customWidth: '',
   customHeight: '',
   surfaceType: 'TOA',
+  rubberSeal: false,
 };
 
 export const DEFAULT_WOOD_DOOR_FORM: WoodDoorFormData = {

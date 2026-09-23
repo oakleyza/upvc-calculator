@@ -80,6 +80,7 @@ export interface FrameFormData {
   customWidth: string;
   customHeight: string;
   surfaceType: string;
+  rubberSeal: boolean;   // เซาะร่องใส่ซีลยาง (เฉพาะ Adjust Eco) — เรทเดียวทุกขนาด
 }
 
 export interface WoodFrameFormData {

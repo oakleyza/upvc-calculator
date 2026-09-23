@@ -779,6 +779,10 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, catalogue, on
                   {Object.keys(localPrices.frame_size).filter(k => k.startsWith('eco_h_')).map(k => renderInput('frame_size', k))}
                 </div>
                 <div className="bg-white p-4 rounded-lg shadow-sm border md:col-span-2">
+                  <h4 className="font-bold text-emerald-600 mb-3 pb-2 border-b">ตัวเลือกเพิ่มเติม (เรทเดียวทุกขนาด)</h4>
+                  {renderInput('frame_size', 'eco_rubber_seal')}
+                </div>
+                <div className="bg-white p-4 rounded-lg shadow-sm border md:col-span-2">
                   <h4 className="font-bold text-purple-600 mb-3 pb-2 border-b">ราคาทำสี/ผิว (Eco)</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="bg-orange-50 p-3 rounded">

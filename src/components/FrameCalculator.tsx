@@ -5,7 +5,7 @@ import { FRAME_MATERIALS, isFrameWithSub } from '../constants';
 
 interface Props {
   form: FrameFormData;
-  onInput: (field: keyof FrameFormData, value: string) => void;
+  onInput: (field: keyof FrameFormData, value: string | boolean) => void;
 }
 
 export const FrameCalculator: React.FC<Props> = ({ form, onInput }) => {
@@ -145,6 +145,30 @@ export const FrameCalculator: React.FC<Props> = ({ form, onInput }) => {
           })}
         </div>
       </div>
+
+      {/* เซาะร่องใส่ซีลยาง — เฉพาะ Adjust Eco */}
+      {form.frameMaterial === FRAME_MATERIALS.ADJUST_ECO && (
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+          <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
+            <Maximize className="w-5 h-5 text-emerald-600" /> ตัวเลือกเพิ่มเติม
+          </h3>
+          <div
+            onClick={() => onInput('rubberSeal', !form.rubberSeal)}
+            className={`cursor-pointer p-4 rounded-lg border-2 transition-all flex items-center gap-3 ${
+              form.rubberSeal ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200'
+            }`}>
+            <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+              form.rubberSeal ? 'bg-emerald-500 border-emerald-500' : 'border-slate-300'
+            }`}>
+              {form.rubberSeal && <span className="text-white text-xs leading-none">✓</span>}
+            </div>
+            <div>
+              <span className="text-sm font-medium text-slate-700">เซาะร่องใส่ซีลยาง</span>
+              <p className="text-[11px] text-slate-400">เฉพาะรุ่น Adjust Eco — เรทเดียวทุกขนาด</p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

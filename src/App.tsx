@@ -10,7 +10,7 @@ import { subscribeCatalogue } from './lib/woodCatalogue';
 import type { SessionUser, PricingStructure, DoorFormData, FrameFormData, WoodDoorFormData, WoodFrameFormData, PlaswoodRailFormData, GlassFormData, PriceResult, TabInfo, CatalogueItem } from './types';
 import {
   DEFAULT_PRICES, DEFAULT_DOOR_FORM, DEFAULT_FRAME_FORM, DEFAULT_WOOD_DOOR_FORM, DEFAULT_WOOD_FRAME_FORM,
-  DEFAULT_PLASWOOD_RAIL_FORM, DEFAULT_GLASS_FORM, DEFAULT_USERS_SEED, isFrameWithSub,
+  DEFAULT_PLASWOOD_RAIL_FORM, DEFAULT_GLASS_FORM, DEFAULT_USERS_SEED, isFrameWithSub, FRAME_MATERIALS,
 } from './constants';
 
 import { LoginScreen }                from './components/LoginScreen';
@@ -178,9 +178,13 @@ export default function App() {
 
   // Auto-switch: วงกบที่ไม่มีซับ → SVL ไม่ได้
   useEffect(() => {
-    if (!isFrameWithSub(frameForm.frameMaterial) && frameForm.surfaceType === 'SVL') {
-      setFrameForm(prev => ({ ...prev, surfaceType: 'TOA' }));
-    }
+    setFrameForm(prev => {
+      let next = prev;
+      if (!isFrameWithSub(prev.frameMaterial) && prev.surfaceType === 'SVL') next = { ...next, surfaceType: 'TOA' };
+      // เซาะร่องใส่ซีลยาง มีเฉพาะ Adjust Eco — เปลี่ยนรุ่นอื่นให้รีเซ็ต
+      if (prev.frameMaterial !== FRAME_MATERIALS.ADJUST_ECO && prev.rubberSeal) next = { ...next, rubberSeal: false };
+      return next;
+    });
   }, [frameForm.frameMaterial]);
 
   // Auto-switch: SVL → ติดคิ้วไม่ได้ + ถ้า width > 95 → reset เซาะร่อง (เพราะไม่ต้องบังคับแล้ว)
@@ -272,7 +276,7 @@ export default function App() {
     setDoorForm(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleFrameInput = (field: keyof FrameFormData, value: string) => {
+  const handleFrameInput = (field: keyof FrameFormData, value: string | boolean) => {
     setFrameForm(prev => ({ ...prev, [field]: value }));
   };
 

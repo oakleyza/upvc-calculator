@@ -318,6 +318,12 @@ export const calculateFramePrice = (form: FrameFormData, prices: PricingStructur
       else if (height <= 220) { const p = getSurf('eco_svl_h_211_220');   price += p; if (p) surcharges.push(`Eco: SVL 211-220cm (+฿${p.toLocaleString()})`); }
       else                    { const p = getSurf('eco_svl_h_221_240');   price += p; if (p) surcharges.push(`Eco: SVL 221-240cm (+฿${p.toLocaleString()})`); }
     }
+    // เซาะร่องใส่ซีลยาง — เรทเดียวทุกขนาด (เฉพาะ Adjust Eco)
+    if (form.rubberSeal) {
+      const p = getSize('eco_rubber_seal');
+      price += p;
+      if (p) surcharges.push(`Eco: เซาะร่องใส่ซีลยาง (+฿${p.toLocaleString()})`);
+    }
   }
 
   return { total: price, surcharges };
