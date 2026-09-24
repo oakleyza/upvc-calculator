@@ -202,6 +202,11 @@ export const WOOD_FRAME_SECTION_MAX: Record<string, number> = {
 // ค่าคงที่แปลงปริมาตรไม้ (หน้าตัดนิ้ว² × ยาวเมตร × factor = คิว)
 export const WOOD_FRAME_FACTOR = 0.0228;
 
+// สเตปความยาวไม้ที่ซื้อได้ (cm, วัดนอก) — ไม้ถูกหั่นไว้แล้วเป็นระยะ
+export const WOOD_STOCK_STEPS = [100, 210, 250, 300];
+// ระยะเผื่อวัดใน → วัดนอก (ความกว้างไม้) ก่อนเลือกสเตป
+export const WOOD_FRAME_INNER_OUTER_GAP = 7;
+
 // ไม้ที่คิดราคาแบบต่อเมตร (สะเดา = ราคาเหมา ไม่อยู่ในเซ็ตนี้)
 export const WOOD_FRAME_METER_TYPES = new Set(['pluang', 'teng', 'daeng', 'curve_pluang']);
 

@@ -4,7 +4,19 @@
 // ------------------------------------------------------------------
 
 import type { DoorFormData, FrameFormData, WoodDoorFormData, WoodFrameFormData, PlaswoodRailFormData, GlassFormData, PricingStructure, PriceResult, OpeningFormData, OpeningResult } from '../types';
-import { FRAME_MATERIALS, WOOD_CURVE_MODEL_IDS, WOOD_MODEL_NAMES, WOOD_TYPE_MULTIPLIER, WOOD_FRAME_SECTIONS, WOOD_FRAME_FACTOR, WOOD_GLASS_TYPES, WOOD_GLASS_NAMES, SQFT_PER_SQM, GLASS_LON_YAI_MAX_CM, PLASWOOD_RAIL_SIZES, PLASWOOD_RAIL_FINISH_NAMES, PLASWOOD_RAIL_MARGIN_PCT, OPENING_CALC } from '../constants';
+import { FRAME_MATERIALS, WOOD_CURVE_MODEL_IDS, WOOD_MODEL_NAMES, WOOD_TYPE_MULTIPLIER, WOOD_FRAME_SECTIONS, WOOD_FRAME_FACTOR, WOOD_GLASS_TYPES, WOOD_GLASS_NAMES, SQFT_PER_SQM, GLASS_LON_YAI_MAX_CM, PLASWOOD_RAIL_SIZES, PLASWOOD_RAIL_FINISH_NAMES, PLASWOOD_RAIL_MARGIN_PCT, OPENING_CALC, WOOD_STOCK_STEPS, WOOD_FRAME_INNER_OUTER_GAP } from '../constants';
+
+// ------------------------------------------------------------------
+// stockLength — ความยาวไม้ที่ต้องซื้อจริง (cm) จากท่อนที่ยาว outerCm
+//   ไม้หั่นเป็นสเตป [100,210,250,300] · ปัดขึ้นสเตปเล็กสุดที่ ≥ ท่อน
+//   เกิน 300 → ต่อไม้ (300 + สเตปของส่วนที่เหลือ)
+// ------------------------------------------------------------------
+const stockLength = (outerCm: number): number => {
+  if (outerCm <= 0) return 0;
+  const maxStep = WOOD_STOCK_STEPS[WOOD_STOCK_STEPS.length - 1];
+  if (outerCm > maxStep) return maxStep + stockLength(outerCm - maxStep);
+  return WOOD_STOCK_STEPS.find(s => s >= outerCm) ?? maxStep;
+};
 
 // ------------------------------------------------------------------
 // calculateOpening — แปลงระหว่างขนาดประตู ↔ ช่องปูน (ไม่มีราคา)
@@ -585,20 +597,24 @@ export const calculateWoodFramePrice = (form: WoodFrameFormData, prices: Pricing
     return { total: 0, surcharges: ['กรุณากรอกขนาดกว้าง × สูง'] };
   }
 
-  // ความยาวรวมทุกท่อน (เมตร)
-  let L = (W + 2 * H) / 100;                       // โครงหลัก: บน + ซ้าย + ขวา
-  if (form.threshold) L += W / 100;                // ธรณี
+  // เก็บทุกท่อน (ความยาววัดใน cm) — ใช้ 2 แบบ:
+  //   ค่าสี = ความยาวจริงของวงกบ · ค่าไม้ = ปัดขึ้นสเตปไม้ที่ซื้อได้ ทีละท่อน (+7 วัดใน→วัดนอก)
+  const pieces: number[] = [W, H, H];              // โครงหลัก: บน + ซ้าย + ขวา
+  if (form.threshold) pieces.push(W);              // ธรณี
   const addSidelight = (on: boolean, w: string, h: string, n: string) => {
     if (!on) return;
     const sw = num(w), sh = num(h);
-    L += (sh + 2 * sw) / 100;                       // ข้าง + บน + ล่าง
+    pieces.push(sh, sw, sw);                        // ข้าง + บน + ล่าง
     // เอ็นขั้นกลาง: N ช่อง → (N-1) เส้น ยาว = ด้านสั้นของช่องแสง
     const count = Math.max(1, Math.min(10, Math.round(num(n) || 1)));
-    if (count >= 2) L += (Math.min(sw, sh) * (count - 1)) / 100;
+    for (let i = 0; i < count - 1; i++) pieces.push(Math.min(sw, sh));
   };
   addSidelight(form.slLeft,  form.slLeftW,  form.slLeftH,  form.slLeftN);
   addSidelight(form.slRight, form.slRightW, form.slRightH, form.slRightN);
   addSidelight(form.slTop,   form.slTopW,   form.slTopH,   form.slTopN);
+
+  const Lactual = pieces.reduce((a, l) => a + l, 0) / 100;                                                // ยาวจริง (ค่าสี)
+  const Lstock  = pieces.reduce((a, l) => a + stockLength(l + WOOD_FRAME_INNER_OUTER_GAP), 0) / 100;      // ไม้ที่ซื้อ (ค่าไม้)
 
   const cube      = prices.wood_frame_rate?.[`cube_${form.frameType}`] ?? 0;
   const marginPct = prices.wood_frame_rate?.['margin_pct'] ?? 0;
@@ -608,9 +624,9 @@ export const calculateWoodFramePrice = (form: WoodFrameFormData, prices: Pricing
     return { total: 0, surcharges: ['ยังไม่ได้ตั้งต้นทุนไม้ชนิดนี้ — กรุณาสอบถามราคา'] };
   }
 
-  const cost     = area * L * WOOD_FRAME_FACTOR * cube;              // ต้นทุนไม้
-  const woodSale = round100(cost * (1 + marginPct / 100));           // ค่าไม้ขาย (ปัดขึ้นหลักร้อย)
-  const paint    = form.painted ? round100(perim * L * paintRate) : 0;  // ค่าสี (ปัดขึ้นหลักร้อย)
+  const cost     = area * Lstock * WOOD_FRAME_FACTOR * cube;             // ต้นทุนไม้ (ตามสเตปไม้ที่ซื้อ)
+  const woodSale = round100(cost * (1 + marginPct / 100));              // ค่าไม้ขาย (ปัดขึ้นหลักร้อย)
+  const paint    = form.painted ? round100(perim * Lactual * paintRate) : 0;  // ค่าสี (ยาวจริง)
 
   // ค่ากระจกช่องแสง (แต่ละช่องแสงเป็น 1 แผ่น)
   const glassPanes: { w: number; h: number }[] = [];
@@ -621,7 +637,7 @@ export const calculateWoodFramePrice = (form: WoodFrameFormData, prices: Pricing
 
   const total = woodSale + paint + glass;
 
-  surcharges.push(`ความยาวรวม ${L.toFixed(2)} ม. · หน้าตัด ${sec.label}`);
+  surcharges.push(`วงกบยาว ${Lactual.toFixed(2)} ม. · ไม้ตัดสเตป ${Lstock.toFixed(2)} ม. · ${sec.label}`);
   surcharges.push(`ค่าไม้ ฿${woodSale.toLocaleString()}`);
   if (form.painted) surcharges.push(`ค่าสี ฿${paint.toLocaleString()}`);
   if (glass) surcharges.push(`ค่ากระจกช่องแสง ฿${glass.toLocaleString()}`);
