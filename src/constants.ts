@@ -157,6 +157,9 @@ export const WOOD_GLASS_TYPES = [
   { id: 'tint_6',  label: 'ฝ้า/เขียว/ชาดำ 6มม.', rateKey: 'tint_6' },
 ] as const;
 
+// key กำไร % แยกตามชนิดกระจก ใน glass_rate (เช่น margin_clear_5)
+export const glassMarginKey = (glassTypeId: string) => `margin_${glassTypeId}`;
+
 // ด้านยาวสุดของแผ่นลอนใหญ่ที่ยังได้เรทถูก (เกินกว่านี้ใช้เรทแพง)
 export const GLASS_LON_YAI_MAX_CM = 244;
 
@@ -485,6 +488,12 @@ export const LABEL_MAP: Record<string, string> = {
   'clear_6':       'ใส 6มม. (/ตร.ฟุต)',
   'tint_5':        'ฝ้า/เขียว/ชาดำ 5มม. (/ตร.ฟุต)',
   'tint_6':        'ฝ้า/เขียว/ชาดำ 6มม. (/ตร.ฟุต)',
+  'margin_lon_yai': 'กำไร ลอนใหญ่ (%)',
+  'margin_lon_lek': 'กำไร ลอนเล็ก (%)',
+  'margin_clear_5': 'กำไร ใส 5มม. (%)',
+  'margin_clear_6': 'กำไร ใส 6มม. (%)',
+  'margin_tint_5':  'กำไร ฝ้า/เขียว/ชาดำ 5มม. (%)',
+  'margin_tint_6':  'กำไร ฝ้า/เขียว/ชาดำ 6มม. (%)',
   // === Adjust Eco ===
   'eco_std_70': 'Adjust Eco — ไซส์มาตรฐาน 70×200 (ไม่มีค่าเพิ่ม)',
   'eco_std_80': 'Adjust Eco — ไซส์มาตรฐาน 80×200 (ไม่มีค่าเพิ่ม)',
@@ -670,7 +679,7 @@ export const DEFAULT_PRICES: PricingStructure = {
     clear_6: 60,
     tint_5:  60,          // ฝ้า/เขียว/ชาดำ 5มม.
     tint_6:  70,          // ฝ้า/เขียว/ชาดำ 6มม.
-    margin_pct: 50,       // กำไรกระจก +50%
+    margin_pct: 50,       // กำไรกระจก +50% (ค่าเริ่มต้นของชนิดที่ยังไม่ได้ตั้ง margin_{id} แยก)
   },
   plaswood_rail: buildPlaswoodRailDefaults(),
   structure: {}, size: {}, surface: {},

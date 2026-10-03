@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------
 
 import type { DoorFormData, FrameFormData, WoodDoorFormData, WoodFrameFormData, PlaswoodRailFormData, GlassFormData, PricingStructure, PriceResult, OpeningFormData, OpeningResult } from '../types';
-import { FRAME_MATERIALS, WOOD_CURVE_MODEL_IDS, WOOD_MODEL_NAMES, WOOD_TYPE_MULTIPLIER, WOOD_FRAME_SECTIONS, WOOD_FRAME_FACTOR, WOOD_GLASS_TYPES, WOOD_GLASS_NAMES, SQFT_PER_SQM, GLASS_LON_YAI_MAX_CM, PLASWOOD_RAIL_SIZES, PLASWOOD_RAIL_FINISH_NAMES, PLASWOOD_RAIL_MARGIN_PCT, OPENING_CALC, WOOD_STOCK_STEPS, WOOD_FRAME_INNER_OUTER_GAP } from '../constants';
+import { FRAME_MATERIALS, WOOD_CURVE_MODEL_IDS, WOOD_MODEL_NAMES, WOOD_TYPE_MULTIPLIER, WOOD_FRAME_SECTIONS, WOOD_FRAME_FACTOR, WOOD_GLASS_TYPES, WOOD_GLASS_NAMES, glassMarginKey, SQFT_PER_SQM, GLASS_LON_YAI_MAX_CM, PLASWOOD_RAIL_SIZES, PLASWOOD_RAIL_FINISH_NAMES, PLASWOOD_RAIL_MARGIN_PCT, OPENING_CALC, WOOD_STOCK_STEPS, WOOD_FRAME_INNER_OUTER_GAP } from '../constants';
 
 // ------------------------------------------------------------------
 // stockLength — ความยาวไม้ที่ต้องซื้อจริง (cm) จากท่อนที่ยาว outerCm
@@ -113,9 +113,14 @@ export function calculateOpening(form: OpeningFormData): OpeningResult {
   };
 }
 
+// กำไร % ของกระจกแต่ละชนิด (glass_rate.margin_{id})
+//   ยังไม่เคยตั้งแยก → ใช้ margin_pct (กำไรรวมแบบเดิม) เป็นค่าเริ่มต้น
+export const getGlassMarginPct = (prices: PricingStructure, glassTypeId: string): number =>
+  prices.glass_rate?.[glassMarginKey(glassTypeId)] ?? prices.glass_rate?.['margin_pct'] ?? 0;
+
 // ------------------------------------------------------------------
 // computeGlassCost — core logic ราคากระจก (หลักการเดิม ใช้ร่วมกัน)
-//   ต้นทุน/ตร.ฟุต × พื้นที่(ตร.ฟุต) × (1+กำไร%) → ปัดขึ้นหลักร้อย
+//   ต้นทุน/ตร.ฟุต × พื้นที่(ตร.ฟุต) × (1+กำไร% ของชนิดนั้น) → ปัดขึ้นหลักร้อย
 //   ลอนใหญ่: เรทขึ้นกับด้านยาวสุดของแผ่น (≤244cm = ถูก)
 //   panes: ขนาดแผ่น (cm) หลายแผ่นได้ (วงกบมีหลายช่องแสง)
 //   เรทกระจก (glass_rate) ใช้ชุดเดียวกันทั้งประตูไม้/วงกบไม้ (หลังบ้าน tab "กระจก")
@@ -128,7 +133,7 @@ const computeGlassCost = (
   if (!glassType || glassType === 'none') return 0;
   const type = WOOD_GLASS_TYPES.find(g => g.id === glassType);
   if (!type) return 0;
-  const marginPct = prices.glass_rate?.['margin_pct'] ?? 0;
+  const marginPct = getGlassMarginPct(prices, type.id);
 
   let cost = 0;
   for (const p of panes) {

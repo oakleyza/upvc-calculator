@@ -1,7 +1,8 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { X, Save, Database, Tag, Maximize, Palette, LayoutDashboard, Hammer, ShieldAlert, GripVertical, Pencil, Trash2, Upload, Plus, Check } from 'lucide-react';
 import type { PricingStructure, CatalogueItem } from '../types';
-import { LABEL_MAP, WOOD_CURVE_MODEL_IDS, WOOD_TYPE_MULTIPLIER, PLASWOOD_RAIL_SIZES } from '../constants';
+import { LABEL_MAP, WOOD_CURVE_MODEL_IDS, WOOD_TYPE_MULTIPLIER, PLASWOOD_RAIL_SIZES, WOOD_GLASS_TYPES, glassMarginKey } from '../constants';
+import { getGlassMarginPct } from '../lib/calculations';
 import { addCatalogueItem, updateCatalogueItem, deleteCatalogueItem, saveSortOrder } from '../lib/woodCatalogue';
 import { compressAndUpload } from '../lib/cloudinary';
 
@@ -738,19 +739,40 @@ export const AdminPriceEditor: React.FC<Props> = ({ currentPrices, catalogue, on
               <div className="bg-cyan-50 p-4 rounded-lg border border-cyan-200">
                 <h4 className="font-bold text-cyan-800 flex items-center gap-2">🔷 ตั้งราคากระจก (ต่อ ตร.ฟุต)</h4>
                 <p className="text-sm text-cyan-700 mt-1">
-                  แชร์ทั้งประตูไม้และวงกบไม้ · ค่ากระจก = พื้นที่(ตร.ฟุต) × ต้นทุน × (1+กำไร%) → ปัดขึ้นหลักร้อย
+                  แชร์ทั้งประตูไม้และวงกบไม้ · ค่ากระจก = พื้นที่(ตร.ฟุต) × ต้นทุน × (1+กำไร% ของชนิดนั้น) → ปัดขึ้นหลักร้อย
                 </p>
               </div>
               <div className="bg-white p-5 rounded-xl shadow-sm border">
-                {(['lon_yai_le244','lon_yai_gt244','lon_lek','clear_5','clear_6','tint_5','tint_6','margin_pct'] as const).map(key => {
-                  const value = localPrices.glass_rate?.[key] ?? 0;
+                <div className="flex items-center gap-2 px-2.5 pb-2 border-b text-xs font-bold text-slate-500">
+                  <span className="flex-1">ชนิดกระจก</span>
+                  <span className="w-28 text-right">ต้นทุน/ตร.ฟุต</span>
+                  <span className="w-20 text-right">กำไร (%)</span>
+                </div>
+                {WOOD_GLASS_TYPES.map(g => {
+                  const costRows = 'lengthTiered' in g
+                    ? [{ key: 'lon_yai_le244', label: 'ยาว ≤ 244cm' }, { key: 'lon_yai_gt244', label: 'ยาว > 244cm' }]
+                    : [{ key: g.rateKey, label: '' }];
+                  const marginKey = glassMarginKey(g.id);
+                  const marginValue = getGlassMarginPct(localPrices, g.id);
                   return (
-                    <div key={key} className="flex items-center gap-2 p-2.5 border-b last:border-0 hover:bg-slate-50 transition-colors">
-                      <span className="flex-1 text-sm font-medium text-slate-700">{LABEL_MAP[key] ?? key}</span>
+                    <div key={g.id} className="flex items-center gap-2 p-2.5 border-b last:border-0 hover:bg-slate-50 transition-colors">
+                      <span className="flex-1 text-sm font-medium text-slate-700">{g.label}</span>
+                      <div className="w-28 space-y-1.5">
+                        {costRows.map(r => (
+                          <div key={r.key}>
+                            {r.label && <div className="text-[11px] text-slate-400 text-right">{r.label}</div>}
+                            <input
+                              type="number" min={0} placeholder="0" value={inputVal(localPrices.glass_rate?.[r.key] ?? 0)}
+                              onChange={e => handlePriceChange('glass_rate', r.key, e.target.value)}
+                              className="w-full p-1.5 text-right border rounded text-sm font-semibold focus:ring-2 focus:ring-cyan-400 outline-none bg-white placeholder:text-slate-300 placeholder:font-normal"
+                            />
+                          </div>
+                        ))}
+                      </div>
                       <input
-                        type="number" min={0} placeholder="0" value={inputVal(value)}
-                        onChange={e => handlePriceChange('glass_rate', key, e.target.value)}
-                        className="w-28 p-1.5 text-right border rounded text-sm font-semibold focus:ring-2 focus:ring-cyan-400 outline-none bg-white placeholder:text-slate-300 placeholder:font-normal"
+                        type="number" min={0} placeholder="0" value={inputVal(marginValue)}
+                        onChange={e => handlePriceChange('glass_rate', marginKey, e.target.value)}
+                        className="w-20 p-1.5 text-right border rounded text-sm font-semibold text-emerald-700 focus:ring-2 focus:ring-cyan-400 outline-none bg-white placeholder:text-slate-300 placeholder:font-normal"
                       />
                     </div>
                   );
