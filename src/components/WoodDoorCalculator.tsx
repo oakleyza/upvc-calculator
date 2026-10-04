@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { TreePine, Maximize, Palette, ChevronDown, Gem } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { TreePine, Maximize, Palette, ChevronDown, Gem, X } from 'lucide-react';
 import type { WoodDoorFormData, CatalogueItem } from '../types';
 import { WOOD_TYPE_NAMES, WOOD_GLASS_TYPES } from '../constants';
 
@@ -23,7 +24,7 @@ const DoorPlaceholder: React.FC<{ className?: string }> = ({ className = '' }) =
 
 export const WoodDoorCalculator: React.FC<Props> = ({ form, onInput, catalogue }) => {
   const [modelOpen, setModelOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const selectedTileRef = useRef<HTMLButtonElement>(null);
 
   // form.modelId ยังคงเป็น legacyKey ('m1','m2'...) เพื่อ backward-compat กับระบบราคา
   // catalogue ใช้ legacyKey เป็น key lookup; รายการใหม่ที่ไม่มี legacyKey ใช้ id แทน
@@ -34,16 +35,18 @@ export const WoodDoorCalculator: React.FC<Props> = ({ form, onInput, catalogue }
   const selectedIdx   = selectedItem ? catalogue.indexOf(selectedItem) : -1;
   const selectedLabel = selectedItem?.name ?? form.modelId;
 
-  // ปิด dropdown เมื่อคลิกนอกกล่อง
+  // popup เลือกรุ่น: ล็อก scroll หน้าหลัง, กด Esc ปิด, เลื่อนไปรุ่นที่เลือกอยู่
   useEffect(() => {
     if (!modelOpen) return;
-    const handleClick = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setModelOpen(false);
-      }
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const handleKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setModelOpen(false); };
+    document.addEventListener('keydown', handleKey);
+    selectedTileRef.current?.scrollIntoView({ block: 'center' });
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.removeEventListener('keydown', handleKey);
     };
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
   }, [modelOpen]);
 
   // เปลี่ยนไปรุ่นที่ไม่มีกระจก → ล้างชนิด/ขนาดกระจก (รุ่นกระจกให้พนักงานเลือกเอง)
@@ -94,14 +97,14 @@ export const WoodDoorCalculator: React.FC<Props> = ({ form, onInput, catalogue }
             </select>
           </div>
 
-          {/* รุ่นประตู — custom dropdown พร้อมรูปและเลขลำดับ */}
+          {/* รุ่นประตู — กดแล้วเปิด popup เต็มจอ เป็นตารางรูป */}
           <div>
             <label className="block text-sm font-medium text-slate-600 mb-2">รุ่นประตู</label>
-            <div ref={dropdownRef} className="relative">
+            <div>
               {/* Button แสดงค่าที่เลือก */}
               <button
                 type="button"
-                onClick={() => setModelOpen(o => !o)}
+                onClick={() => setModelOpen(true)}
                 className="w-full flex items-center gap-3 p-2 border-2 rounded-lg bg-white hover:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400 transition-colors"
               >
                 {/* thumbnail รูป — key บังคับ remount ทุกครั้งที่เปลี่ยนรุ่น */}
@@ -114,28 +117,47 @@ export const WoodDoorCalculator: React.FC<Props> = ({ form, onInput, catalogue }
                 />
               </button>
 
-              {/* Dropdown list */}
-              {modelOpen && (
-                <div className="absolute z-50 mt-1 w-full bg-white border-2 border-amber-300 rounded-xl shadow-xl max-h-72 overflow-y-auto">
-                  {catalogue.map((item, idx) => (
+              {/* Popup เต็มจอ — ตารางรูปรุ่นประตู (มือถือ 3 รูป/แถว) */}
+              {modelOpen && createPortal(
+                <div className="fixed inset-0 z-50 flex flex-col bg-white">
+                  <div className="flex items-center justify-between gap-3 px-4 py-3 border-b bg-amber-50">
+                    <h3 className="text-base font-bold text-amber-900">เลือกรุ่นประตู ({catalogue.length} รุ่น)</h3>
                     <button
-                      key={item.id}
                       type="button"
-                      onClick={() => { onInput('modelId', item.legacyKey ?? item.id); setModelOpen(false); }}
-                      className={`w-full flex items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-amber-50 ${
-                        form.modelId === (item.legacyKey ?? item.id)
-                          ? 'bg-amber-50 font-semibold text-amber-800'
-                          : 'text-slate-700'
-                      }`}
+                      onClick={() => setModelOpen(false)}
+                      className="p-2 -mr-2 rounded-full text-slate-500 hover:bg-amber-100"
+                      aria-label="ปิด"
                     >
-                      <CatalogueThumb imageUrl={item.imageUrl} size="md" />
-                      <span className="text-sm leading-tight">
-                        <span className="font-bold text-amber-700 mr-1">{idx + 1}.</span>
-                        {item.name}
-                      </span>
+                      <X className="w-6 h-6" />
                     </button>
-                  ))}
-                </div>
+                  </div>
+                  <div className="flex-1 overflow-y-auto p-3">
+                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 sm:gap-3">
+                      {catalogue.map((item, idx) => {
+                        const key = item.legacyKey ?? item.id;
+                        const isSelected = form.modelId === key;
+                        return (
+                          <button
+                            key={item.id}
+                            ref={isSelected ? selectedTileRef : undefined}
+                            type="button"
+                            onClick={() => { onInput('modelId', key); setModelOpen(false); }}
+                            className={`flex flex-col rounded-lg border-2 p-1 text-left transition-colors ${
+                              isSelected ? 'border-amber-500 bg-amber-50' : 'border-slate-200 hover:border-amber-300'
+                            }`}
+                          >
+                            <CatalogueThumb imageUrl={item.imageUrl} size="tile" />
+                            <span className={`mt-1 px-0.5 text-xs leading-snug line-clamp-2 ${isSelected ? 'font-semibold text-amber-800' : 'text-slate-700'}`}>
+                              <span className="font-bold text-amber-700 mr-1">{idx + 1}.</span>
+                              {item.name}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>,
+                document.body,
               )}
             </div>
           </div>
@@ -271,13 +293,13 @@ export const WoodDoorCalculator: React.FC<Props> = ({ form, onInput, catalogue }
 };
 
 // ─── thumbnail helper ────────────────────────────────────────────────────────
-interface ThumbProps { imageUrl?: string; size: 'sm' | 'md'; }
+interface ThumbProps { imageUrl?: string; size: 'sm' | 'tile'; }
 
 const CatalogueThumb: React.FC<ThumbProps> = ({ imageUrl, size }) => {
   const [imgOk, setImgOk] = useState(true);
   const cls = size === 'sm'
     ? 'w-9 h-16 rounded flex-shrink-0'
-    : 'w-12 h-20 rounded flex-shrink-0';
+    : 'w-full aspect-[3/4] rounded';   // รูปรุ่นเป็นสัดส่วน 3:4
 
   if (!imageUrl || !imgOk) {
     return <DoorPlaceholder className={cls} />;
