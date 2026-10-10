@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FileText, Check, Loader2 } from 'lucide-react';
 import type { DoorFormData, FrameFormData, WoodDoorFormData, WoodFrameFormData, PlaswoodRailFormData, GlassFormData, PriceResult, CatalogueItem, PricingStructure } from '../types';
-import { LABEL_MAP, WOOD_TYPE_NAMES, WOOD_GLASS_NAMES, WOOD_FRAME_TYPE_NAMES, PLASWOOD_RAIL_SIZES, PLASWOOD_RAIL_FINISHES, FRAME_SHORT_NAMES, isFrameWithSub, frameSize } from '../constants';
+import { LABEL_MAP, WOOD_TYPE_NAMES, WOOD_GLASS_NAMES, WOOD_FRAME_TYPE_NAMES, PLASWOOD_RAIL_SIZES, PLASWOOD_RAIL_FINISHES, FRAME_SHORT_NAMES, isFrameWithSub, frameSize, frameOversize } from '../constants';
 import { calculateFramePrice, calculatePlaswoodRailPrice } from '../lib/calculations';
 
 // ─── Wood section with model image ──────────────────────────────────────────
@@ -86,7 +86,6 @@ const FINISH_STYLES: Record<FinishTone, { box: string; label: string; price: str
   svl:   { box: 'border-amber-300 bg-amber-50', label: 'text-amber-900', price: 'text-amber-700' },
   raw:   { box: 'border-slate-200 bg-slate-50', label: 'text-slate-600', price: 'text-slate-500' },
 };
-const FINISH_NA_STYLE = { box: 'border-slate-200 bg-slate-100', label: 'text-slate-400', price: 'text-slate-400' };
 
 const FinishCompare: React.FC<{
   title: string;
@@ -100,7 +99,7 @@ const FinishCompare: React.FC<{
     ) : (
       <div className="space-y-2">
         {rows.map(r => {
-          const st = r.price === null ? FINISH_NA_STYLE : FINISH_STYLES[r.tone];
+          const st = FINISH_STYLES[r.tone];   // แถวที่ใช้ไม่ได้ (–) ยังคงสีของแบบนั้น ให้ดูไม่งง
           return (
             <div key={r.tone} className={`flex justify-between items-center px-4 py-3 rounded-lg border ${st.box}`}>
               <span className={`text-sm font-semibold ${st.label}`}>{r.label}</span>
@@ -113,7 +112,7 @@ const FinishCompare: React.FC<{
   </div>
 );
 
-// วงกบ WPC: แสดงครบ 3 แบบทุกรุ่น — รุ่นที่ปิดผิวไม่ได้ (ไม่มีซับ ยกเว้น Big Six) แถว SVL เป็น –
+// วงกบ WPC: แสดงครบ 3 แบบทุกรุ่น — รุ่นที่ปิดผิวไม่ได้ (ไม่มีซับ ยกเว้น Big Six) แถว SVL เป็น – (สีอำพันเหมือนเดิม)
 const FRAME_FINISHES: { id: string; tone: FinishTone; label: string }[] = [
   { id: 'TOA',  tone: 'paint', label: 'พ่นสี TOA' },
   { id: 'SVL',  tone: 'svl',   label: 'ปิดผิว SVL' },
@@ -124,9 +123,27 @@ const FrameFinishCompare: React.FC<{ form: FrameFormData; prices: PricingStructu
   const { w, h } = frameSize(form);
   const hasSize = w > 0 && h > 0;
   const canSVL = isFrameWithSub(form.frameMaterial);
+  const name = FRAME_SHORT_NAMES[form.frameMaterial] ?? form.frameMaterial;
+
+  // ขนาดเกินที่รุ่นรองรับ → ไม่แสดงราคา (ราคาที่คำนวณได้จะผิด)
+  const oversize = frameOversize(form);
+  if (oversize) {
+    const over = [oversize.overW && 'กว้างเกิน', oversize.overH && 'สูงเกิน'].filter(Boolean).join(', ');
+    return (
+      <div className="pb-6 border-b">
+        <div className="p-4 rounded-lg border-2 border-red-300 bg-red-50 text-red-700 space-y-1">
+          <p className="font-bold">⚠ ขนาดเกินที่รุ่นนี้รองรับ</p>
+          <p className="text-sm">{name} สูงสุด {oversize.max.w}×{oversize.max.h} cm</p>
+          <p className="text-sm">ที่กรอก: {w}×{h} cm ({over})</p>
+          <p className="text-sm font-medium">กรุณาแก้ขนาดหรือเปลี่ยนรุ่น</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <FinishCompare
-      title={`ราคา ${FRAME_SHORT_NAMES[form.frameMaterial] ?? form.frameMaterial}${hasSize ? ` · ${w}×${h} cm` : ''}`}
+      title={`ราคา ${name}${hasSize ? ` · ${w}×${h} cm` : ''}`}
       emptyText={hasSize ? undefined : 'กรุณากรอกขนาดกว้าง × สูง'}
       rows={FRAME_FINISHES.map(f => ({
         tone: f.tone, label: f.label,

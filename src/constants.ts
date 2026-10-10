@@ -52,6 +52,21 @@ export const FRAME_SHORT_NAMES: Record<string, string> = {
   [FRAME_MATERIALS.WPC_5IN]:        '5 นิ้ว',
 };
 
+// ขนาดสูงสุด (วัดใน cm) ของวงกบ WPC แต่ละรุ่น
+export const frameMaxSize = (material: string): { w: number; h: number } => ({
+  w: material === FRAME_MATERIALS.ADJUST_X ? 90 : 180,
+  h: (material === FRAME_MATERIALS.F10 || material === FRAME_MATERIALS.ADJUST_X) ? 220 : 240,
+});
+
+// ขนาดเกินที่รุ่นรองรับไหม — ตรวจทุกครั้ง (ไม่ใช่แค่ตอนออกจากช่องกรอก)
+//   กันกรณีกรอกขนาดไว้กับรุ่นหนึ่ง แล้วเปลี่ยนเป็นรุ่นที่เล็กกว่า เช่น T2 240 → Adjust X (สูงสุด 220)
+export const frameOversize = (form: { frameMaterial: string; sizeType: string; customWidth: string; customHeight: string }) => {
+  const { w, h } = frameSize(form);
+  const max = frameMaxSize(form.frameMaterial);
+  const overW = w > max.w, overH = h > max.h;
+  return overW || overH ? { max, overW, overH } : null;
+};
+
 // ขนาดวงกบที่เลือก (cm) — preset '90x200cm' หรือ custom
 export const frameSize = (form: { sizeType: string; customWidth: string; customHeight: string }): { w: number; h: number } => {
   if (form.sizeType === 'custom') return { w: Number(form.customWidth) || 0, h: Number(form.customHeight) || 0 };

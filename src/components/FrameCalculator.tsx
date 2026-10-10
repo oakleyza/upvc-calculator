@@ -1,7 +1,7 @@
 import React from 'react';
 import { Maximize } from 'lucide-react';
 import type { FrameFormData } from '../types';
-import { FRAME_MATERIALS } from '../constants';
+import { FRAME_MATERIALS, frameMaxSize, frameOversize } from '../constants';
 
 interface Props {
   form: FrameFormData;
@@ -59,8 +59,8 @@ export const FrameCalculator: React.FC<Props> = ({ form, onInput }) => {
     }
   };
 
-  const maxW   = form.frameMaterial === FRAME_MATERIALS.ADJUST_X ? 90 : 180;
-  const maxH   = (form.frameMaterial === FRAME_MATERIALS.F10 || form.frameMaterial === FRAME_MATERIALS.ADJUST_X) ? 220 : 240;
+  const { w: maxW, h: maxH } = frameMaxSize(form.frameMaterial);
+  const oversize = frameOversize(form);   // เช็กสด — เปลี่ยนรุ่นแล้วขนาดเดิมเกินก็เตือน
 
   return (
     <div className="space-y-8">
@@ -103,16 +103,22 @@ export const FrameCalculator: React.FC<Props> = ({ form, onInput }) => {
                     กว้าง <span className="text-red-500">(45–{maxW} cm)</span>
                   </label>
                   <input type="number" value={form.customWidth} onChange={handleWidthChange} onBlur={handleWidthBlur}
-                    min={45} max={maxW} className="w-full p-2 border rounded" />
+                    min={45} max={maxW} className={`w-full p-2 border rounded ${oversize?.overW ? 'border-red-500 ring-2 ring-red-200 text-red-600' : ''}`} />
                 </div>
                 <div className="flex-1">
                   <label className="text-xs text-slate-600">
                     สูง <span className="text-red-500">(150–{maxH} cm)</span>
                   </label>
                   <input type="number" value={form.customHeight} onChange={handleHeightChange} onBlur={handleHeightBlur}
-                    min={150} max={maxH} className="w-full p-2 border rounded" />
+                    min={150} max={maxH} className={`w-full p-2 border rounded ${oversize?.overH ? 'border-red-500 ring-2 ring-red-200 text-red-600' : ''}`} />
                 </div>
               </div>
+            )}
+
+            {oversize && (
+              <p className="mt-3 p-3 rounded-lg border border-red-300 bg-red-50 text-sm text-red-700 font-medium">
+                ⚠ ขนาดเกินที่รุ่นนี้รองรับ (สูงสุด {oversize.max.w}×{oversize.max.h} cm) — กรุณาแก้ขนาดหรือเปลี่ยนรุ่น
+              </p>
             )}
           </div>
         </div>
