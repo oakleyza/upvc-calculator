@@ -86,10 +86,11 @@ const FINISH_STYLES: Record<FinishTone, { box: string; label: string; price: str
   svl:   { box: 'border-amber-300 bg-amber-50', label: 'text-amber-900', price: 'text-amber-700' },
   raw:   { box: 'border-slate-200 bg-slate-50', label: 'text-slate-600', price: 'text-slate-500' },
 };
+const FINISH_NA_STYLE = { box: 'border-slate-200 bg-slate-100', label: 'text-slate-400', price: 'text-slate-400' };
 
 const FinishCompare: React.FC<{
   title: string;
-  rows: { tone: FinishTone; label: string; price: number }[];
+  rows: { tone: FinishTone; label: string; price: number | null }[];   // null = แบบนี้ใช้ไม่ได้ → แสดง –
   emptyText?: string;   // แสดงแทนแถวราคา (เช่น ยังไม่กรอกขนาด)
 }> = ({ title, rows, emptyText }) => (
   <div className="pb-6 border-b">
@@ -98,22 +99,21 @@ const FinishCompare: React.FC<{
       <p className="text-sm text-slate-400 text-center">{emptyText}</p>
     ) : (
       <div className="space-y-2">
-        {rows.map(r => (
-          <div key={r.tone} className={`flex justify-between items-center px-4 py-3 rounded-lg border ${FINISH_STYLES[r.tone].box}`}>
-            <span className={`text-sm font-semibold ${FINISH_STYLES[r.tone].label}`}>{r.label}</span>
-            {r.price > 0 ? (
-              <span className={`text-2xl font-bold ${FINISH_STYLES[r.tone].price}`}>฿{r.price.toLocaleString()}</span>
-            ) : (
-              <span className="text-sm text-slate-400">ยังไม่ตั้งราคา</span>
-            )}
-          </div>
-        ))}
+        {rows.map(r => {
+          const st = r.price === null ? FINISH_NA_STYLE : FINISH_STYLES[r.tone];
+          return (
+            <div key={r.tone} className={`flex justify-between items-center px-4 py-3 rounded-lg border ${st.box}`}>
+              <span className={`text-sm font-semibold ${st.label}`}>{r.label}</span>
+              <span className={`text-2xl font-bold ${st.price}`}>{r.price === null ? '–' : `฿${r.price.toLocaleString()}`}</span>
+            </div>
+          );
+        })}
       </div>
     )}
   </div>
 );
 
-// วงกบ WPC: ไม่มีซับ → พ่นสี TOA / งานดิบ · มีซับ (+Big Six) → พ่นสี TOA / ปิดผิว SVL / งานดิบ
+// วงกบ WPC: แสดงครบ 3 แบบทุกรุ่น — รุ่นที่ปิดผิวไม่ได้ (ไม่มีซับ ยกเว้น Big Six) แถว SVL เป็น –
 const FRAME_FINISHES: { id: string; tone: FinishTone; label: string }[] = [
   { id: 'TOA',  tone: 'paint', label: 'พ่นสี TOA' },
   { id: 'SVL',  tone: 'svl',   label: 'ปิดผิว SVL' },
@@ -123,12 +123,15 @@ const FRAME_FINISHES: { id: string; tone: FinishTone; label: string }[] = [
 const FrameFinishCompare: React.FC<{ form: FrameFormData; prices: PricingStructure }> = ({ form, prices }) => {
   const { w, h } = frameSize(form);
   const hasSize = w > 0 && h > 0;
-  const finishes = FRAME_FINISHES.filter(f => f.id !== 'SVL' || isFrameWithSub(form.frameMaterial));
+  const canSVL = isFrameWithSub(form.frameMaterial);
   return (
     <FinishCompare
       title={`ราคา ${FRAME_SHORT_NAMES[form.frameMaterial] ?? form.frameMaterial}${hasSize ? ` · ${w}×${h} cm` : ''}`}
       emptyText={hasSize ? undefined : 'กรุณากรอกขนาดกว้าง × สูง'}
-      rows={finishes.map(f => ({ tone: f.tone, label: f.label, price: calculateFramePrice({ ...form, surfaceType: f.id }, prices).total }))}
+      rows={FRAME_FINISHES.map(f => ({
+        tone: f.tone, label: f.label,
+        price: f.id === 'SVL' && !canSVL ? null : calculateFramePrice({ ...form, surfaceType: f.id }, prices).total,
+      }))}
     />
   );
 };

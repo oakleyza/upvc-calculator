@@ -1,7 +1,7 @@
 import React from 'react';
-import { Maximize, Palette } from 'lucide-react';
+import { Maximize } from 'lucide-react';
 import type { FrameFormData } from '../types';
-import { FRAME_MATERIALS, isFrameWithSub } from '../constants';
+import { FRAME_MATERIALS } from '../constants';
 
 interface Props {
   form: FrameFormData;
@@ -59,7 +59,6 @@ export const FrameCalculator: React.FC<Props> = ({ form, onInput }) => {
     }
   };
 
-  const canSVL = isFrameWithSub(form.frameMaterial);
   const maxW   = form.frameMaterial === FRAME_MATERIALS.ADJUST_X ? 90 : 180;
   const maxH   = (form.frameMaterial === FRAME_MATERIALS.F10 || form.frameMaterial === FRAME_MATERIALS.ADJUST_X) ? 220 : 240;
 
@@ -116,33 +115,6 @@ export const FrameCalculator: React.FC<Props> = ({ form, onInput }) => {
               </div>
             )}
           </div>
-        </div>
-      </div>
-
-      {/* สีวงกบ */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-        <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
-          <Palette className="w-5 h-5 text-purple-600" /> สีวงกบ
-        </h3>
-        <div className="grid grid-cols-3 gap-4">
-          {(['TOA', 'SVL', 'none'] as const).map(t => {
-            const disabled = t === 'SVL' && !canSVL;
-            return (
-              <div key={t}
-                onClick={() => !disabled && onInput('surfaceType', t)}
-                className={`p-4 rounded-lg border-2 transition-all ${
-                  form.surfaceType === t ? 'border-purple-500 bg-purple-50' : 'border-slate-200'
-                } ${disabled ? 'opacity-40 cursor-not-allowed bg-slate-100' : 'cursor-pointer'}`}>
-                <label className="flex items-center gap-2 pointer-events-none">
-                  <div className={`w-4 h-4 rounded-full border-2 ${form.surfaceType === t ? 'bg-purple-500 border-purple-500' : 'border-slate-300'}`} />
-                  <span className="text-sm">
-                    {t === 'TOA' ? 'พ่นสี TOA' : t === 'SVL' ? 'ปิดผิว SVL' : 'ไม่ทำสี (งานดิบ)'}
-                  </span>
-                </label>
-                {disabled && <p className="text-[10px] text-red-500 mt-1">* เฉพาะรุ่นที่มีซับ</p>}
-              </div>
-            );
-          })}
         </div>
       </div>
 
