@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { FileText, Check, Loader2 } from 'lucide-react';
 import type { DoorFormData, FrameFormData, WoodDoorFormData, WoodFrameFormData, PlaswoodRailFormData, GlassFormData, PriceResult, CatalogueItem, PricingStructure } from '../types';
-import { LABEL_MAP, WOOD_TYPE_NAMES, WOOD_GLASS_NAMES, WOOD_FRAME_TYPE_NAMES, PLASWOOD_RAIL_SIZES, PLASWOOD_RAIL_FINISH_NAMES, FRAME_SHORT_NAMES, isFrameWithSub, frameSize } from '../constants';
-import { calculateFramePrice } from '../lib/calculations';
+import { LABEL_MAP, WOOD_TYPE_NAMES, WOOD_GLASS_NAMES, WOOD_FRAME_TYPE_NAMES, PLASWOOD_RAIL_SIZES, PLASWOOD_RAIL_FINISHES, FRAME_SHORT_NAMES, isFrameWithSub, frameSize } from '../constants';
+import { calculateFramePrice, calculatePlaswoodRailPrice } from '../lib/calculations';
 
 // ─── Wood section with model image ──────────────────────────────────────────
 const WoodSummarySection: React.FC<{ woodForm: WoodDoorFormData; catalogue: CatalogueItem[] }> = ({ woodForm, catalogue }) => {
@@ -78,40 +78,72 @@ const WoodSummarySection: React.FC<{ woodForm: WoodDoorFormData; catalogue: Cata
   );
 };
 
-// ─── วงกบ WPC: ราคาเทียบทุกแบบสี (แทนช่องราคาสุทธิ) ─────────────────────────
-//   ไม่มีซับ → พ่นสี TOA / งานดิบ · มีซับ → พ่นสี TOA / ปิดผิว SVL / งานดิบ
-const FRAME_FINISH_LABELS: Record<string, string> = { TOA: 'พ่นสี TOA', SVL: 'ปิดผิว SVL', none: 'งานดิบ (ไม่ทำสี)' };
+// ─── ราคาเทียบทุกแบบสี (แทนช่องราคาสุทธิ) — ใช้กับวงกบ WPC และบังราง ────────────
 // สีแยกแบบให้ดูง่าย: พ่นสี = ฟ้า · ปิดผิว (ลายไม้) = อำพัน · งานดิบ = เทา
-const FRAME_FINISH_STYLES: Record<string, { box: string; label: string; price: string }> = {
-  TOA:  { box: 'border-blue-200 bg-blue-50',   label: 'text-blue-800',  price: 'text-blue-600' },
-  SVL:  { box: 'border-amber-300 bg-amber-50', label: 'text-amber-900', price: 'text-amber-700' },
-  none: { box: 'border-slate-200 bg-slate-50', label: 'text-slate-600', price: 'text-slate-500' },
+type FinishTone = 'paint' | 'svl' | 'raw';
+const FINISH_STYLES: Record<FinishTone, { box: string; label: string; price: string }> = {
+  paint: { box: 'border-blue-200 bg-blue-50',   label: 'text-blue-800',  price: 'text-blue-600' },
+  svl:   { box: 'border-amber-300 bg-amber-50', label: 'text-amber-900', price: 'text-amber-700' },
+  raw:   { box: 'border-slate-200 bg-slate-50', label: 'text-slate-600', price: 'text-slate-500' },
 };
+
+const FinishCompare: React.FC<{
+  title: string;
+  rows: { tone: FinishTone; label: string; price: number }[];
+  emptyText?: string;   // แสดงแทนแถวราคา (เช่น ยังไม่กรอกขนาด)
+}> = ({ title, rows, emptyText }) => (
+  <div className="pb-6 border-b">
+    <p className="text-lg font-bold text-slate-900 mb-3 text-center leading-snug">{title}</p>
+    {emptyText ? (
+      <p className="text-sm text-slate-400 text-center">{emptyText}</p>
+    ) : (
+      <div className="space-y-2">
+        {rows.map(r => (
+          <div key={r.tone} className={`flex justify-between items-center px-4 py-3 rounded-lg border ${FINISH_STYLES[r.tone].box}`}>
+            <span className={`text-sm font-semibold ${FINISH_STYLES[r.tone].label}`}>{r.label}</span>
+            {r.price > 0 ? (
+              <span className={`text-2xl font-bold ${FINISH_STYLES[r.tone].price}`}>฿{r.price.toLocaleString()}</span>
+            ) : (
+              <span className="text-sm text-slate-400">ยังไม่ตั้งราคา</span>
+            )}
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+);
+
+// วงกบ WPC: ไม่มีซับ → พ่นสี TOA / งานดิบ · มีซับ (+Big Six) → พ่นสี TOA / ปิดผิว SVL / งานดิบ
+const FRAME_FINISHES: { id: string; tone: FinishTone; label: string }[] = [
+  { id: 'TOA',  tone: 'paint', label: 'พ่นสี TOA' },
+  { id: 'SVL',  tone: 'svl',   label: 'ปิดผิว SVL' },
+  { id: 'none', tone: 'raw',   label: 'งานดิบ (ไม่ทำสี)' },
+];
 
 const FrameFinishCompare: React.FC<{ form: FrameFormData; prices: PricingStructure }> = ({ form, prices }) => {
   const { w, h } = frameSize(form);
-  const finishes = isFrameWithSub(form.frameMaterial) ? ['TOA', 'SVL', 'none'] : ['TOA', 'none'];
-
+  const hasSize = w > 0 && h > 0;
+  const finishes = FRAME_FINISHES.filter(f => f.id !== 'SVL' || isFrameWithSub(form.frameMaterial));
   return (
-    <div className="pb-6 border-b">
-      <p className="text-slate-500 text-sm mb-3 text-center">
-        ราคา {FRAME_SHORT_NAMES[form.frameMaterial] ?? form.frameMaterial}{w > 0 && h > 0 ? ` · ${w}×${h} cm` : ''}
-      </p>
-      {w <= 0 || h <= 0 ? (
-        <p className="text-sm text-slate-400 text-center">กรุณากรอกขนาดกว้าง × สูง</p>
-      ) : (
-        <div className="space-y-2">
-          {finishes.map(t => (
-            <div key={t} className={`flex justify-between items-center px-4 py-3 rounded-lg border ${FRAME_FINISH_STYLES[t].box}`}>
-              <span className={`text-sm font-semibold ${FRAME_FINISH_STYLES[t].label}`}>{FRAME_FINISH_LABELS[t]}</span>
-              <span className={`text-2xl font-bold ${FRAME_FINISH_STYLES[t].price}`}>
-                ฿{calculateFramePrice({ ...form, surfaceType: t }, prices).total.toLocaleString()}
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+    <FinishCompare
+      title={`ราคา ${FRAME_SHORT_NAMES[form.frameMaterial] ?? form.frameMaterial}${hasSize ? ` · ${w}×${h} cm` : ''}`}
+      emptyText={hasSize ? undefined : 'กรุณากรอกขนาดกว้าง × สูง'}
+      rows={finishes.map(f => ({ tone: f.tone, label: f.label, price: calculateFramePrice({ ...form, surfaceType: f.id }, prices).total }))}
+    />
+  );
+};
+
+// บังราง Plaswood: พ่นสี TOA / ปิดผิว SVL / งานดิบ ของขนาดที่เลือก
+const PLASWOOD_TONES: Record<string, FinishTone> = { paint: 'paint', svl: 'svl', raw: 'raw' };
+
+const PlaswoodFinishCompare: React.FC<{ form: PlaswoodRailFormData; prices: PricingStructure }> = ({ form, prices }) => {
+  const size = PLASWOOD_RAIL_SIZES.find(s => s.id === form.sizeId);
+  return (
+    <FinishCompare
+      title={`ราคา บังราง Plaswood${size ? ` · ${size.label}` : ''}`}
+      emptyText={size ? undefined : 'กรุณาเลือกขนาดบังราง'}
+      rows={PLASWOOD_RAIL_FINISHES.map(f => ({ tone: PLASWOOD_TONES[f.id], label: f.label, price: calculatePlaswoodRailPrice({ ...form, finish: f.id }, prices).total }))}
+    />
   );
 };
 
@@ -172,9 +204,11 @@ export const PriceSummary: React.FC<Props> = ({
           </div>
         ) : (
           <div className="p-6 space-y-6">
-            {/* ราคารวม — วงกบ WPC แสดงราคาเทียบทุกแบบสีแทน */}
+            {/* ราคารวม — วงกบ WPC / บังราง แสดงราคาเทียบทุกแบบสีแทน */}
             {isFrame ? (
               <FrameFinishCompare form={frameForm} prices={prices} />
+            ) : isPlaswood ? (
+              <PlaswoodFinishCompare form={plaswoodForm} prices={prices} />
             ) : (
               <div className="text-center pb-6 border-b">
                 <p className="text-slate-500 text-sm mb-1">ราคาสุทธิ</p>
@@ -362,19 +396,6 @@ export const PriceSummary: React.FC<Props> = ({
                       {PLASWOOD_RAIL_SIZES.find(s => s.id === plaswoodForm.sizeId)?.label ?? plaswoodForm.sizeId}
                     </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">การทำสี</span>
-                    <span className={`font-medium ${plaswoodForm.finish !== 'raw' ? 'text-purple-700' : 'text-slate-400'}`}>
-                      {PLASWOOD_RAIL_FINISH_NAMES[plaswoodForm.finish] ?? plaswoodForm.finish}
-                    </span>
-                  </div>
-                  {priceResult.surcharges.length > 0 && (
-                    <div className="pt-2 mt-1 border-t border-slate-100 space-y-1">
-                      {priceResult.surcharges.map((s, i) => (
-                        <div key={i} className="text-xs text-slate-500">{s}</div>
-                      ))}
-                    </div>
-                  )}
                 </>
               )}
 
