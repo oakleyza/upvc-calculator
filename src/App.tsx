@@ -441,7 +441,6 @@ export default function App() {
             priceResult={priceResult}
             isPricesLoading={isPricesLoading}
             prices={prices}
-            onFrameInput={handleFrameInput}
           />
           )}
         </div>

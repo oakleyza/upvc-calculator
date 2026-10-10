@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Maximize, Palette } from 'lucide-react';
 import type { FrameFormData } from '../types';
-import { FRAME_MATERIALS, FRAME_WITH_SUB, FRAME_SHORT_NAMES, isFrameWithSub, frameMaxSize, frameSize, frameFits } from '../constants';
+import { FRAME_MATERIALS, isFrameWithSub } from '../constants';
 
 interface Props {
   form: FrameFormData;
@@ -9,9 +9,6 @@ interface Props {
 }
 
 export const FrameCalculator: React.FC<Props> = ({ form, onInput }) => {
-  // กด SVL ตอนเป็นรุ่นไม่มีซับ → เปิดตัวเลือกรุ่นมีซับ (เปลี่ยนรุ่น + ตั้ง SVL ในครั้งเดียว)
-  const [svlPickOpen, setSvlPickOpen] = useState(false);
-
   const handleWidthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const v = e.target.value;
     if (v === '') { onInput('customWidth', ''); return; }
@@ -63,20 +60,8 @@ export const FrameCalculator: React.FC<Props> = ({ form, onInput }) => {
   };
 
   const canSVL = isFrameWithSub(form.frameMaterial);
-  const { w: maxW, h: maxH } = frameMaxSize(form.frameMaterial);
-  const { w: curW, h: curH } = frameSize(form);
-
-  const handleSurfaceClick = (t: string) => {
-    if (t === 'SVL' && !canSVL) { setSvlPickOpen(o => !o); return; }
-    setSvlPickOpen(false);
-    onInput('surfaceType', t);
-  };
-
-  const switchToSvl = (material: string) => {
-    onInput('frameMaterial', material);
-    onInput('surfaceType', 'SVL');
-    setSvlPickOpen(false);
-  };
+  const maxW   = form.frameMaterial === FRAME_MATERIALS.ADJUST_X ? 90 : 180;
+  const maxH   = (form.frameMaterial === FRAME_MATERIALS.F10 || form.frameMaterial === FRAME_MATERIALS.ADJUST_X) ? 220 : 240;
 
   return (
     <div className="space-y-8">
@@ -141,54 +126,24 @@ export const FrameCalculator: React.FC<Props> = ({ form, onInput }) => {
         </h3>
         <div className="grid grid-cols-3 gap-4">
           {(['TOA', 'SVL', 'none'] as const).map(t => {
-            const needsSwitch = t === 'SVL' && !canSVL;
+            const disabled = t === 'SVL' && !canSVL;
             return (
               <div key={t}
-                onClick={() => handleSurfaceClick(t)}
-                className={`p-4 rounded-lg border-2 transition-all cursor-pointer ${
-                  form.surfaceType === t ? 'border-purple-500 bg-purple-50'
-                    : needsSwitch && svlPickOpen ? 'border-amber-400 bg-amber-50'
-                    : 'border-slate-200'
-                }`}>
+                onClick={() => !disabled && onInput('surfaceType', t)}
+                className={`p-4 rounded-lg border-2 transition-all ${
+                  form.surfaceType === t ? 'border-purple-500 bg-purple-50' : 'border-slate-200'
+                } ${disabled ? 'opacity-40 cursor-not-allowed bg-slate-100' : 'cursor-pointer'}`}>
                 <label className="flex items-center gap-2 pointer-events-none">
                   <div className={`w-4 h-4 rounded-full border-2 ${form.surfaceType === t ? 'bg-purple-500 border-purple-500' : 'border-slate-300'}`} />
                   <span className="text-sm">
                     {t === 'TOA' ? 'พ่นสี TOA' : t === 'SVL' ? 'ปิดผิว SVL' : 'ไม่ทำสี (งานดิบ)'}
                   </span>
                 </label>
-                {needsSwitch && <p className="text-[10px] text-amber-700 mt-1">* ต้องเปลี่ยนเป็นรุ่นมีซับ — กดเพื่อเลือก</p>}
+                {disabled && <p className="text-[10px] text-red-500 mt-1">* เฉพาะรุ่นที่มีซับ</p>}
               </div>
             );
           })}
         </div>
-
-        {/* ตัวเลือกรุ่นมีซับ — กดแล้วเปลี่ยนรุ่น + ตั้งปิดผิว SVL ทันที */}
-        {svlPickOpen && !canSVL && (
-          <div className="mt-4 p-4 rounded-lg border-2 border-amber-300 bg-amber-50">
-            <p className="text-sm font-medium text-amber-900 mb-3">
-              ปิดผิว SVL ใช้ได้เฉพาะวงกบมีซับ — เลือกรุ่นที่จะเปลี่ยนเป็น:
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              {FRAME_WITH_SUB.map(m => {
-                const fits = frameFits(m, curW, curH);
-                const max = frameMaxSize(m);
-                return (
-                  <button key={m} type="button" disabled={!fits}
-                    onClick={() => switchToSvl(m)}
-                    className={`p-3 rounded-lg border-2 text-left transition-all ${
-                      fits ? 'border-amber-300 bg-white hover:border-purple-500 hover:bg-purple-50'
-                        : 'border-slate-200 bg-slate-100 opacity-50 cursor-not-allowed'
-                    }`}>
-                    <span className="block text-sm font-bold text-slate-800">{FRAME_SHORT_NAMES[m]} + SVL</span>
-                    <span className={`block text-[11px] ${fits ? 'text-slate-500' : 'text-red-500'}`}>
-                      {fits ? `สูงสุด ${max.w}×${max.h}` : `ขนาดเกิน (สูงสุด ${max.w}×${max.h})`}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* เซาะร่องใส่ซีลยาง — เฉพาะ Adjust Eco */}

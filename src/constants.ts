@@ -41,7 +41,7 @@ export const FRAME_WITH_SUB: FrameMaterialKey[] = [
 export const isFrameWithSub = (material: string): boolean =>
   FRAME_WITH_SUB.includes(material as FrameMaterialKey);
 
-// ชื่อย่อรุ่นวงกบ WPC (ใช้ในปุ่มเลือกรุ่น/ตารางเทียบราคา)
+// ชื่อย่อรุ่นวงกบ WPC (ใช้ในราคาเทียบหน้าสรุป)
 export const FRAME_SHORT_NAMES: Record<string, string> = {
   [FRAME_MATERIALS.T2]:             'T2',
   [FRAME_MATERIALS.F10]:            'F10',
@@ -51,22 +51,11 @@ export const FRAME_SHORT_NAMES: Record<string, string> = {
   [FRAME_MATERIALS.WPC_5IN]:        '5 นิ้ว',
 };
 
-// ขนาดสูงสุด (วัดใน cm) ของวงกบ WPC แต่ละรุ่น
-export const frameMaxSize = (material: string): { w: number; h: number } => ({
-  w: material === FRAME_MATERIALS.ADJUST_X ? 90 : 180,
-  h: (material === FRAME_MATERIALS.F10 || material === FRAME_MATERIALS.ADJUST_X) ? 220 : 240,
-});
-
 // ขนาดวงกบที่เลือก (cm) — preset '90x200cm' หรือ custom
 export const frameSize = (form: { sizeType: string; customWidth: string; customHeight: string }): { w: number; h: number } => {
   if (form.sizeType === 'custom') return { w: Number(form.customWidth) || 0, h: Number(form.customHeight) || 0 };
   const m = form.sizeType.match(/(\d+)x(\d+)/);
   return { w: m ? Number(m[1]) : 0, h: m ? Number(m[2]) : 0 };
-};
-
-export const frameFits = (material: string, w: number, h: number): boolean => {
-  const max = frameMaxSize(material);
-  return w <= max.w && h <= max.h;
 };
 
 // ------------------------------------------------------------------

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FileText, Check, Loader2 } from 'lucide-react';
 import type { DoorFormData, FrameFormData, WoodDoorFormData, WoodFrameFormData, PlaswoodRailFormData, GlassFormData, PriceResult, CatalogueItem, PricingStructure } from '../types';
-import { LABEL_MAP, WOOD_TYPE_NAMES, WOOD_GLASS_NAMES, WOOD_FRAME_TYPE_NAMES, PLASWOOD_RAIL_SIZES, PLASWOOD_RAIL_FINISH_NAMES, FRAME_MATERIALS, FRAME_WITH_SUB, FRAME_SHORT_NAMES, isFrameWithSub, frameSize, frameFits } from '../constants';
+import { LABEL_MAP, WOOD_TYPE_NAMES, WOOD_GLASS_NAMES, WOOD_FRAME_TYPE_NAMES, PLASWOOD_RAIL_SIZES, PLASWOOD_RAIL_FINISH_NAMES, FRAME_SHORT_NAMES, isFrameWithSub, frameSize } from '../constants';
 import { calculateFramePrice } from '../lib/calculations';
 
 // ─── Wood section with model image ──────────────────────────────────────────
@@ -78,61 +78,33 @@ const WoodSummarySection: React.FC<{ woodForm: WoodDoorFormData; catalogue: Cata
   );
 };
 
-// ─── วงกบ WPC: เทียบราคาทุกแบบสี (กดแถวเพื่อเปลี่ยนเป็นแบบนั้น) ──────────────
-//   รุ่นไม่มีซับ → แถว SVL แสดงราคาของรุ่นมีซับแต่ละรุ่นที่ขนาดเดียวกัน
-const FRAME_FINISH_LABELS: Record<string, string> = { TOA: 'พ่นสี TOA', SVL: 'ปิดผิว SVL', none: 'งานดิบ' };
+// ─── วงกบ WPC: ราคาเทียบทุกแบบสี (แทนช่องราคาสุทธิ) ─────────────────────────
+//   ไม่มีซับ → พ่นสี TOA / งานดิบ · มีซับ → พ่นสี TOA / ปิดผิว SVL / งานดิบ
+const FRAME_FINISH_LABELS: Record<string, string> = { TOA: 'พ่นสี TOA', SVL: 'ปิดผิว SVL', none: 'งานดิบ (ไม่ทำสี)' };
 
-const FrameFinishCompare: React.FC<{
-  form: FrameFormData;
-  prices: PricingStructure;
-  onInput: (field: keyof FrameFormData, value: string | boolean) => void;
-}> = ({ form, prices, onInput }) => {
+const FrameFinishCompare: React.FC<{ form: FrameFormData; prices: PricingStructure }> = ({ form, prices }) => {
   const { w, h } = frameSize(form);
-  if (w <= 0 || h <= 0) return null;
-
-  const priceOf = (material: string, surfaceType: string) => calculateFramePrice({
-    ...form, frameMaterial: material, surfaceType,
-    rubberSeal: form.rubberSeal && material === FRAME_MATERIALS.ADJUST_ECO,
-  }, prices).total;
-
-  const rows: { key: string; label: string; price: number | null; active: boolean; onClick?: () => void }[] = [];
-  for (const t of ['TOA', 'SVL', 'none']) {
-    if (t === 'SVL' && !isFrameWithSub(form.frameMaterial)) {
-      for (const m of FRAME_WITH_SUB) {
-        const fits = frameFits(m, w, h);
-        rows.push({
-          key: `SVL_${m}`, label: `ปิดผิว SVL · ${FRAME_SHORT_NAMES[m]}`,
-          price: fits ? priceOf(m, 'SVL') : null, active: false,
-          onClick: fits ? () => { onInput('frameMaterial', m); onInput('surfaceType', 'SVL'); } : undefined,
-        });
-      }
-    } else {
-      rows.push({
-        key: t, label: FRAME_FINISH_LABELS[t], price: priceOf(form.frameMaterial, t),
-        active: form.surfaceType === t, onClick: () => onInput('surfaceType', t),
-      });
-    }
-  }
+  const finishes = isFrameWithSub(form.frameMaterial) ? ['TOA', 'SVL', 'none'] : ['TOA', 'none'];
 
   return (
     <div className="pb-6 border-b">
-      <p className="text-xs font-bold text-slate-500 mb-2">
-        เทียบราคาตามแบบสี · {FRAME_SHORT_NAMES[form.frameMaterial] ?? form.frameMaterial} {w}×{h}
+      <p className="text-slate-500 text-sm mb-3 text-center">
+        ราคา {FRAME_SHORT_NAMES[form.frameMaterial] ?? form.frameMaterial}{w > 0 && h > 0 ? ` · ${w}×${h} cm` : ''}
       </p>
-      <div className="space-y-1">
-        {rows.map(r => (
-          <button key={r.key} type="button" disabled={!r.onClick}
-            onClick={r.onClick}
-            className={`w-full flex justify-between items-center px-3 py-2 rounded-lg border text-sm transition-colors ${
-              r.active ? 'border-purple-500 bg-purple-50 font-semibold text-purple-800'
-                : r.onClick ? 'border-slate-200 hover:border-purple-300 hover:bg-purple-50 text-slate-700'
-                : 'border-slate-100 text-slate-400 cursor-not-allowed'
-            }`}>
-            <span className="text-left">{r.active ? '✓ ' : ''}{r.label}</span>
-            <span className="shrink-0 ml-2">{r.price === null ? 'ขนาดเกิน' : `฿${r.price.toLocaleString()}`}</span>
-          </button>
-        ))}
-      </div>
+      {w <= 0 || h <= 0 ? (
+        <p className="text-sm text-slate-400 text-center">กรุณากรอกขนาดกว้าง × สูง</p>
+      ) : (
+        <div className="space-y-2">
+          {finishes.map(t => (
+            <div key={t} className="flex justify-between items-center px-4 py-3 rounded-lg border border-slate-200 bg-slate-50">
+              <span className="text-sm font-medium text-slate-700">{FRAME_FINISH_LABELS[t]}</span>
+              <span className="text-2xl font-bold text-blue-600">
+                ฿{calculateFramePrice({ ...form, surfaceType: t }, prices).total.toLocaleString()}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
@@ -159,12 +131,11 @@ interface Props {
   priceResult: PriceResult;
   isPricesLoading: boolean;
   prices: PricingStructure;
-  onFrameInput: (field: keyof FrameFormData, value: string | boolean) => void;
 }
 
 export const PriceSummary: React.FC<Props> = ({
   activeTab, doorForm, frameForm, woodForm, woodFrameForm, plaswoodForm, glassForm, catalogue, priceResult, isPricesLoading,
-  prices, onFrameInput,
+  prices,
 }) => {
   const isDoor      = activeTab === 'exclusive';
   const isWood      = activeTab === 'wood';
@@ -195,15 +166,17 @@ export const PriceSummary: React.FC<Props> = ({
           </div>
         ) : (
           <div className="p-6 space-y-6">
-            {/* ราคารวม */}
-            <div className="text-center pb-6 border-b">
-              <p className="text-slate-500 text-sm mb-1">ราคาสุทธิ</p>
-              <div className="text-4xl font-bold text-blue-600">
-                ฿{priceResult.total.toLocaleString()}
+            {/* ราคารวม — วงกบ WPC แสดงราคาเทียบทุกแบบสีแทน */}
+            {isFrame ? (
+              <FrameFinishCompare form={frameForm} prices={prices} />
+            ) : (
+              <div className="text-center pb-6 border-b">
+                <p className="text-slate-500 text-sm mb-1">ราคาสุทธิ</p>
+                <div className="text-4xl font-bold text-blue-600">
+                  ฿{priceResult.total.toLocaleString()}
+                </div>
               </div>
-            </div>
-
-            {isFrame && <FrameFinishCompare form={frameForm} prices={prices} onInput={onFrameInput} />}
+            )}
 
             {/* รายละเอียด */}
             <div className="space-y-3 text-sm">
@@ -357,12 +330,6 @@ export const PriceSummary: React.FC<Props> = ({
                       {frameForm.sizeType === 'custom'
                         ? `${frameForm.customWidth}×${frameForm.customHeight} cm`
                         : frameForm.sizeType}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">สี</span>
-                    <span className="font-medium">
-                      {frameForm.surfaceType === 'none' ? 'ไม่ทำสี (งานดิบ)' : FRAME_FINISH_LABELS[frameForm.surfaceType] ?? frameForm.surfaceType}
                     </span>
                   </div>
                   {frameForm.rubberSeal && (
