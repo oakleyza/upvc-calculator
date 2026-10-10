@@ -81,6 +81,12 @@ const WoodSummarySection: React.FC<{ woodForm: WoodDoorFormData; catalogue: Cata
 // ─── วงกบ WPC: ราคาเทียบทุกแบบสี (แทนช่องราคาสุทธิ) ─────────────────────────
 //   ไม่มีซับ → พ่นสี TOA / งานดิบ · มีซับ → พ่นสี TOA / ปิดผิว SVL / งานดิบ
 const FRAME_FINISH_LABELS: Record<string, string> = { TOA: 'พ่นสี TOA', SVL: 'ปิดผิว SVL', none: 'งานดิบ (ไม่ทำสี)' };
+// สีแยกแบบให้ดูง่าย: พ่นสี = ฟ้า · ปิดผิว (ลายไม้) = อำพัน · งานดิบ = เทา
+const FRAME_FINISH_STYLES: Record<string, { box: string; label: string; price: string }> = {
+  TOA:  { box: 'border-blue-200 bg-blue-50',   label: 'text-blue-800',  price: 'text-blue-600' },
+  SVL:  { box: 'border-amber-300 bg-amber-50', label: 'text-amber-900', price: 'text-amber-700' },
+  none: { box: 'border-slate-200 bg-slate-50', label: 'text-slate-600', price: 'text-slate-500' },
+};
 
 const FrameFinishCompare: React.FC<{ form: FrameFormData; prices: PricingStructure }> = ({ form, prices }) => {
   const { w, h } = frameSize(form);
@@ -96,9 +102,9 @@ const FrameFinishCompare: React.FC<{ form: FrameFormData; prices: PricingStructu
       ) : (
         <div className="space-y-2">
           {finishes.map(t => (
-            <div key={t} className="flex justify-between items-center px-4 py-3 rounded-lg border border-slate-200 bg-slate-50">
-              <span className="text-sm font-medium text-slate-700">{FRAME_FINISH_LABELS[t]}</span>
-              <span className="text-2xl font-bold text-blue-600">
+            <div key={t} className={`flex justify-between items-center px-4 py-3 rounded-lg border ${FRAME_FINISH_STYLES[t].box}`}>
+              <span className={`text-sm font-semibold ${FRAME_FINISH_STYLES[t].label}`}>{FRAME_FINISH_LABELS[t]}</span>
+              <span className={`text-2xl font-bold ${FRAME_FINISH_STYLES[t].price}`}>
                 ฿{calculateFramePrice({ ...form, surfaceType: t }, prices).total.toLocaleString()}
               </span>
             </div>

@@ -31,7 +31,8 @@ export const FRAME_MATERIALS = {
 
 export type FrameMaterialKey = typeof FRAME_MATERIALS[keyof typeof FRAME_MATERIALS];
 
-// วงกบรุ่นที่มีซับ (สามารถเลือก SVL ได้)
+// วงกบรุ่นที่เลือกปิดผิว SVL ได้ = รุ่นมีซับ
+//   ยกเว้น Adjust Big Six — ไม่มีซับ แต่อนุญาตให้ปิดผิวได้ (จงใจ)
 export const FRAME_WITH_SUB: FrameMaterialKey[] = [
   FRAME_MATERIALS.ADJUST_X,
   FRAME_MATERIALS.ADJUST_ECO,
