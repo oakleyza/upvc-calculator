@@ -3,14 +3,14 @@ import { DoorOpen, Maximize, Settings, User, LogOut, Users, TreePine, Layers, Ru
 import { doc, setDoc, getDoc, onSnapshot } from 'firebase/firestore';
 
 import { db, isFirebaseConfigured } from './lib/firebase';
-import { loadSession, clearSession, secureHash, generateSalt } from './lib/auth';
+import { loadSession, clearSession } from './lib/auth';
 import { calculateDoorPrice, calculateFramePrice, calculateWoodDoorPrice, calculateWoodFramePrice, calculatePlaswoodRailPrice, calculateGlassPrice } from './lib/calculations';
 import { subscribeCatalogue } from './lib/woodCatalogue';
 
 import type { SessionUser, PricingStructure, DoorFormData, FrameFormData, WoodDoorFormData, WoodFrameFormData, PlaswoodRailFormData, GlassFormData, OpeningFormData, PriceResult, TabInfo, CatalogueItem } from './types';
 import {
   DEFAULT_PRICES, DEFAULT_DOOR_FORM, DEFAULT_FRAME_FORM, DEFAULT_WOOD_DOOR_FORM, DEFAULT_WOOD_FRAME_FORM,
-  DEFAULT_PLASWOOD_RAIL_FORM, DEFAULT_GLASS_FORM, DEFAULT_OPENING_FORM, DEFAULT_USERS_SEED, FRAME_MATERIALS,
+  DEFAULT_PLASWOOD_RAIL_FORM, DEFAULT_GLASS_FORM, DEFAULT_OPENING_FORM, FRAME_MATERIALS,
 } from './constants';
 
 import { LoginScreen }                from './components/LoginScreen';
@@ -43,7 +43,6 @@ export default function App() {
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [showUserPanel,  setShowUserPanel]  = useState(false);
   const [prices,         setPrices]         = useState<PricingStructure>(DEFAULT_PRICES);
-  const [isFirebaseReady,setIsFirebaseReady]= useState(false);
   const [isPricesLoading,setIsPricesLoading]= useState(true);
   const [permissionError,setPermissionError]= useState(false);
 
@@ -65,30 +64,15 @@ export default function App() {
     const session = loadSession();
     if (session) setCurrentUser(session);
 
-    // FIX: ถ้า Firebase ไม่ configured ให้ set ready=true ทันทีพร้อม error
-    // (แทนที่จะ stuck ที่ "กำลังเชื่อมต่อ..." ตลอดไป)
     if (!isFirebaseConfigured()) {
-      setIsFirebaseReady(true);
       setPermissionError(true);
       return;
     }
 
-    // B-5 FIX: seed users ก่อน แล้วค่อย setIsFirebaseReady(true)
+    // seed ราคาตั้งต้น (จำเป็นแค่ตอนติดตั้งครั้งแรก) — ทำเบื้องหลัง ไม่บล็อกปุ่ม login
+    //   (บัญชีผู้ใช้ไม่ seed จากโค้ดแล้ว — รหัสผ่านในโค้ดจะติดไปในไฟล์เว็บที่ใครก็อ่านได้)
     const initSystem = async () => {
       try {
-        for (const u of DEFAULT_USERS_SEED) {
-          const userRef  = doc(db!, 'users', u.id);
-          const userSnap = await getDoc(userRef);
-          if (!userSnap.exists()) {
-            const salt = generateSalt();
-            const hash = await secureHash(u.password, salt);
-            await setDoc(userRef, {
-              id: u.id, username: u.username,
-              passwordHash: hash, passwordSalt: salt,
-              name: u.name, role: u.role,
-            });
-          }
-        }
         const priceRef = doc(db!, 'config', 'prices');
         const priceDoc = await getDoc(priceRef);
         if (!priceDoc.exists()) await setDoc(priceRef, DEFAULT_PRICES);
@@ -97,9 +81,6 @@ export default function App() {
         // แจ้ง warning ทุกกรณี เพื่อให้ admin รู้ว่ามีปัญหาการเชื่อมต่อ
         setPermissionError(true);
         console.error('[initSystem] error:', fe.code ?? err);
-      } finally {
-        // B-5 FIX: ตั้ง ready หลัง seed เสร็จ (ไม่ใช่ก่อน)
-        setIsFirebaseReady(true);
       }
     };
     initSystem();
@@ -326,7 +307,6 @@ export default function App() {
     return (
       <LoginScreen
         onLogin={setCurrentUser}
-        isFirebaseReady={isFirebaseReady}
         permissionError={permissionError}
       />
     );

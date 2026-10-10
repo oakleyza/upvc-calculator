@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AlertCircle, Loader2 } from 'lucide-react';
-import { collection, query, where, getDocs, doc, setDoc } from 'firebase/firestore';
+import { collection, query, where, getDocsFromServer, doc, setDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import {
   secureHash, legacyHash, isLegacyHash, generateSalt,
@@ -11,11 +11,10 @@ import { LOGIN_MAX_ATTEMPTS, LOGIN_LOCKOUT_MS } from '../constants';
 
 interface Props {
   onLogin: (user: SessionUser) => void;
-  isFirebaseReady: boolean;
   permissionError: boolean;
 }
 
-export const LoginScreen: React.FC<Props> = ({ onLogin, isFirebaseReady, permissionError }) => {
+export const LoginScreen: React.FC<Props> = ({ onLogin, permissionError }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError]       = useState('');
@@ -33,14 +32,14 @@ export const LoginScreen: React.FC<Props> = ({ onLogin, isFirebaseReady, permiss
       return;
     }
 
-    if (!isFirebaseReady) { setError('ไม่สามารถเชื่อมต่อ Database ได้'); return; }
     if (!db) { setError('Firebase ไม่ได้รับการตั้งค่า — กรุณาตรวจสอบไฟล์ .env'); return; }
     setLoading(true);
 
     try {
       const usersRef = collection(db, 'users');
       const q = query(usersRef, where('username', '==', username));
-      const snapshot = await getDocs(q);
+      // FromServer: เน็ตหลุด → error ชัดเจน (getDocs ธรรมดาจะคืนผลว่างจาก cache → ขึ้นว่ารหัสผิด)
+      const snapshot = await getDocsFromServer(q);
 
       if (snapshot.empty) {
         recordFailedAttempt(username, LOGIN_MAX_ATTEMPTS, LOGIN_LOCKOUT_MS);
@@ -98,6 +97,7 @@ export const LoginScreen: React.FC<Props> = ({ onLogin, isFirebaseReady, permiss
     } catch (err: unknown) {
       const firebaseErr = err as { code?: string; message?: string };
       if (firebaseErr.code === 'permission-denied') setError('สิทธิ์การเข้าถึงถูกปฏิเสธ (Permission Denied)');
+      else if (firebaseErr.code === 'unavailable') setError('เชื่อมต่อฐานข้อมูลไม่ได้ — ตรวจสอบอินเทอร์เน็ตแล้วลองใหม่');
       else setError('เกิดข้อผิดพลาด: ' + (firebaseErr.message ?? 'Unknown error'));
     } finally {
       setLoading(false);
@@ -115,12 +115,6 @@ export const LoginScreen: React.FC<Props> = ({ onLogin, isFirebaseReady, permiss
         <h2 className="text-2xl font-bold text-center text-slate-800 mb-1">ระบบคำนวณราคาประตู</h2>
         <h3 className="text-lg font-medium text-center text-blue-600 mb-6">-กลางซอยค้าไม้-</h3>
 
-        {!isFirebaseReady && (
-          <div className="flex items-center gap-2 bg-yellow-50 border border-yellow-200 text-yellow-700 p-3 rounded-lg mb-4 text-sm">
-            <Loader2 className="w-4 h-4 animate-spin shrink-0" />
-            <span>กำลังเชื่อมต่อฐานข้อมูล...</span>
-          </div>
-        )}
         {permissionError && (
           <div className="bg-orange-50 border-l-4 border-orange-400 text-orange-700 p-4 mb-4 text-xs rounded">
             <p className="font-bold text-sm mb-1">⚠️ ข้อมูลราคาอาจโหลดไม่ครบ</p>
@@ -151,7 +145,7 @@ export const LoginScreen: React.FC<Props> = ({ onLogin, isFirebaseReady, permiss
             />
           </div>
           <button
-            type="submit" disabled={loading || !isFirebaseReady}
+            type="submit" disabled={loading}
             className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg"
           >
             {loading ? <><Loader2 className="w-4 h-4 animate-spin" />กำลังตรวจสอบ...</> : 'เข้าสู่ระบบ'}

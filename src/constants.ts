@@ -800,14 +800,6 @@ export const DEFAULT_OPENING_FORM: OpeningFormData = {
 };
 
 // ------------------------------------------------------------------
-// Default users seed (เก็บ plain-text สำหรับ seed ครั้งแรกเท่านั้น — จะ hash ก่อน save)
-// ------------------------------------------------------------------
-export const DEFAULT_USERS_SEED = [
-  { id: 'admin_01', username: 'admin',   password: '1234', name: 'Administrator', role: 'admin'  as const },
-  { id: 'staff_01', username: 'staff01', password: '1234', name: 'General Staff', role: 'staff' as const },
-];
-
-// ------------------------------------------------------------------
 // Session expiry
 // ------------------------------------------------------------------
 export const SESSION_EXPIRY_MS = 30 * 24 * 60 * 60 * 1000; // 30 วัน
